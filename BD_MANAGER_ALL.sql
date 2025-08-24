@@ -1,0 +1,16 @@
+CREATE DATABASE IF NOT EXISTS BD_MANEGER_ALL CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '495321';
+FLUSH PRIVILEGES;
+
+USE BD_MANEGER_ALL;
+
+CREATE TABLE IF NOT EXISTS professores (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    celular VARCHAR(20) NOT NULL,
+    senha VARCHAR(255) NOT NULL,
+    reset_password_token VARCHAR(255),
+    reset_password_expires DATETIME
+);
