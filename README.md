@@ -1,207 +1,135 @@
-🏛️ Fase 1: A Fundação — Planejamento, Arquitetura e Configuração (Sprint 0)
-💡 Princípio Chave: Medir duas vezes, cortar uma vez. Esta é a fase mais crucial. Um erro aqui pode custar semanas de retrabalho. O objetivo é criar um alicerce inabalável para todo o desenvolvimento futuro.
+Com base no "Documento de Visão" do Projeto Integrador 2, aqui está um guia detalhado, explicando passo a passo cada etapa mínima que sua equipe deve seguir para desenvolver o projeto "NotaDez" com sucesso.
 
-1.1. 🛠️ Montando o Arsenal de Desenvolvimento
-🎯 Missão Central: Padronizar o ambiente de desenvolvimento de TODA a equipe para eliminar o clássico problema: "Na minha máquina funciona!".
+### Fase 0: Preparação e Configuração do Ambiente
 
-🔍 Mergulho Profundo: A sincronia aqui é vital. Não se trata apenas de instalar softwares, mas de garantir que todos usem as mesmas versões e configurações para evitar conflitos e inconsistências.
+Esta é a fase inicial, onde você prepara tudo o que é necessário para começar o desenvolvimento.
 
-📦 Backend: Node.js (versão LTS) + TypeScript → A combinação para um código JavaScript mais seguro, escalável e manutenível.
+**Passo 1: Entender o Objetivo do Projeto**
+O objetivo central é criar um sistema chamado **NotaDez**. Este sistema servirá como uma ferramenta para que professores possam gerenciar as notas de suas turmas de forma eficiente. [cite_start]Ele deve permitir o gerenciamento de instituições, disciplinas, turmas, alunos e a composição das notas. [cite: 39]
 
-🎨 Frontend: HTML5 + CSS3 (Bootstrap opcional) → O esqueleto e a pele da nossa aplicação. Manter a base simples e limpa é o foco inicial.
+**Passo 2: Configurar o Repositório no GitHub**
+O controle de versão é fundamental. Vocês deverão usar o GitHub para armazenar o código e gerenciar as contribuições de cada membro.
 
-🗄️ Banco de Dados: MySQL, PostgreSQL ou Oracle → A escolha define como nossos dados serão armazenados e acessados. A decisão deve ser unânime no grupo.
+* **Criação do Repositório:** Crie um novo repositório no GitHub.
+* [cite_start]**Nomeação Correta:** O nome do repositório deve seguir um padrão obrigatório: `PI2-ANO-SEMESTRE-CURSO-TURMA-GRUPO`[cite: 43].
+    * **Exemplo:** `PI2-2025-1-ES-A-G1` (para o Grupo 1, da Turma A do curso de Engenharia de Software, no 1º semestre de 2025).
+* [cite_start]**Convidar o Professor:** Adicione o professor orientador como colaborador no seu repositório para que ele possa acompanhar o progresso do projeto. [cite: 46]
 
-✍️ IDEs: VS Code ou WebStorm → As nossas "oficinas" de código. A familiaridade do dev com a ferramenta acelera o processo.
+**Passo 3: Organização da Equipe e Fluxo de Trabalho**
+Para garantir que todos contribuam, é essencial definir um fluxo de trabalho.
 
-🔄 Controle de Versão: Git → O cérebro que memoriza cada alteração. Indispensável para o trabalho em equipe.
+* **Proteção da Branch Principal:** Configure a branch `main` (ou `master`) como protegida. Isso impede que alguém envie código diretamente para ela.
+* **Uso de Branches e Pull Requests:** Todo o desenvolvimento deve ser feito em branches separadas (ex: `feature/autenticacao`, `bugfix/login-error`). Quando uma tarefa for concluída, o desenvolvedor deve abrir um "Pull Request" (PR) para que outro membro da equipe revise o código antes de integrá-lo à branch `main`. [cite_start]Esta é uma regra obrigatória do projeto. [cite: 44]
 
-1.2. 🐙 O Santuário do Código: Repositório no GitHub
-🎯 Missão Central: Criar um repositório centralizado que siga regras estritas de organização e acesso, servindo como a única fonte da verdade para o código.
+**Passo 4: Apontamento de Esforço**
+O controle de tarefas e do esforço de cada membro é obrigatório.
 
-🔍 Mergulho Profundo: O nome do repositório não é um detalhe, é um identificador único para a sua avaliação. Seguir o padrão ES-PI2-ANO-TURMA-NUMERO-GRUPO é o primeiro teste de atenção aos detalhes do projeto.
+* **Configurar o GitHub Projects:** Usem a ferramenta "Projects" do GitHub para criar um quadro (Kanban, por exemplo) com colunas como "A Fazer", "Em Andamento" e "Concluído".
+* **Registrar Tarefas:** Cada requisito do projeto deve ser quebrado em tarefas menores e registrado como "issues" no GitHub. Cada issue deve ser atribuída a um membro da equipe e adicionada ao quadro do projeto. [cite_start]Isso permite registrar o esforço de cada um. [cite: 45]
 
-**📛 Ponto de Atenção Crítico: O não cumprimento da regra de nomeação resulta em penalidade direta. É uma regra simples com uma consequência séria.
+---
 
-🤝 Acesso Imediato: Convidar todos os membros e o orientador desde o Dia Zero garante transparência total e permite feedbacks antecipados.
+### Fase 1: Desenvolvimento dos Requisitos do Sistema
 
-1.3. 🗺️ O Mapa do Tesouro: Arquitetura e Modelo de Dados
-🎯 Missão Central: Desenhar o "blueprint" da aplicação. Definir como as informações se conectarão antes de escrever uma única linha de código de funcionalidade.
+Agora, vocês começarão a construir as funcionalidades do NotaDez.
 
-🔍 Mergulho Profundo: O Diagrama Entidade-Relacionamento (DER) é o mapa que guiará toda a construção do backend. Ele força a equipe a pensar nas regras de negócio e nos relacionamentos complexos, como:
+**Requisito 1: Autenticação**
+[cite_start]Esta é a porta de entrada do sistema. [cite: 39]
 
-Docentes ↔️ Instituições ↔️ Disciplinas ↔️ Turmas ↔️ Alunos
+* **Tela de Login:** Crie uma interface para que o usuário (professor) possa inserir suas credenciais (email e senha).
+* **Validação:** O sistema deve verificar se as credenciais estão corretas.
+* **Controle de Acesso:** Apenas usuários autenticados podem acessar as outras funcionalidades do sistema.
 
-Notas ↘️ ComponentesDeNota
+**Requisito 2: Gerenciamento de Instituições, Disciplinas e Turmas**
+[cite_start]O professor precisa organizar sua estrutura de trabalho. [cite: 39]
 
-LogsDeAuditoria 🕵️ (Observando tudo!)
+* **Funcionalidades CRUD:** Para cada um desses itens (Instituição, Disciplina, Turma), você deve implementar as quatro operações básicas:
+    1.  **Create (Criar):** Permitir que o professor cadastre novas instituições, disciplinas e turmas.
+    2.  **Read (Ler):** Listar todos os itens cadastrados.
+    3.  **Update (Atualizar):** Permitir a edição das informações de um item existente.
+    4.  **Delete (Excluir):** Permitir a remoção de um item.
 
-🚨 Alerta Estratégico: Investir tempo de qualidade aqui evita ter que demolir e reconstruir partes do banco de dados no meio do projeto.
+**Requisito 3: Cadastro e Importação de Alunos**
+[cite_start]Depois de criar uma turma, o próximo passo é adicionar os alunos. [cite: 40]
 
-1.4. 📊 Torre de Controle: Gerenciamento de Tarefas
-🎯 Missão Central: Tornar o trabalho visível. Configurar uma ferramenta que mostre o que está sendo feito, quem está fazendo e quanto esforço está sendo gasto.
+* **Cadastro Manual:** Crie um formulário para adicionar alunos um a um em uma turma, solicitando informações como nome, RA (Registro Acadêmico), etc.
+* **Importação em Massa:** Desenvolva uma funcionalidade que permita ao professor fazer o upload de um arquivo nos formatos `.CSV` ou `.JSON` contendo a lista de todos os alunos da turma. O sistema deve ler o arquivo e cadastrar todos os alunos de uma só vez.
 
-🔍 Mergulho Profundo: O GitHub Projects será o nosso "painel de controle". Ele não é um luxo, é uma exigência.
+**Requisito 4: Criação de Componentes de Nota**
+A nota final é composta por várias avaliações. [cite_start]Esta funcionalidade permite ao professor definir quais são elas. [cite: 40]
 
-Kanban  Kanban: Criar colunas como Backlog, A Fazer, Em Andamento e Concluído.
+* **Definir Componentes:** O professor deve poder criar diferentes "componentes" que formarão a nota, como "Prova 1", "Trabalho em Grupo", "Participação".
+* **Atribuir Pesos e Critérios:** Para cada componente, o professor poderá definir o peso que ele terá na nota final e o método de cálculo (por exemplo, média aritmética ou ponderada).
 
-⏳ Registro de Esforço: A obrigatoriedade de apontar as horas não é para microgerenciar, mas para medir a complexidade real das tarefas e ajudar a equipe a planejar melhor os próximos Sprints. Um projeto sem métricas é um projeto perdido.
+**Requisito 5: Apontar Notas dos Componentes**
+[cite_start]Com os alunos e os componentes de nota definidos, o professor precisa lançar as notas. [cite: 41]
 
-🏗️ Fase 2: O Esqueleto da Aplicação — Núcleo e Acesso (Sprint 1)
-💡 Princípio Chave: Construir os pilares antes de decorar a sala. Foco total nas funcionalidades que dão sustentação a todo o resto.
+* **Interface de Lançamento:** Desenvolva uma tela, provavelmente uma tabela ou planilha, onde o professor possa visualizar a lista de alunos de uma turma e inserir a nota de cada um para cada componente de nota criado.
 
-2.1. 🔑 Os Portões do Reino: Módulo de Autenticação
-🎯 Missão Central: Proteger o sistema. Garantir que apenas usuários autorizados (docentes) possam entrar e interagir com os dados.
+**Requisito 6: Painel de Auditoria**
+[cite_start]É crucial saber quem alterou as notas e quando. [cite: 41]
 
-🔍 Mergulho Profundo:
+* **Registro de Alterações:** Toda vez que uma nota for criada, alterada ou excluída, o sistema deve registrar:
+    * Qual nota foi alterada.
+    * O valor antigo e o valor novo.
+    * Qual usuário fez a alteração.
+    * A data e a hora da alteração.
+* **Visualização:** Crie uma tela onde seja possível visualizar esse histórico de alterações, com filtros por aluno, data ou usuário.
 
-🚪 Tela de Login: É a primeira impressão e a barreira inicial. Acesso anônimo é proibido. O sistema deve "nascer" trancado.
+**Requisito 7: Exportação de Notas**
+[cite_start]O professor pode precisar dos dados fora do sistema. [cite: 42]
 
-📝 Cadastro de Docente: Coletar as informações essenciais (Nome, e-mail, celular, senha). A segurança da senha (uso de hash) é implícita e obrigatória.
+* **Gerar Arquivos:** Crie uma função que permita exportar a planilha de notas final da turma para os formatos `.CSV` e `.JSON`.
 
-❓ "Esqueci a Senha": Uma funcionalidade de segurança e conveniência. O fluxo de envio de e-mail com link de reset é um mecanismo padrão da indústria e deve ser implementado de forma segura.
+---
 
-2.2. 🧱 Blocos Fundamentais: CRUDs Acadêmicos
-🎯 Missão Central: Dar ao docente o poder de criar e organizar a estrutura acadêmica básica: Instituições, Disciplinas e Turmas.
+### Fase 2: Desenvolvimento dos Requisitos de Desafio
 
-🔍 Mergulho Profundo: CRUD (Create, Read, Update, Delete) é o pão com manteiga do desenvolvimento de software. A implementação deve ser intuitiva para o usuário e robusta no backend, com APIs bem definidas para cada entidade. A associação entre elas (Disciplina pertence a um Curso, Turma pertence a uma Disciplina) é o ponto-chave aqui.
+Estes são requisitos mais complexos. [cite_start]O documento especifica que **os professores não darão suporte ou tirarão dúvidas** sobre como implementá-los, tratando-os como um desafio para a equipe. [cite: 41]
 
-2.3. 🔗 A Lógica das Correntes: Exclusão com Dependência
-🎯 Missão Central: Implementar uma regra de negócio crítica para garantir a integridade dos dados.
+**Desafio 1: Cálculo de Notas Finais**
+[cite_start]Esta funcionalidade automatiza o cálculo da nota final de cada aluno. [cite: 41]
 
-🔍 Mergulho Profundo: O sistema precisa ser inteligente. Ele não pode permitir que um docente "puxe o tapete" de dados interligados.
+* **Lógica de Cálculo:** O sistema deve, com base nos componentes de nota, seus pesos e métodos de cálculo definidos pelo professor, calcular automaticamente a nota final de cada aluno e exibi-la em uma coluna.
 
-Exemplo: Se uma Instituição possui Disciplinas, a tentativa de exclusão deve ser bloqueada com uma mensagem clara: "Erro: Impossível excluir. Existem disciplinas associadas a esta instituição."
+**Desafio 2: Coluna de Notas Finais Ajustadas**
+[cite_start]Às vezes, o professor precisa fazer um ajuste manual na nota final. [cite: 42]
 
-🧠 Pensamento Crítico: Esta regra previne a criação de "dados órfãos" no banco, um pesadelo para a manutenção.
+* **Coluna Editável:** Adicione uma coluna na planilha de notas que permita ao professor inserir manualmente um valor final para a nota, que pode ser diferente da nota calculada automaticamente. Isso pode ser usado para arredondamentos ou pontos extras, por exemplo.
 
-🧑‍🎓 Fase 3: O Coração Pulsante — Gestão de Alunos e Notas (Sprint 2)
-💡 Princípio Chave: Flexibilidade e robustez no gerenciamento de dados. Aqui lidamos com a parte mais dinâmica do sistema: pessoas e suas avaliações.
+---
 
-3.1. 👆 Gerenciamento Tático de Alunos (Manual)
-🎯 Missão Central: Oferecer ao docente controle total e manual sobre a lista de alunos de uma turma.
+### Fase 3: Regras e Boas Práticas Durante o Projeto
 
-🔍 Mergulho Profundo: A interface deve ser limpa e funcional, permitindo adicionar, editar e remover alunos um a um ou em massa (múltipla seleção para remoção), agilizando a gestão de turmas menores ou ajustes pontuais.
+Estas são regras que devem ser seguidas durante todo o ciclo de desenvolvimento.
 
-3.2. 📄 A Mágica da Importação em Lote
-🎯 Missão Central: Economizar o tempo precioso do docente, permitindo o cadastro de centenas de alunos de uma só vez através de arquivos.
+* **Comentários no Código:** O código-fonte deve ser bem comentado, explicando o que cada parte do sistema faz. [cite_start]Isso é fundamental para a manutenção e para que outros possam entender seu trabalho. [cite: 45]
+* [cite_start]**Participação nas Reuniões:** A presença e participação ativa nas reuniões de orientação com o professor são obrigatórias e fazem parte da avaliação. [cite: 45]
+* **Ambiente de Execução:** O projeto precisa ser compatível com os sistemas operacionais Windows, macOS e Linux. [cite_start]Além disso, ele deve ser executável em navegadores como Google Chrome e Firefox. [cite: 42]
 
-🔍 Mergulho Profundo:
+---
 
-🤖 Parser Inteligente (CSV & JSON): O desafio aqui é criar um processador de arquivos que seja ao mesmo tempo estrito e flexível.
+### Fase 4: Finalização e Entrega
 
-CSV: Simples e direto. Coluna 1 = ID, Coluna 2 = Nome. O resto é ignorado.
+Após o desenvolvimento, é hora de preparar o projeto para a entrega final.
 
-JSON: Mais complexo. O parser precisa "caçar" por chaves de identificação (matricula, id, código, RA) e de nome (nome, fullName, etc.). Isso mostra um nível de desenvolvimento mais avançado.
+**Passo 1: Criar o Arquivo README.md**
+Este é o manual do seu projeto. [cite_start]Ele é obrigatório e deve estar na raiz do repositório. [cite: 44]
 
-🛡️ Tratamento de Duplicatas: Regra de ouro da importação: nunca confie cegamente no arquivo. O sistema deve verificar se um ID já existe. Se sim, o registro do banco de dados tem prioridade, e o do arquivo é descartado. Isso evita a duplicação de alunos.
+* **Conteúdo Obrigatório:** O arquivo `README.md` deve conter:
+    1.  **Título do Projeto:** Ex: "Projeto NotaDez".
+    2.  **Descrição:** Uma breve explicação sobre o que o sistema faz.
+    3.  **Membros da Equipe:** Nome de todos os integrantes.
+    4.  **Tecnologias Utilizadas:** Liste as linguagens, frameworks e ferramentas usadas (ex: Node.js, React, etc.).
+    5.  **Como Executar o Projeto:** Um guia passo a passo para que qualquer pessoa possa baixar e rodar o seu projeto em sua própria máquina.
 
-3.3. 🧩 Peças do Quebra-Cabeça: Componentes de Nota
-🎯 Missão Central: Permitir que o docente defina a estrutura de avaliação da disciplina.
+**Passo 2: Criar a Release de Entrega**
+[cite_start]A entrega final não é apenas o código na branch `main`. [cite: 44]
 
-🔍 Mergulho Profundo: Os "componentes" (P1, Trabalho, Prova Final) são as variáveis que comporão a nota final. A interface de CRUD deve ser clara, associada à disciplina, e impor a regra de que as notas são numéricas, com duas casas decimais, no intervalo [0.00, 10.00].
+* **Gerar uma Release no GitHub:** Acesse a área de "Releases" do seu repositório no GitHub e crie uma nova versão final do projeto (ex: `v1.0.0`). Esta release marca oficialmente a versão de entrega do software.
 
-3.4. 💣 Ação Irreversível: Exclusão Crítica de Turma
-🎯 Missão Central: Criar um mecanismo de segurança de "dupla checagem" para uma ação destrutiva e perigosa.
+**Passo 3: Preparação para a Banca Avaliadora**
+[cite_start]A avaliação final será feita por uma banca. [cite: 46]
 
-🔍 Mergulho Profundo: Excluir uma turma com notas lançadas é como apertar o botão vermelho. O sistema deve tratar isso com a máxima seriedade:
-
-Tentativa de Exclusão: O docente clica em "excluir".
-
-Alerta & Pausa: O sistema detecta a presença de notas.
-
-✉️ Confirmação Externa: Um e-mail é enviado. A ação é pausada.
-
-Clique Final: A exclusão só acontece quando o link no e-mail é clicado.
-
-Consequência: A operação é irrevogável. Isso protege o docente contra cliques acidentais que poderiam apagar horas de trabalho.
-
-✨ Fase 4: O Cérebro da Operação — Lógica Avançada (Sprint 3)
-💡 Princípio Chave: Transformar dados em inteligência. Esta fase contém as funcionalidades que elevam o sistema de um simples CRUD para uma ferramenta poderosa.
-
-4.1. 🔢 A Planilha Inteligente: Quadro de Notas
-🎯 Missão Central: Criar uma interface de lançamento de notas que seja familiar (como uma planilha), mas com modos de edição controlados para evitar erros.
-
-🔍 Mergulho Profundo:
-
-Visualização Padrão: A tabela sempre abre em modo somente leitura. Isso previne alterações acidentais.
-
-Modos de Edição: O controle para alternar entre "edição por componente" (foco em uma prova) e "edição completa" (visão geral) é uma feature de usabilidade que dá flexibilidade e controle ao docente.
-
-4.2. 🕵️ O Olho Que Tudo Vê: Painel de Auditoria
-🎯 Missão Central: Garantir 100% de rastreabilidade sobre a informação mais sensível do sistema: as notas.
-
-🔍 Mergulho Profundo: Isso não é opcional, é essencial.
-
-Registro Automático: Qualquer INSERT ou UPDATE na tabela de notas deve gerar um log.
-
-Formato do Log: dd/mm/yyyy HH:MM:ss (Aluno João Silva) Nota de 5.0 para 5.5 modificada e salva. → Clareza e precisão são fundamentais.
-
-Interface: O painel exibe esses logs em ordem cronológica inversa (o mais recente primeiro), servindo como uma "caixa-preta" para resolver qualquer disputa ou dúvida sobre as notas.
-
-4.3. 🧠 O Desafio Supremo: Interpretador de Fórmulas
-🎯 Missão Central: Construir o motor de cálculo que interpreta a lógica matemática do docente e calcula automaticamente as notas finais.
-
-🔍 Mergulho Profundo: Este é o coração técnico do projeto.
-
-Entrada: Um simples campo de texto onde o docente escreve a fórmula, como (P1*0.4) + (P2*0.6).
-
-⚙️ O Parser (Analisador): O backend precisa:
-
-Validar a Sintaxe: A expressão matemática é válida? (P1+P2/ não é.
-
-Validar os Componentes: A fórmula usa a sigla P3, mas ela não foi cadastrada? A fórmula é inválida.
-
-Saída: Uma coluna de "Nota Final" na tabela, calculada em tempo real e somente leitura, mostrando o resultado da mágica.
-
-4.4. ⚖️ O Toque Final: Notas Finais Ajustadas
-🎯 Missão Central: Dar ao docente uma ferramenta opcional para aplicar arredondamentos padronizados, com a flexibilidade de ajuste manual.
-
-🔍 Mergulho Profundo:
-
-Habilitação Opcional: Um simples [Sim/Não] controla a visibilidade desta coluna.
-
-Cálculo Inicial Automático: O sistema aplica as regras de arredondamento para o 0.5 mais próximo (ex: 7.2 vira 7.0, 7.3 vira 7.5, 7.7 vira 7.5, 7.8 vira 8.0).
-
-Edição com Validação: O docente pode sobrescrever o valor, mas o sistema deve ser um guarda rigoroso, aceitando apenas valores que terminem em .0 ou .5.
-
-🏁 Fase 5: A Bandeirada Final — Polimento e Entrega (Sprint 4)
-💡 Princípio Chave: Um trabalho só termina quando está bem documentado, testado e pronto para ser apresentado. A qualidade da entrega é tão importante quanto a qualidade do código.
-
-5.1. 📜 A História do Código: Documentação
-🎯 Missão Central: Deixar o código legível e compreensível para outros desenvolvedores (incluindo a banca avaliadora).
-
-🔍 Mergulho Profundo:
-
-Comentários Inteligentes: Comentar o porquê de uma lógica complexa, não o o quê o código faz.
-
-Autoria: A regra de ter o nome do autor no topo de cada arquivo é sobre responsabilidade e orgulho pelo trabalho feito.
-
-5.2. 📖 O Manual de Instruções: Finalizar o README.md
-🎯 Missão Central: Criar um guia definitivo que permita que qualquer pessoa clone, configure e execute o projeto sem dor de cabeça.
-
-🔍 Mergulho Profundo: Este arquivo é a sua "venda" final. Ele deve conter um guia de implantação passo a passo, claro e à prova de erros. Se a banca não conseguir rodar o projeto, a avaliação será severamente prejudicada.
-
-5.3. 🧪 Prova de Fogo: Testes de Ponta a Ponta
-🎯 Missão Central: Caçar e destruir bugs. Simular o uso real da aplicação por um docente, do início ao fim do fluxo.
-
-🔍 Mergulho Profundo: Testar cada requisito funcional:
-
-O cadastro funciona?
-
-A importação de JSON com campos diferentes funciona?
-
-A fórmula (P1+P2)/2 calcula corretamente?
-
-A exclusão crítica envia o e-mail?
-
-Não deixar nada para a sorte.
-
-5.4. 📦 Empacotando para o Sucesso: Entrega Final
-🎯 Missão Central: Formalizar a versão final do software e preparar uma apresentação impecável.
-
-🔍 Mergulho Profundo:
-
-🏷️ Git Tag 1.0.0-final: Este comando é a "assinatura no contrato". Ele marca um ponto específico na história do código como a versão oficial de entrega.
-
-🎤 Preparação da Apresentação: O ambiente deve estar 100% funcional antes do dia da apresentação. Ter um "plano B" (ex: vídeo da aplicação rodando) é uma marca de profissionalismo para evitar desastres com imprevistos de última hora.
+* **Apresentação:** Prepare uma apresentação do sistema, demonstrando todas as funcionalidades implementadas.
+* **Defesa do Projeto:** Esteja preparado para responder a perguntas técnicas sobre o código, as decisões de arquitetura e o processo de desenvolvimento que a equipe seguiu.
