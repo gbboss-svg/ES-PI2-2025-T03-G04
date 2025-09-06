@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faça seu Cadastro</title>
+    <!-- Importando o Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Importando a fonte Inter do Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Usando a URL da imagem que você enviou */
+            background-image: url('backgroung-register.png');
+            background-repeat: repeat;
+        }
+        /* Estilo customizado para o gradiente do botão */
+        .btn-gradient {
+            background-image: linear-gradient(to right, #4f46e5, #7c3aed);
+        }
+        .error-message {
+            color: #ef4444; /* red-500 */
+            font-size: 0.875rem; /* text-sm */
+            margin-top: 0.5rem; /* mt-2 */
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Card de Cadastro -->
+    <div class="bg-black text-white w-full max-w-md p-8 sm:p-10 rounded-3xl shadow-2xl">
+        
+        <!-- Título -->
+        <h1 class="text-2xl sm:text-3xl font-bold text-center mb-8">
+            FAÇA SEU CADASTRO
+        </h1>
+        
+        <!-- Formulário -->
+        <form id="signup-form" action="#" method="POST" novalidate>
+            <div class="space-y-5">
+                <!-- Campo Nome -->
+                <div>
+                    <input type="text" name="name" id="name" placeholder="Nome" class="w-full p-4 bg-white text-gray-900 rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 text-center" required>
+                </div>
+                
+                <!-- Campo Email -->
+                <div>
+                    <input 
+                        type="email" 
+                        name="email" 
+                        id="email" 
+                        placeholder="Email" 
+                        class="w-full p-4 bg-white text-gray-900 rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 text-center" 
+                        required
+                        pattern=".+@(gmail\.com|outlook\.com|hotmail\.com)"
+                        title="Por favor, use um email @gmail.com, @outlook.com ou @hotmail.com">
+                </div>
+
+                <!-- Campo Telefone -->
+                <div>
+                    <input 
+                        type="text" 
+                        name="phone" 
+                        id="phone" 
+                        placeholder="Telefone" 
+                        class="w-full p-4 bg-white text-gray-900 rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 text-center"
+                        maxlength="19" 
+                        required>
+                </div>
+
+                <!-- Campo Senha -->
+                <div>
+                    <input 
+                        type="password" 
+                        name="password" 
+                        id="password" 
+                        placeholder="Senha" 
+                        class="w-full p-4 bg-white text-gray-900 rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 text-center" 
+                        required 
+                        minlength="6"
+                        title="A senha deve ter pelo menos 6 caracteres.">
+                </div>
+                 <div id="form-error" class="error-message"></div>
+
+                <!-- Botão de Verificação -->
+                <div>
+                    <button type="submit" class="w-full p-4 btn-gradient text-white font-bold rounded-xl hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-violet-500 transition-all duration-300 transform hover:scale-105">
+                        VERIFICAR
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        window.onload = function() {
+            document.body.style.zoom = "75%";
+        };
+
+        const phoneInput = document.getElementById('phone');
+        const signupForm = document.getElementById('signup-form');
+        const passwordInput = document.getElementById('password');
+        const emailInput = document.getElementById('email');
+        const formError = document.getElementById('form-error');
+
+        // Máscara para o campo de telefone
+        phoneInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é dígito
+            
+            if (value.length > 13) {
+                value = value.substring(0, 13);
+            }
+
+            let formattedValue = '';
+            if (value.length > 0) {
+                formattedValue = `+${value.substring(0, 2)}`;
+            }
+            if (value.length > 2) {
+                formattedValue = `+${value.substring(0, 2)} (${value.substring(2, 4)}`;
+            }
+            if (value.length > 4) {
+                 formattedValue += `) ${value.substring(4, 9)}`;
+            }
+            if (value.length > 9) {
+                formattedValue += `-${value.substring(9, 13)}`;
+            }
+            
+            e.target.value = formattedValue;
+        });
+        
+        // Validação do formulário no envio
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault(); // Impede o envio padrão do formulário
+            formError.textContent = ''; // Limpa erros anteriores
+
+            // Validação da Senha
+            if (passwordInput.value.length < 6) {
+                formError.textContent = 'A senha deve ter pelo menos 6 caracteres.';
+                passwordInput.focus();
+                return;
+            }
+
+            // Validação do Email
+            const emailPattern = new RegExp(emailInput.pattern);
+            if (!emailPattern.test(emailInput.value)) {
+                 formError.textContent = 'Por favor, use um email válido (@gmail.com, @outlook.com, @hotmail.com).';
+                 emailInput.focus();
+                 return;
+            }
+
+            // Validação do Telefone
+            const phoneRegex = /^\+55 \(\d{2}\) \d{5}-\d{4}$/;
+            if (!phoneRegex.test(phoneInput.value)) {
+                formError.textContent = 'Por favor, insira um número de telefone válido.';
+                phoneInput.focus();
+                return;
+            }
+            
+            // Se tudo estiver válido
+            alert('Cadastro enviado com sucesso!');
+            // Aqui você poderia adicionar o código para enviar os dados para um servidor
+            // signupForm.submit(); // Exemplo de como submeter o formulário de fato
+        });
+    </script>
+</body>
+</html>
