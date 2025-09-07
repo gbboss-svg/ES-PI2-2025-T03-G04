@@ -1,0 +1,18 @@
+body {
+    font-family: 'Inter', sans-serif;
+    /* Usando a URL da imagem que você enviou */
+    background-image: url('backgroung-register.png');
+    background-repeat: repeat;
+}
+
+/* Estilo customizado para o gradiente do botão */
+.btn-gradient {
+    background-image: linear-gradient(to right, #000000, #1007e9);
+}
+
+.error-message {
+    color: #ef4444; /* red-500 */
+    font-size: 0.875rem; /* text-sm */
+    margin-top: 0.5rem; /* mt-2 */
+    text-align: center;
+}
