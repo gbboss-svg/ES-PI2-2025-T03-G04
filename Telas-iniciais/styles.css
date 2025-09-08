@@ -1,14 +1,12 @@
 body {
     font-family: 'Inter', sans-serif;
-    /* Usando a URL da imagem que você enviou */
+    /* Usando a URL da imagem correta e ajustando o preenchimento */
     background-image: url('backgroung-register.png');
-    background-repeat: repeat;
+    background-size: cover;
+    background-position: center;
 }
 
-/* Estilo customizado para o gradiente do botão */
-.btn-gradient {
-    background-image: linear-gradient(to right, #000000, #1007e9);
-}
+/* O estilo do botão foi movido para as classes do Tailwind no HTML */
 
 .error-message {
     color: #ef4444; /* red-500 */

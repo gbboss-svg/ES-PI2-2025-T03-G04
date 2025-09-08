@@ -4,84 +4,71 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Faça seu Cadastro</title>
-    <!-- Importando o Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Importando a fonte Inter do Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Vinculando o arquivo CSS externo -->
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<body class="flex items-center justify-center min-h-screen p-4">
 
-    <!-- Card de Cadastro -->
-    <div class="bg-black text-white w-full max-w-md p-8 sm:p-10 rounded-3xl shadow-2xl">
+    <div class="text-gray-800 w-full max-w-lg p-8 sm:p-12 rounded-2xl">
         
-        <!-- Título -->
-        <h1 class="text-2xl sm:text-3xl font-bold text-center mb-8">
+        <h1 class="text-2xl font-bold text-center mb-10">
             FAÇA SEU CADASTRO
         </h1>
         
-        <!-- Formulário -->
         <form id="signup-form" action="#" method="POST" novalidate>
-            <div class="space-y-5">
-                <!-- Campo Nome -->
+            <div class="space-y-6">
                 <div>
-                    <input type="text" name="name" id="name" placeholder="Nome" class="w-full p-4 bg-white text-gray-900 rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 text-center" required>
+                    <input type="text" name="name" id="name" placeholder="NOME" class="w-full px-4 py-3 bg-white text-gray-800 rounded-full border-[6px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-300 text-center placeholder-gray-400" required>
                 </div>
                 
-                <!-- Campo Email -->
                 <div>
                     <input 
                         type="email" 
                         name="email" 
                         id="email" 
-                        placeholder="Email" 
-                        class="w-full p-4 bg-white text-gray-900 rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 text-center" 
+                        placeholder="EMAIL" 
+                        class="w-full px-4 py-3 bg-white text-gray-800 rounded-full border-[6px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-300 text-center placeholder-gray-400"
                         required
                         pattern=".+@(gmail\.com|outlook\.com|hotmail\.com)"
                         title="Por favor, use um email @gmail.com, @outlook.com ou @hotmail.com">
                 </div>
 
-                <!-- Campo Telefone -->
                 <div>
                     <input 
                         type="text" 
                         name="phone" 
                         id="phone" 
-                        placeholder="Telefone" 
-                        class="w-full p-4 bg-white text-gray-900 rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 text-center"
+                        placeholder="TELEFONE" 
+                        class="w-full px-4 py-3 bg-white text-gray-800 rounded-full border-[6px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-300 text-center placeholder-gray-400"
                         maxlength="19" 
                         required>
                 </div>
 
-                <!-- Campo Senha -->
                 <div>
                     <input 
                         type="password" 
                         name="password" 
                         id="password" 
-                        placeholder="Senha" 
-                        class="w-full p-4 bg-white text-gray-900 rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 text-center" 
+                        placeholder="SENHA" 
+                        class="w-full px-4 py-3 bg-white text-gray-800 rounded-full border-[6px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-300 text-center placeholder-gray-400"
                         required 
                         minlength="6"
                         title="A senha deve ter pelo menos 6 caracteres.">
                 </div>
                  <div id="form-error" class="error-message"></div>
 
-                <!-- Botão de Verificação -->
-                <div>
-                    <button type="submit" class="w-full p-4 btn-gradient text-white font-bold rounded-xl hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-violet-500 transition-all duration-300 transform hover:scale-105">
-                        VERIFICAR
+                <div class="text-center pt-4">
+                    <button type="submit" class="px-12 py-3 bg-green-500 text-white font-bold rounded-full hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300">
+                        CADASTRAR
                     </button>
                 </div>
             </div>
         </form>
     </div>
 
-    <!-- Vinculando o arquivo JavaScript externo -->
     <script src="script.js"></script>
 </body>
 </html>
-
