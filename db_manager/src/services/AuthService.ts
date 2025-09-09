@@ -2,6 +2,7 @@ import pool from '../database/db';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import EmailService from '../email/EmailService';
 
 class AuthService {
   async register(nome: string, email: string, celular: string, senha: string) {
@@ -12,10 +13,29 @@ class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(senha, 10);
+    const verificationCode = EmailService.generateVerificationCode();
 
     await pool.execute(
-      'INSERT INTO professores (nome, email, celular, senha) VALUES (?, ?, ?, ?)',
-      [nome, email, celular, hashedPassword]
+      'INSERT INTO professores (nome, email, celular, senha, verification_code) VALUES (?, ?, ?, ?, ?)',
+      [nome, email, celular, hashedPassword, verificationCode]
+    );
+
+    await EmailService.sendVerificationEmail(email, verificationCode);
+  }
+
+  async verifyEmail(email: string, code: string) {
+    const [rows]: any = await pool.execute(
+      'SELECT * FROM professores WHERE email = ? AND verification_code = ?',
+      [email, code]
+    );
+
+    if (rows.length === 0) {
+      throw new Error('Código de verificação inválido.');
+    }
+
+    await pool.execute(
+      'UPDATE professores SET is_verified = TRUE, verification_code = NULL WHERE email = ?',
+      [email]
     );
   }
 

@@ -45,6 +45,17 @@ class AuthController {
       return res.status(400).json({ error: error.message });
     }
   }
+
+  async verifyEmail(req: Request, res: Response) {
+    const { email, code } = req.body;
+
+    try {
+      await AuthService.verifyEmail(email, code);
+      return res.status(200).send({ message: 'E-mail verificado com sucesso!' });
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
 }
 
 export default new AuthController();

@@ -12,5 +12,7 @@ CREATE TABLE IF NOT EXISTS professores (
     celular VARCHAR(20) NOT NULL,
     senha VARCHAR(255) NOT NULL,
     reset_password_token VARCHAR(255),
-    reset_password_expires DATETIME
+    reset_password_expires DATETIME,
+    verification_code VARCHAR(6),
+    is_verified BOOLEAN DEFAULT FALSE
 );

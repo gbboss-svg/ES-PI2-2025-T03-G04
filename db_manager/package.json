@@ -11,10 +11,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/nodemailer": "^7.0.1",
     "bcrypt": "^5.1.1",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.10.1"
+    "mysql2": "^3.10.1",
+    "nodemailer": "^7.0.6"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
