@@ -1,0 +1,16 @@
+body {
+    font-family: 'Inter', sans-serif;
+    /* Usando a URL da imagem correta e ajustando o preenchimento */
+    background-image: url('backgroung-register.png');
+    background-size: cover;
+    background-position: center;
+}
+
+/* O estilo do botão foi movido para as classes do Tailwind no HTML */
+
+.error-message {
+    color: #ef4444; /* red-500 */
+    font-size: 0.875rem; /* text-sm */
+    margin-top: 0.5rem; /* mt-2 */
+    text-align: center;
+}
