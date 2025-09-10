@@ -1,16 +1,20 @@
-import nodemailer from 'nodemailer';
+import * as nodemailer from 'nodemailer';
 
 class EmailService {
   private transporter;
 
   constructor() {
-    // Configuração do Nodemailer com Mailtrap (substitua com suas credenciais)
+    // Configuração do Nodemailer com Gmail (substitua com suas credenciais)
     this.transporter = nodemailer.createTransport({
-      host: "sandbox.smtp.mailtrap.io",
-      port: 2525,
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // use TLS
       auth: {
-        user: "99354df86cb37a", // TROQUE PELO SEU USUÁRIO
-        pass: "d4e0688e4906d7"    // TROQUE PELA SUA SENHA
+        user: 'soparajogartf2@gmail.com', // Seu email do Gmail
+        pass: 'XIenowoal78481!!3!4!2!2!3!??xkan!!!rffXcsDfz1355555KSNZBNAnK121kxndkflmNCJKE' // Sua senha do Gmail ou senha de app
+      },
+      tls: {
+        rejectUnauthorized: false
       }
     });
   }
@@ -23,7 +27,7 @@ class EmailService {
   // Envia o e-mail de verificação
   async sendVerificationEmail(to: string, code: string) {
     const mailOptions = {
-      from: '"Seu App" <nao-responda@seuapp.com>',
+      from: '"Seu App" <soparajogartf2@gmail.com>', // Seu email do Gmail
       to: to,
       subject: 'Código de Verificação',
       html: `
