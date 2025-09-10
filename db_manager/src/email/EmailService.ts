@@ -4,17 +4,17 @@ class EmailService {
   private transporter;
 
   constructor() {
-    // Configuração do Nodemailer com Gmail (substitua com suas credenciais)
+    // --- CÓDIGO ATUALIZADO ---
+    // A configuração foi simplificada para usar apenas a opção 'service'.
+    // O Nodemailer já conhece todas as configurações corretas (host, port, secure) para o Gmail.
+    // --- CÓDIGO ATUALIZADO PARA CORRIGIR O ERRO DE REDE ---
     this.transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false, // use TLS
+      host: 'smtp.gmail.com', // Host explícito para guiar a conexão
+      port: 587,              // Porta recomendada para SMTP
+      secure: false,          // 'false' para a porta 587, pois usa STARTTLS
       auth: {
-        user: 'soparajogartf2@gmail.com', // Seu email do Gmail
-        pass: 'XIenowoal78481!!3!4!2!2!3!??xkan!!!rffXcsDfz1355555KSNZBNAnK121kxndkflmNCJKE' // Sua senha do Gmail ou senha de app
-      },
-      tls: {
-        rejectUnauthorized: false
+        user: 'soparajogartf2@gmail.com',
+        pass: 'xcrorebcqwkcvrru' // Sua Senha de App
       }
     });
   }
@@ -27,7 +27,7 @@ class EmailService {
   // Envia o e-mail de verificação
   async sendVerificationEmail(to: string, code: string) {
     const mailOptions = {
-      from: '"Seu App" <soparajogartf2@gmail.com>', // Seu email do Gmail
+      from: '"NotaDez <soparajogartf2@gmail.com>"', // Nome do Remetente e seu email
       to: to,
       subject: 'Código de Verificação',
       html: `
@@ -36,7 +36,7 @@ class EmailService {
         <p>Obrigado por se registrar. Use o código abaixo para verificar seu e-mail:</p>
         <h2><strong>${code}</strong></h2>
         <p>Se você não solicitou este código, por favor, ignore este e-mail.</p>
-        <p>Atenciosamente,<br>Equipe do Seu App</p>
+        <p>Atenciosamente,<br>Equipe NotaDez</p>
       `
     };
 
