@@ -1,0 +1,87 @@
+body {
+    font-family: 'Inter', sans-serif;
+    display: flex;              
+    align-items: center;        
+    justify-content: center;    
+    min-height: 100vh;          
+    padding: 1rem;     
+    background-image: url('backgroung-register.png');
+    background-size: cover;
+    background-position: center;
+}
+
+.container {
+  color: #1f2937;
+  width: 100%;
+  max-width: 32rem !important;
+  padding: 2rem;
+  border-radius: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding: 3rem;
+  }
+}
+
+h1 {
+  font-size: 1.5rem !important; 
+  font-weight: bold !important;
+  text-align: center !important;
+  margin-bottom: 2.5rem !important;
+}
+
+input[type="email"] {
+  width: 100%;                 
+  padding: 0.75rem 1rem;         
+  background-color: #ffffff;  
+  color: #1f2937;
+  border-radius: 9999px;
+  border: 6px solid #d1d5db;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+input[type="email"]::placeholder {
+  color: #9ca3af;
+}
+
+input[type="email"]:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow: 0 0 0 2px #22c55e;/
+}
+
+div.text-center {
+  text-align: center;
+  padding-top: 1rem;
+}
+
+button[type="submit"] {
+  padding: 0.75rem 3rem;
+  background-color: #22c55e;
+  color: #ffffff;
+  font-weight: bold;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+button[type="submit"]:hover {
+  background-color: #16a34a;
+}
+
+button[type="submit"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #22c55e, 
+              0 0 0 4px #ffffff;
+}
+
+.error-message {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+

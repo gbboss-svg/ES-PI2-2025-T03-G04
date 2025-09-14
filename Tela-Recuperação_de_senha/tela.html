@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperação de senha</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>ESQUECEU SUA SENHA?</h1>   
+
+
+        <form id="signup-form">
+            <div>
+                <input 
+                    type="email" 
+                    name="email" 
+                    id="email" 
+                    placeholder="DIGITE SEU EMAIL/NOME/CPF"
+                    required
+                    pattern=".+@(gmail\.com|outlook\.com|hotmail\.com)"
+                    title="Por favor, use um email @gmail.com, @outlook.com ou @hotmail.com">
+            </div>
+
+            <div id="form-error" class="error-message"></div>
+
+            <div class="text-center pt-4">
+                <button type="submit">ENVIAR</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
