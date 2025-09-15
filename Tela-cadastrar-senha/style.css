@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    
+    /* Mantém a imagem de fundo */
+    background-image: url('backgroung-register.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* ATUALIZADO: Card agora é transparente e sem bordas/sombras */
+.card {
+    background-color: transparent;
+    padding: 20px;
+    text-align: center;
+    width: 100%;
+    max-width: 450px;
+}
+
+h2 {
+    font-size: 1.5rem;
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 35px;
+    line-height: 1.4;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+/* ATUALIZADO: Borda mais espessa e com nova cor */
+input[type="password"] {
+    width: 100%;
+    padding: 20px 25px;
+    border: 5px solid #b0b0b0; /* Borda mais espessa e cinza */
+    border-radius: 50px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+    background-color: #fff;
+    transition: all 0.2s ease-in-out;
+}
+
+input[type="password"]::placeholder {
+    color: #999;
+}
+
+input[type="password"]:focus {
+    outline: none;
+    border-color: #333; /* Borda fica mais escura ao focar */
+    box-shadow: none; /* Remove a sombra ao focar */
+}
+
+.btn {
+    width: 75%;
+    padding: 20px;
+    border: none;
+    border-radius: 50px;
+    background-color: #00d363;
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 211, 99, 0.3);
+}
+
+.btn:hover {
+    background-color: #00b856;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 211, 99, 0.4);
+}
+
+#message {
+    margin-top: 20px;
+    font-weight: 600;
+    height: 20px;
+}
+
+.success { color: #00b856; }
+.error { color: #d93025; }
+
