@@ -85,3 +85,15 @@ button[type="submit"]:focus {
     text-align: center;
 }
 
+::placeholder { 
+  font-weight: bold;
+  
+}
+
+:-ms-input-placeholder { 
+  font-weight: bold;
+}
+
+::-ms-input-placeholder { 
+  font-weight: bold;
+}

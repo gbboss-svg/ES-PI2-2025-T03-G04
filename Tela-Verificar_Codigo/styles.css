@@ -97,3 +97,15 @@ button[type="submit"]:focus {
 .resend-btn:hover {
   color: #16a34a;
 }
+
+::placeholder { 
+  font-weight: bold;
+}
+
+:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  font-weight: bold;
+}
+
+::-ms-input-placeholder { /* Microsoft Edge */
+  font-weight: bold;
+}
