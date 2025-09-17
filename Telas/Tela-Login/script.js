@@ -2,25 +2,39 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('form-login');
     const usuarioInput = document.getElementById('usuario');
     const senhaInput = document.getElementById('senha');
+    const errorMessage = document.getElementById('error-message');
 
-    form.addEventListener('submit', function(event) {
-        // Impede o envio padrão do formulário
+    form.addEventListener('submit', async function(event) {
         event.preventDefault();
 
-        // Pega os valores dos campos, removendo espaços em branco
-        const usuarioValue = usuarioInput.value.trim();
-        const senhaValue = senhaInput.value.trim();
+        const email = usuarioInput.value.trim();
+        const senha = senhaInput.value.trim();
 
-        // Verifica se os campos estão vazios
-        if (usuarioValue === '' || senhaValue === '') {
-            alert('Por favor, preencha todos os campos.');
-        } else {
-            // Se tudo estiver certo, exibe uma mensagem de sucesso
-            // Em um caso real, aqui você enviaria os dados para o servidor
-            alert(`Acesso solicitado para: ${usuarioValue}`);
-            
-            // Aqui você pode redirecionar o usuário ou limpar o formulário
-            // form.submit(); // para enviar de verdade
+        if (email === '' || senha === '') {
+            errorMessage.textContent = 'Por favor, preencha todos os campos.';
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:3333/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, senha })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                errorMessage.textContent = data.message || 'Ocorreu um erro.';
+            } else {
+                // Salva o token e redireciona
+                localStorage.setItem('token', data.token);
+                window.location.href = '/dashboard'; // Redirecionar para a página principal
+            }
+        } catch (error) {
+            errorMessage.textContent = 'Não foi possível conectar ao servidor.';
         }
     });
 });
