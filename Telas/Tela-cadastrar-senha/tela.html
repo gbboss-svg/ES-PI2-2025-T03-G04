@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Nova Senha</title>
+    
+    <link rel="icon" href="logo-favicon.jpg" type="image/jpeg">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>CADASTRE SUA<br>NOVA SENHA</h1>
+        <form id="reset-password-form" novalidate>
+            <div class="input-group">
+                <input type="password" id="new-password" placeholder="DIGITE SUA NOVA SENHA" required>
+            </div>
+            
+            <div class="input-group">
+                <input type="password" id="confirm-password" placeholder="CONFIRME SUA SENHA" required>
+            </div>
+            
+            <div class="text-center">
+                <button type="submit">ATUALIZAR SENHA</button>
+            </div>
+        </form>
+        <p id="message"></p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
