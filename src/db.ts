@@ -1,12 +1,8 @@
 import oracledb from "oracledb";
-import dotenv from "dotenv";
-
-dotenv.config();
-
 export async function getConnection() {
   return await oracledb.getConnection({
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    connectString: process.env.DB_CONN 
+    user: "BD040825126",
+    password: "Osmyk3",
+    connectString: "BD-ACD:1521/xe" 
   });
 }

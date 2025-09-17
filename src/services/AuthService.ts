@@ -51,7 +51,7 @@ class AuthService {
       throw new Error("E-mail ou senha inválidos");
     }
 
-    const token = jwt.sign({ id: user.ID }, process.env.JWT_SECRET as string, {
+    const token = jwt.sign({ id: user.ID }, "your-super-secret-key", {
       expiresIn: "1h",
     });
 
