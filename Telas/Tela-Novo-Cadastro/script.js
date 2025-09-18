@@ -2,6 +2,7 @@ const phoneInput = document.getElementById('phone');
 const signupForm = document.getElementById('signup-form');
 const passwordInput = document.getElementById('password');
 const emailInput = document.getElementById('email');
+const nameInput = document.getElementById('name');
 const formError = document.getElementById('form-error');
 
 // Máscara para o campo de telefone
@@ -30,7 +31,7 @@ phoneInput.addEventListener('input', (e) => {
 });
 
 // Validação do formulário no envio
-signupForm.addEventListener('submit', (e) => {
+signupForm.addEventListener('submit', async (e) => {
     e.preventDefault(); // Impede o envio padrão do formulário
     formError.textContent = ''; // Limpa erros anteriores
 
@@ -57,8 +58,31 @@ signupForm.addEventListener('submit', (e) => {
         return;
     }
     
-    // Se tudo estiver válido
-    alert('Cadastro enviado com sucesso!');
-    // Aqui você poderia adicionar o código para enviar os dados para um servidor
-    // signupForm.submit(); // Exemplo de como submeter o formulário de fato
+    // Se tudo estiver válido, envia para o servidor
+    try {
+        const response = await fetch('http://localhost:3333/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                nome: nameInput.value,
+                email: emailInput.value,
+                celular: phoneInput.value,
+                senha: passwordInput.value
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Erro ao cadastrar.');
+        }
+
+        // Salva o e-mail para a próxima tela e redireciona
+        localStorage.setItem('userEmailForVerification', emailInput.value);
+        window.location.href = '../Tela-Verificação-Código-Para-Registro/tela.html';
+
+    } catch (error) {
+        formError.textContent = error.message;
+    }
 });

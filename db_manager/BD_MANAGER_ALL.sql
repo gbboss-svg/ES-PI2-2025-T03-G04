@@ -9,6 +9,8 @@ CREATE TABLE professores (
   senha VARCHAR2(255) NOT NULL,
   is_verified NUMBER(1) DEFAULT 0 CHECK (is_verified IN (0, 1)),
   verification_code VARCHAR2(6),
+  verification_attempts NUMBER(1) DEFAULT 0,
+  resend_attempts NUMBER(1) DEFAULT 0,
   reset_password_token VARCHAR2(255),
   reset_password_expires TIMESTAMP,
   data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP

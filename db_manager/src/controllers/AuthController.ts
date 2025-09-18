@@ -21,8 +21,8 @@ class AuthController {
   }
 
   async resetPassword(req: Request, res: Response) {
-    const { token, senha } = req.body;
-    await AuthService.resetPassword(token, senha);
+    const { email, novaSenha } = req.body;
+    await AuthService.resetPassword(email, novaSenha);
     return res.send();
   }
 
@@ -30,6 +30,12 @@ class AuthController {
     const { email, code } = req.body;
     await AuthService.verifyEmail(email, code);
     return res.status(200).send({ message: 'E-mail verificado com sucesso!' });
+  }
+
+  async resendVerificationEmail(req: Request, res: Response) {
+    const { email } = req.body;
+    await AuthService.resendVerificationEmail(email);
+    return res.status(200).send({ message: 'E-mail de verificação reenviado.' });
   }
 }
 

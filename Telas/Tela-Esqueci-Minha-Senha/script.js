@@ -1,21 +1,36 @@
-const signupForm = document.getElementById('signup-form');
-const emailInput = document.getElementById('email');
-const formError = document.getElementById('form-error');
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('signup-form');
+    const emailInput = document.getElementById('email');
+    const formError = document.getElementById('form-error');
 
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        formError.textContent = '';
 
-// Validação do formulário no envio
-signupForm.addEventListener('submit', (e) => {
-    e.preventDefault(); // Impede o envio padrão do formulário
-    formError.textContent = ''; // Limpa erros anteriores
+        const email = emailInput.value.trim();
+        if (!email) {
+            formError.textContent = 'Por favor, insira seu e-mail.';
+            return;
+        }
 
-    // Validação do Email
-    const emailPattern = new RegExp(emailInput.pattern);
-    if (!emailPattern.test(emailInput.value)) {
-         formError.textContent = 'Por favor, use um email válido (@gmail.com, @outlook.com, @hotmail.com).';
-         emailInput.focus();
-         return;
-    }
-    
-    // Se tudo estiver válido
-    alert('Email de recuperação enviado com sucesso!');
+        try {
+            const response = await fetch('http://localhost:3333/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Erro ao solicitar a recuperação de senha.');
+            }
+
+            // Salva o e-mail para as próximas telas e redireciona
+            localStorage.setItem('userEmailForReset', email);
+            window.location.href = '../Tela-Verificar-Código/tela.html';
+
+        } catch (error) {
+            formError.textContent = error.message;
+        }
+    });
 });

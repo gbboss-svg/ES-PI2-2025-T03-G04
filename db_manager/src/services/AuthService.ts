@@ -11,7 +11,7 @@ class AuthService {
     try {
       conn = await getConnection();
       const result = await conn.execute(
-        `SELECT * FROM professores WHERE email = :email`,
+        `SELECT * FROM PROFESSORES WHERE EMAIL = :email`,
         { email },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
@@ -24,7 +24,7 @@ class AuthService {
       const verificationCode = EmailService.generateVerificationCode();
 
       await conn.execute(
-        `INSERT INTO professores (nome, email, celular, senha, verification_code) VALUES (:nome, :email, :celular, :senha, :verificationCode)`,
+        `INSERT INTO PROFESSORES (NOME, EMAIL, CELULAR, SENHA, VERIFICATION_CODE) VALUES (:nome, :email, :celular, :senha, :verificationCode)`,
         { nome, email, celular, senha: hashedPassword, verificationCode },
         { autoCommit: true }
       );
@@ -32,7 +32,7 @@ class AuthService {
       await EmailService.sendVerificationEmail(email, verificationCode);
     } finally {
       if (conn) {
-        await conn.close(); // Libera a conexão
+        await conn.close();
       }
     }
   }
@@ -42,24 +42,91 @@ class AuthService {
     try {
       conn = await getConnection();
       const result = await conn.execute(
-        `SELECT * FROM professores WHERE email = :email AND verification_code = :code`,
-        { email, code },
+        `SELECT * FROM PROFESSORES WHERE EMAIL = :email`,
+        { email },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
-
-      if (!result.rows || result.rows.length === 0) {
+      
+      const rows = result.rows as any[];
+      if (!rows || rows.length === 0) {
+        // Mesmo que o usuário não seja encontrado, retornamos uma mensagem genérica
+        // para não revelar se um e-mail está ou não cadastrado.
         throw new Error('Código de verificação inválido.');
       }
 
-      await conn.execute(
-        `UPDATE professores SET is_verified = 1, verification_code = NULL WHERE email = :email`,
-        { email },
-        { autoCommit: true }
-      );
+      const user = rows[0];
+
+      // Se o código estiver correto, verificamos o usuário e terminamos.
+      if (user.VERIFICATION_CODE === code) {
+        await conn.execute(
+          `UPDATE PROFESSORES SET IS_VERIFIED = 1, VERIFICATION_CODE = NULL, VERIFICATION_ATTEMPTS = 0 WHERE EMAIL = :email`,
+          { email },
+          { autoCommit: true }
+        );
+        return; // Sucesso
+      }
+
+      // Se o código estiver incorreto, incrementamos a tentativa.
+      const newAttempts = user.VERIFICATION_ATTEMPTS + 1;
+
+      // Se o novo número de tentativas for 3 ou mais, bloqueamos.
+      if (newAttempts >= 3) {
+        // Para um novo cadastro, deletamos. Para um reset, apenas bloqueamos.
+        const userIsVerified = user.IS_VERIFIED === 1;
+        if (!userIsVerified) {
+            await conn.execute(`DELETE FROM PROFESSORES WHERE EMAIL = :email`, { email }, { autoCommit: true });
+        }
+        // Lançamos um erro especial que o frontend pode identificar.
+        throw new Error('MAX_ATTEMPTS_REACHED');
+      } else {
+        // Se não, apenas atualizamos o contador.
+        await conn.execute(
+          `UPDATE PROFESSORES SET VERIFICATION_ATTEMPTS = :newAttempts WHERE EMAIL = :email`,
+          { newAttempts, email },
+          { autoCommit: true }
+        );
+        throw new Error('Código de verificação inválido.');
+      }
     } finally {
       if (conn) {
         await conn.close();
       }
+    }
+  }
+
+  async resendVerificationEmail(email: string) {
+    let conn;
+    try {
+        conn = await getConnection();
+        const result = await conn.execute(
+            `SELECT * FROM PROFESSORES WHERE EMAIL = :email`,
+            { email },
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+
+        const rows = result.rows as any[];
+        if (!rows || rows.length === 0) {
+            throw new Error('Usuário não encontrado.');
+        }
+
+        const user = rows[0];
+
+        if (user.RESEND_ATTEMPTS >= 3) {
+            throw new Error('Limite de reenvios de código atingido.');
+        }
+
+        const newVerificationCode = EmailService.generateVerificationCode();
+        await conn.execute(
+            `UPDATE PROFESSORES SET VERIFICATION_CODE = :newVerificationCode, RESEND_ATTEMPTS = RESEND_ATTEMPTS + 1 WHERE EMAIL = :email`,
+            { newVerificationCode, email },
+            { autoCommit: true }
+        );
+
+        await EmailService.sendVerificationEmail(email, newVerificationCode);
+    } finally {
+        if (conn) {
+            await conn.close();
+        }
     }
   }
 
@@ -68,7 +135,7 @@ class AuthService {
     try {
       conn = await getConnection();
       const result = await conn.execute(
-        `SELECT * FROM professores WHERE email = :email`,
+        `SELECT * FROM PROFESSORES WHERE EMAIL = :email`,
         { email },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
@@ -80,6 +147,10 @@ class AuthService {
       }
 
       const user = rows[0];
+      if (user.IS_VERIFIED !== 1) {
+        throw new Error('Por favor, verifique seu e-mail antes de fazer login.');
+      }
+      
       const isPasswordValid = await bcrypt.compare(senha, user.SENHA);
 
       if (!isPasswordValid) {
@@ -99,7 +170,7 @@ class AuthService {
     try {
       conn = await getConnection();
       const result = await conn.execute(
-        `SELECT * FROM professores WHERE email = :email`,
+        `SELECT * FROM PROFESSORES WHERE EMAIL = :email`,
         { email },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
@@ -108,17 +179,21 @@ class AuthService {
         throw new Error('Usuário não encontrado');
       }
 
-      const token = crypto.randomBytes(20).toString('hex');
-      const expires = new Date();
-      expires.setHours(expires.getHours() + 1);
+      const verificationCode = EmailService.generateVerificationCode();
 
       await conn.execute(
-        `UPDATE professores SET reset_password_token = :token, reset_password_expires = :expires WHERE email = :email`,
-        { token, expires, email },
+        `UPDATE PROFESSORES 
+         SET VERIFICATION_CODE = :verificationCode, 
+             VERIFICATION_ATTEMPTS = 0, 
+             RESEND_ATTEMPTS = 0 
+         WHERE EMAIL = :email`,
+        { verificationCode, email },
         { autoCommit: true }
       );
 
-      console.log(`Link para redefinição de senha: http://localhost:3000/reset-password/${token}`);
+      // Aqui você chamaria o serviço de e-mail para enviar o código
+      // await EmailService.sendPasswordResetCode(email, verificationCode);
+      console.log(`Código de recuperação para ${email}: ${verificationCode}`); // Temporário para debug
     } finally {
       if (conn) {
         await conn.close();
@@ -126,25 +201,18 @@ class AuthService {
     }
   }
 
-  async resetPassword(token: string, senha: string) {
+  async resetPassword(email: string, novaSenha: string) {
     let conn;
     try {
       conn = await getConnection();
-      const result = await conn.execute(
-        `SELECT * FROM professores WHERE reset_password_token = :token AND reset_password_expires > :currentDate`,
-        { token, currentDate: new Date() },
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }
-      );
-
-      if (!result.rows || result.rows.length === 0) {
-        throw new Error('Token inválido ou expirado');
-      }
-
-      const hashedPassword = await bcrypt.hash(senha, 10);
+      const hashedPassword = await bcrypt.hash(novaSenha, 10);
 
       await conn.execute(
-        `UPDATE professores SET senha = :senha, reset_password_token = NULL, reset_password_expires = NULL WHERE reset_password_token = :token`,
-        { senha: hashedPassword, token },
+        `UPDATE PROFESSORES 
+         SET SENHA = :hashedPassword, 
+             VERIFICATION_CODE = NULL 
+         WHERE EMAIL = :email`,
+        { hashedPassword, email },
         { autoCommit: true }
       );
     } finally {

@@ -3,7 +3,32 @@ document.addEventListener('DOMContentLoaded', function() {
     const usuarioInput = document.getElementById('usuario');
     const senhaInput = document.getElementById('senha');
     const errorMessage = document.getElementById('error-message');
+    const loadingOverlay = document.getElementById('loading-overlay');
 
+    // Links de navegação
+    const forgotPasswordLink = document.querySelector('a[href="../Tela-Esqueci-Minha-Senha/tela.html"]');
+    const signUpLink = document.querySelector('a[href="../Tela-Novo-Cadastro/tela-registro.html"]');
+
+    // Função para mostrar o loading e redirecionar
+    function showLoadingAndRedirect(url) {
+        loadingOverlay.classList.add('show');
+        setTimeout(() => {
+            window.location.href = url;
+        }, 4000); // 4 segundos
+    }
+
+    // Adiciona eventos aos links
+    forgotPasswordLink.addEventListener('click', function(event) {
+        event.preventDefault();
+        showLoadingAndRedirect(this.href);
+    });
+
+    signUpLink.addEventListener('click', function(event) {
+        event.preventDefault();
+        showLoadingAndRedirect(this.href);
+    });
+
+    // Lógica de login existente
     form.addEventListener('submit', async function(event) {
         event.preventDefault();
 
