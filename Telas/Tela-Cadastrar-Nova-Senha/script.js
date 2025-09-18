@@ -1,33 +1,56 @@
-document.getElementById('reset-password-form').addEventListener('submit', function(event) {
-    // Previne o recarregamento da página ao enviar o formulário
-    event.preventDefault();
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('reset-password-form');
+    const newPasswordInput = document.getElementById('new-password');
+    const confirmPasswordInput = document.getElementById('confirm-password');
+    const message = document.getElementById('message');
 
-    // Pega os valores dos campos de senha
-    const newPassword = document.getElementById('new-password').value;
-    const confirmPassword = document.getElementById('confirm-password').value;
-    const messageElement = document.getElementById('message');
+    const email = localStorage.getItem('userEmailForReset');
+    const isVerified = localStorage.getItem('passwordResetVerified');
 
-    // Limpa o conteúdo e as classes de mensagem anteriores
-    messageElement.textContent = '';
-    messageElement.className = '';
-
-    // Verifica se os campos estão vazios
-    if (newPassword === '' || confirmPassword === '') {
-        messageElement.textContent = 'Por favor, preencha todos os campos.';
-        // ATUALIZADO: Adiciona a classe 'error' para a estilização
-        messageElement.classList.add('error');
+    if (!email || !isVerified) {
+        alert('Acesso inválido. Por favor, inicie o processo de recuperação de senha novamente.');
+        window.location.href = '../Tela-Login/tela.html';
         return;
     }
 
-    // Verifica se as senhas são iguais
-    if (newPassword === confirmPassword) {
-        messageElement.textContent = 'Senha atualizada com sucesso!';
-        // ATUALIZADO: Adiciona a classe 'success' para a estilização
-        messageElement.classList.add('success');
-        // Aqui você poderia adicionar a lógica para enviar a nova senha para o servidor
-    } else {
-        messageElement.textContent = 'As senhas não coincidem. Tente novamente.';
-        // ATUALIZADO: Adiciona a classe 'error' para a estilização
-        messageElement.classList.add('error');
-    }
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        message.textContent = '';
+
+        const novaSenha = newPasswordInput.value;
+        const confirmSenha = confirmPasswordInput.value;
+
+        if (novaSenha.length < 6) {
+            message.textContent = 'A senha deve ter pelo menos 6 caracteres.';
+            return;
+        }
+
+        if (novaSenha !== confirmSenha) {
+            message.textContent = 'As senhas não coincidem.';
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:3333/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, novaSenha })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Erro ao atualizar a senha.');
+            }
+
+            alert('Senha atualizada com sucesso! Você será redirecionado para o login.');
+            
+            // Limpa o localStorage e redireciona
+            localStorage.removeItem('userEmailForReset');
+            localStorage.removeItem('passwordResetVerified');
+            window.location.href = '../Tela-Login/tela.html';
+
+        } catch (error) {
+            message.textContent = error.message;
+        }
+    });
 });
