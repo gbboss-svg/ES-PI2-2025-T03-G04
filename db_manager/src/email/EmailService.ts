@@ -38,6 +38,34 @@ class EmailService {
       throw new Error('Não foi possível enviar o e-mail de verificação.');
     }
   }
+
+  // Envia o e-mail de redefinição de senha
+  async sendPasswordResetEmail(to: string, code: string) {
+    const msg = {
+      to: to,
+      from: 'alex.soares.gabriel111@gmail.com', // Seu e-mail verificado no SendGrid
+      subject: 'Recuperação de Senha',
+      html: `
+        <h1>Código de Recuperação de Senha</h1>
+        <p>Olá,</p>
+        <p>Você solicitou a recuperação de senha. Use o código abaixo para redefinir sua senha:</p>
+        <h2><strong>${code}</strong></h2>
+        <p>Se você não solicitou esta recuperação, por favor, ignore este e-mail.</p>
+        <p>Atenciosamente,<br>Equipe NotaDez</p>
+      `,
+    };
+
+    try {
+      await sgMail.send(msg);
+      console.log(`E-mail de recuperação de senha enviado para ${to}`);
+    } catch (error: any) {
+      console.error(`Erro ao enviar e-mail de recuperação para ${to}:`, error);
+      if (error.response) {
+        console.error(error.response.body)
+      }
+      throw new Error('Não foi possível enviar o e-mail de recuperação de senha.');
+    }
+  }
 }
 
 export default new EmailService();

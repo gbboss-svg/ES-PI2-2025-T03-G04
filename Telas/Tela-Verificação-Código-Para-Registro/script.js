@@ -11,6 +11,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    function censorEmail(email) {
+        const [user, domain] = email.split('@');
+        if (user.length <= 2) {
+            return `${user.slice(0, 1)}*@${domain}`;
+        }
+        const censoredUser = user.slice(0, 2) + '*'.repeat(user.length - 2);
+        return `${censoredUser}@${domain}`;
+    }
+
+    const titleMessage = document.getElementById('title-message');
+    if (titleMessage) {
+        titleMessage.textContent = `Para validar sua conta, enviamos um código para ${censorEmail(email)}`;
+    }
+
     let resendAttempts = 0;
 
     signupForm.addEventListener('submit', async (e) => {

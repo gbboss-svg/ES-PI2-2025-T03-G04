@@ -29,7 +29,11 @@ class AuthService {
         { autoCommit: true }
       );
 
-      await EmailService.sendVerificationEmail(email, verificationCode);
+      // Dispara o envio de e-mail sem esperar pela conclusão
+      EmailService.sendVerificationEmail(email, verificationCode).catch(error => {
+        // Log do erro para análise posterior, sem travar a aplicação
+        console.error(`Falha ao enviar e-mail de verificação para ${email} em segundo plano:`, error);
+      });
     } finally {
       if (conn) {
         await conn.close();
@@ -191,9 +195,8 @@ class AuthService {
         { autoCommit: true }
       );
 
-      // Aqui você chamaria o serviço de e-mail para enviar o código
-      // await EmailService.sendPasswordResetCode(email, verificationCode);
-      console.log(`Código de recuperação para ${email}: ${verificationCode}`); // Temporário para debug
+      // Envia o e-mail de recuperação de senha
+      await EmailService.sendPasswordResetEmail(email, verificationCode);
     } finally {
       if (conn) {
         await conn.close();
