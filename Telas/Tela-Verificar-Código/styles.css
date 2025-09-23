@@ -49,7 +49,7 @@ input[type="text"]::placeholder {
 input[type="text"]:focus {
   outline: none;
   border-color: transparent;
-  box-shadow: 0 0 0 2px #22c55e;/
+  box-shadow: 0 0 0 2px #22c55e;
 }
 
 div.text-center {
