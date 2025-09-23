@@ -7,12 +7,43 @@ document.addEventListener('DOMContentLoaded', () => {
     successMessage.style.color = 'green';
     formError.parentNode.insertBefore(successMessage, formError.nextSibling);
 
+    const formatIdentifier = (value) => {
+        if (!value || value.includes('@')) {
+            return value;
+        }
+
+        const numbers = value.replace(/\D/g, '').substring(0, 11);
+
+        if (numbers.length === 11) {
+            // Check if it's more likely a CPF or a cellphone number
+            // This is a heuristic: many cellphones start with 9, CPFs are more varied.
+            // A truly robust solution might need a toggle or separate fields.
+            if (['0', '1', '2', '3', '4', '5', '6', '7', '8'].includes(numbers.charAt(2))) {
+                 // More likely a CPF
+                 return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            } else {
+                 // More likely a cellphone
+                 return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+            }
+        } else if (numbers.length > 6) {
+            return numbers.replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3');
+        } else if (numbers.length > 2) {
+            return numbers.replace(/(\d{2})(\d+)/, '($1) $2');
+        } else {
+            return numbers;
+        }
+    };
+
+    identifierInput.addEventListener('input', (e) => {
+        e.target.value = formatIdentifier(e.target.value);
+    });
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         formError.textContent = '';
         successMessage.textContent = '';
         successMessage.style.color = 'green';
-        let identifier = identifierInput.value.trim();
+        const identifier = identifierInput.value.trim();
 
         if (!identifier) {
             formError.textContent = 'Por favor, preencha o campo.';
@@ -20,11 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Normalize identifier if it's not an email
-            if (!identifier.includes('@')) {
-                identifier = identifier.replace(/\D/g, '');
-            }
-
             successMessage.textContent = 'Enviando código de verificação...';
 
             const response = await fetch('http://localhost:3333/forgot-password', {
