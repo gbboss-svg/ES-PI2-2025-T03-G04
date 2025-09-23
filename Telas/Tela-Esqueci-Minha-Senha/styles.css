@@ -31,7 +31,7 @@ h1 {
   margin-bottom: 2.5rem !important;
 }
 
-input[type="email"] {
+input[type="text"] {
   width: 100%;                 
   padding: 0.75rem 1rem;         
   background-color: #ffffff;  
@@ -42,14 +42,14 @@ input[type="email"] {
   transition: all 0.3s;
 }
 
-input[type="email"]::placeholder {
+input[type="text"]::placeholder {
   color: #9ca3af;
 }
 
-input[type="email"]:focus {
+input[type="text"]:focus {
   outline: none;
   border-color: transparent;
-  box-shadow: 0 0 0 2px #22c55e;/
+  box-shadow: 0 0 0 2px #22c55e;
 }
 
 div.text-center {

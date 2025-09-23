@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         formError.textContent = '';
         successMessage.textContent = '';
-        const identifier = identifierInput.value.trim();
+        successMessage.style.color = 'green';
+        let identifier = identifierInput.value.trim();
 
         if (!identifier) {
             formError.textContent = 'Por favor, preencha o campo.';
@@ -19,6 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
+            // Normalize identifier if it's not an email
+            if (!identifier.includes('@')) {
+                identifier = identifier.replace(/\D/g, '');
+            }
+
             successMessage.textContent = 'Enviando código de verificação...';
 
             const response = await fetch('http://localhost:3333/forgot-password', {
@@ -39,14 +45,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('userEmailForReset', data.email);
                 window.location.href = '../Tela-Verificar-Código/tela.html';
             } else {
-                // User not found, but we pretend it was successful for security
-                successMessage.textContent = 'Se um usuário com esta credencial existir, um e-mail de recuperação foi enviado.';
+                // User not found
+                successMessage.textContent = 'Credencial não encontrada.';
+                successMessage.style.color = 'red';
+                setTimeout(() => {
+                    successMessage.textContent = '';
+                }, 3000);
                 // Do not redirect
             }
 
         } catch (error) {
-            successMessage.textContent = '';
-            formError.textContent = error.message;
+            successMessage.textContent = error.message;
+            successMessage.style.color = 'red';
+            setTimeout(() => {
+                successMessage.textContent = '';
+            }, 3000);
         }
     });
 
