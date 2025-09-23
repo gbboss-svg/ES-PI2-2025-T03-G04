@@ -5,6 +5,12 @@ const emailInput = document.getElementById('email');
 const nameInput = document.getElementById('name');
 const formError = document.getElementById('form-error');
 const cpfInput = document.getElementById('cpf');
+const backButton = document.getElementById('back-button');
+
+// Event listener para o botão de voltar
+backButton.addEventListener('click', () => {
+    window.location.href = '../Tela-Login/tela.html';
+});
 
 // Máscara para o campo de CPF
 cpfInput.addEventListener('input', (e) => {
@@ -109,7 +115,7 @@ signupForm.addEventListener('submit', async (e) => {
     // Validação do Email
     const emailPattern = new RegExp(emailInput.pattern);
     if (!emailPattern.test(emailInput.value)) {
-         formError.textContent = 'Por favor, use um email válido (@gmail.com, @outlook.com, @hotmail.com).';
+         formError.textContent = 'Por favor, insira um endereço de e-mail válido.';
          emailInput.focus();
          return;
     }
