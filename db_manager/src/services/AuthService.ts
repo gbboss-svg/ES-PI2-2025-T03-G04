@@ -103,20 +103,22 @@ class AuthService {
     try {
         conn = await getConnection();
         const result = await conn.execute(
-            `SELECT * FROM PROFESSORES WHERE EMAIL = :email`,
+            `SELECT * FROM PROFESSORES WHERE EMAIL = :email AND IS_VERIFIED = 0`,
             { email },
             { outFormat: oracledb.OUT_FORMAT_OBJECT }
         );
 
         const rows = result.rows as any[];
         if (!rows || rows.length === 0) {
-            throw new Error('Usuário não encontrado.');
+            // Don't reveal if user exists, just do nothing.
+            return;
         }
 
         const user = rows[0];
 
-        if (user.RESEND_ATTEMPTS >= 3) {
-            throw new Error('Limite de reenvios de código atingido.');
+        if (user.RESEND_ATTEMPTS >= 2) { // This is the 3rd attempt
+            await conn.execute(`DELETE FROM PROFESSORES WHERE EMAIL = :email`, { email }, { autoCommit: true });
+            throw new Error('MAX_ATTEMPTS_REACHED');
         }
 
         const newVerificationCode = EmailService.generateVerificationCode();
@@ -131,6 +133,23 @@ class AuthService {
         if (conn) {
             await conn.close();
         }
+    }
+  }
+
+  async cancelRegistration(email: string) {
+    let conn;
+    try {
+      conn = await getConnection();
+      // Only delete if the user is not yet verified
+      await conn.execute(
+        `DELETE FROM PROFESSORES WHERE EMAIL = :email AND IS_VERIFIED = 0`,
+        { email },
+        { autoCommit: true }
+      );
+    } finally {
+      if (conn) {
+        await conn.close();
+      }
     }
   }
 
@@ -169,19 +188,27 @@ class AuthService {
     }
   }
 
-  async forgotPassword(email: string) {
+  async forgotPassword(identifier: string) {
     let conn;
     try {
       conn = await getConnection();
       const result = await conn.execute(
-        `SELECT * FROM PROFESSORES WHERE EMAIL = :email`,
-        { email },
+        `SELECT * FROM PROFESSORES WHERE EMAIL = :identifier OR CPF = :identifier OR CELULAR = :identifier`,
+        { identifier },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
 
-      if (!result.rows || result.rows.length === 0) {
-        throw new Error('Usuário não encontrado');
+      const rows = result.rows as any[];
+
+      if (!rows || rows.length === 0) {
+        // To prevent user enumeration, we don't throw an error here.
+        // We can log this attempt and pretend the email was sent.
+        console.log(`Password reset attempt for non-existent user: ${identifier}`);
+        return;
       }
+
+      const user = rows[0];
+      const userEmail = user.EMAIL;
 
       const verificationCode = EmailService.generateVerificationCode();
 
@@ -190,13 +217,13 @@ class AuthService {
          SET VERIFICATION_CODE = :verificationCode, 
              VERIFICATION_ATTEMPTS = 0, 
              RESEND_ATTEMPTS = 0 
-         WHERE EMAIL = :email`,
-        { verificationCode, email },
+         WHERE ID = :id`,
+        { verificationCode, id: user.ID },
         { autoCommit: true }
       );
 
       // Envia o e-mail de recuperação de senha
-      await EmailService.sendPasswordResetEmail(email, verificationCode);
+      await EmailService.sendPasswordResetEmail(userEmail, verificationCode);
     } finally {
       if (conn) {
         await conn.close();
