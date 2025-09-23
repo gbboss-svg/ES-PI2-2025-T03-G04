@@ -1,35 +1,30 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const emailInput = document.getElementById('email');
+    const identifierInput = document.getElementById('identifier');
+    const form = document.getElementById('signup-form');
     const formError = document.getElementById('form-error');
     const backButton = document.getElementById('back-button');
     const successMessage = document.createElement('p');
     successMessage.style.color = 'green';
     formError.parentNode.insertBefore(successMessage, formError.nextSibling);
 
-    emailInput.addEventListener('blur', async () => {
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
         formError.textContent = '';
         successMessage.textContent = '';
-        const email = emailInput.value.trim();
+        const identifier = identifierInput.value.trim();
 
-        if (!email) {
-            // Não mostra erro se o campo estiver vazio, apenas não faz nada.
-            return;
-        }
-
-        // Validação simples de e-mail
-        if (!/^\S+@\S+\.\S+$/.test(email)) {
-            formError.textContent = 'Por favor, insira um e-mail válido.';
+        if (!identifier) {
+            formError.textContent = 'Por favor, preencha o campo.';
             return;
         }
 
         try {
-            // Mostra um feedback de que o envio está em progresso
             successMessage.textContent = 'Enviando código de verificação...';
 
             const response = await fetch('http://localhost:3333/forgot-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
+                body: JSON.stringify({ identifier })
             });
 
             if (!response.ok) {
@@ -37,28 +32,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(errorData.message || 'Erro ao solicitar a recuperação de senha.');
             }
 
-            // Salva o e-mail para as próximas telas e redireciona
-            localStorage.setItem('userEmailForReset', email);
+            // We don't know the email here, so we can't save it.
+            // The next screen will have to handle the verification.
+            // For now, we can store the identifier to show it on the next page.
+            localStorage.setItem('userIdentifierForReset', identifier);
             successMessage.textContent = 'Código enviado com sucesso! Redirecionando...';
 
-            // Redireciona após um pequeno atraso para o usuário ver a mensagem
             setTimeout(() => {
                 window.location.href = '../Tela-Verificar-Código/tela.html';
             }, 2000);
 
         } catch (error) {
-            successMessage.textContent = ''; // Limpa a mensagem de "enviando"
+            successMessage.textContent = '';
             formError.textContent = error.message;
         }
     });
-
-    // Previne o comportamento padrão do formulário, já que não usamos mais o submit
-    const form = document.getElementById('signup-form');
-    if (form) {
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-        });
-    }
 
     backButton.addEventListener('click', () => {
         window.location.href = '../Tela-Login/tela.html';

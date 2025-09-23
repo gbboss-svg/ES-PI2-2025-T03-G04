@@ -15,8 +15,8 @@ class AuthController {
   }
 
   async forgotPassword(req: Request, res: Response) {
-    const { email } = req.body;
-    await AuthService.forgotPassword(email);
+    const { identifier } = req.body;
+    await AuthService.forgotPassword(identifier);
     return res.send();
   }
 
@@ -36,6 +36,12 @@ class AuthController {
     const { email } = req.body;
     await AuthService.resendVerificationEmail(email);
     return res.status(200).send({ message: 'E-mail de verificação reenviado.' });
+  }
+
+  async cancelRegistration(req: Request, res: Response) {
+    const { email } = req.body;
+    await AuthService.cancelRegistration(email);
+    return res.status(200).send({ message: 'Cadastro cancelado.' });
   }
 }
 

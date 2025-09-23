@@ -9,5 +9,6 @@ router.post('/forgot-password', AuthController.forgotPassword);
 router.post('/reset-password', AuthController.resetPassword);
 router.post('/verify-email', AuthController.verifyEmail);
 router.post('/resend-verification', AuthController.resendVerificationEmail);
+router.post('/cancel-registration', AuthController.cancelRegistration);
 
 export { router };

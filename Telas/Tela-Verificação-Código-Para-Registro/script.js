@@ -3,7 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const codeInput = document.getElementById('code');
     const formError = document.getElementById('form-error');
     const resendBtn = document.getElementById('resend-btn');
+    const backButton = document.getElementById('back-button');
     const cancelMessage = document.getElementById('cancel-message');
+    const verifyBtn = document.getElementById('verify-btn');
 
     const email = localStorage.getItem('userEmailForVerification');
     if (!email) {
@@ -25,7 +27,21 @@ document.addEventListener('DOMContentLoaded', () => {
         titleMessage.textContent = `Para validar sua conta, enviamos um código para ${censorEmail(email)}`;
     }
 
-    let resendAttempts = 0;
+    function handleCancellation() {
+        formError.textContent = '';
+        cancelMessage.textContent = 'Devido as muitas tentativas, esse cadastro foi cancelado.';
+        cancelMessage.style.display = 'block';
+        
+        codeInput.disabled = true;
+        verifyBtn.disabled = true;
+        resendBtn.disabled = true;
+        backButton.disabled = true;
+
+        setTimeout(() => {
+            localStorage.removeItem('userEmailForVerification');
+            window.location.href = '../Tela-Login/tela.html';
+        }, 5000);
+    }
 
     signupForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -49,20 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.location.href = '../Tela-Login/tela.html';
             } else {
                 const errorData = await response.json();
-                
                 if (errorData.message === 'MAX_ATTEMPTS_REACHED') {
-                    formError.textContent = '';
-                    cancelMessage.textContent = 'Devido as muitas tentativas, esse cadastro foi cancelado.';
-                    cancelMessage.style.display = 'block';
-                    
-                    codeInput.disabled = true;
-                    document.getElementById('verify-btn').disabled = true;
-                    resendBtn.disabled = true;
-
-                    setTimeout(() => {
-                        localStorage.removeItem('userEmailForVerification');
-                        window.location.href = '../Tela-Login/tela.html';
-                    }, 5000);
+                    handleCancellation();
                 } else {
                     formError.textContent = 'Código inválido. Tente novamente.';
                 }
@@ -73,12 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     resendBtn.addEventListener('click', async () => {
-        if (resendAttempts >= 3) {
-            formError.textContent = 'Você atingiu o limite de reenvios.';
-            resendBtn.disabled = true;
-            return;
-        }
-
         try {
             const response = await fetch('http://localhost:3333/resend-verification', {
                 method: 'POST',
@@ -87,17 +85,32 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (response.ok) {
-                resendAttempts++;
-                formError.textContent = `Código reenviado. Você pode reenviar mais ${3 - resendAttempts} vez(es).`;
-                if (resendAttempts >= 3) {
-                    resendBtn.disabled = true;
-                }
+                formError.textContent = 'Código reenviado com sucesso.';
             } else {
                 const errorData = await response.json();
-                formError.textContent = errorData.message || 'Erro ao reenviar o código.';
+                if (errorData.message === 'MAX_ATTEMPTS_REACHED') {
+                    handleCancellation();
+                } else {
+                    formError.textContent = errorData.message || 'Erro ao reenviar o código.';
+                }
             }
         } catch (error) {
             formError.textContent = 'Erro ao conectar com o servidor.';
+        }
+    });
+
+    backButton.addEventListener('click', async () => {
+        try {
+            await fetch('http://localhost:3333/cancel-registration', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            // Redirect regardless of whether the backend call succeeds or fails
+            window.location.href = '../Tela-Novo-Cadastro/tela-registro.html';
+        } catch (error) {
+            console.error('Failed to cancel registration, redirecting anyway.');
+            window.location.href = '../Tela-Novo-Cadastro/tela-registro.html';
         }
     });
 });
