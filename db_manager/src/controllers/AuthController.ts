@@ -3,8 +3,8 @@ import AuthService from '../services/AuthService';
 
 class AuthController {
   async register(req: Request, res: Response) {
-    const { nome, email, celular, senha } = req.body;
-    await AuthService.register(nome, email, celular, senha);
+    const { nome, email, cpf, celular, senha } = req.body;
+    await AuthService.register(nome, email, cpf, celular, senha);
     return res.status(201).send();
   }
 

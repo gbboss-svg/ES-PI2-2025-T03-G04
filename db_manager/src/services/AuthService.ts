@@ -6,7 +6,7 @@ import EmailService from '../email/EmailService';
 import oracledb from 'oracledb';
 
 class AuthService {
-  async register(nome: string, email: string, celular: string, senha: string) {
+  async register(nome: string, email: string, cpf: string, celular: string, senha: string) {
     let conn;
     try {
       conn = await getConnection();
@@ -24,8 +24,8 @@ class AuthService {
       const verificationCode = EmailService.generateVerificationCode();
 
       await conn.execute(
-        `INSERT INTO PROFESSORES (NOME, EMAIL, CELULAR, SENHA, VERIFICATION_CODE) VALUES (:nome, :email, :celular, :senha, :verificationCode)`,
-        { nome, email, celular, senha: hashedPassword, verificationCode },
+        `INSERT INTO PROFESSORES (NOME, EMAIL, CPF, CELULAR, SENHA, VERIFICATION_CODE) VALUES (:nome, :email, :cpf, :celular, :senha, :verificationCode)`,
+        { nome, email, cpf, celular, senha: hashedPassword, verificationCode },
         { autoCommit: true }
       );
 
