@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const emailInput = document.getElementById('email');
     const formError = document.getElementById('form-error');
+    const backButton = document.getElementById('back-button');
     const successMessage = document.createElement('p');
     successMessage.style.color = 'green';
     formError.parentNode.insertBefore(successMessage, formError.nextSibling);
@@ -58,4 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
         });
     }
+
+    backButton.addEventListener('click', () => {
+        window.location.href = '../Tela-Login/tela.html';
+    });
 });

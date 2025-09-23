@@ -22,7 +22,7 @@
         <form id="signup-form" action="#" method="POST" novalidate>
             <div class="space-y-6">
                 <div>
-                    <input type="text" name="name" id="name" placeholder="NOME" class="w-full px-4 py-3 bg-white text-gray-800 rounded-full border-[6px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-300 text-center placeholder-gray-400" required>
+                    <input type="text" title="Digite seu nome" name="name" id="name" placeholder="NOME" class="w-full px-4 py-3 bg-white text-gray-800 rounded-full border-[6px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-300 text-center placeholder-gray-400" required>
                 </div>
                 
                 <div>
@@ -33,8 +33,8 @@
                         placeholder="EMAIL" 
                         class="w-full px-4 py-3 bg-white text-gray-800 rounded-full border-[6px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-300 text-center placeholder-gray-400"
                         required
-                        pattern=".+@(gmail\.com|outlook\.com|hotmail\.com)"
-                        title="Por favor, use um email @gmail.com, @outlook.com ou @hotmail.com">
+                        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                        title="Por favor, insira um endereço de e-mail válido.">
                 </div>
 
                 <div>
@@ -45,7 +45,8 @@
                         placeholder="CPF" 
                         class="w-full px-4 py-3 bg-white text-gray-800 rounded-full border-[6px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-300 text-center placeholder-gray-400"
                         maxlength="14" 
-                        required>
+                        required
+                        title="Por favor insira um CPF válido!">
                 </div>
 
                 <div>
@@ -56,7 +57,8 @@
                         placeholder="TELEFONE" 
                         class="w-full px-4 py-3 bg-white text-gray-800 rounded-full border-[6px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-300 text-center placeholder-gray-400"
                         maxlength="19" 
-                        required>
+                        required
+                        title="Certifique-se de colocar um número de CPF correto!">
                 </div>
 
                 <div>
@@ -75,6 +77,9 @@
                 <div class="text-center pt-4">
                     <button type="submit" class="px-12 py-3 bg-green-500 text-white font-bold rounded-full hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300">
                         CADASTRAR
+                    </button><br>
+                    <button type="button" id="back-button" class="mt-4 px-8 py-2 bg-gray-400 text-white font-bold rounded-full hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-all duration-300">
+                        VOLTAR
                     </button>
                 </div>
             </div>
