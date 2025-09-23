@@ -224,6 +224,8 @@ class AuthService {
 
       // Envia o e-mail de recuperação de senha
       await EmailService.sendPasswordResetEmail(userEmail, verificationCode);
+
+      return userEmail;
     } finally {
       if (conn) {
         await conn.close();
