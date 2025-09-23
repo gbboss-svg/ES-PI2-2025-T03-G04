@@ -32,11 +32,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(errorData.message || 'Erro ao solicitar a recuperação de senha.');
             }
 
-            // We don't know the email here, so we can't save it.
-            // The next screen will have to handle the verification.
-            // For now, we can store the identifier to show it on the next page.
-            localStorage.setItem('userIdentifierForReset', identifier);
-            window.location.href = '../Tela-Verificar-Código/tela.html';
+            const data = await response.json();
+
+            // The backend returns an email if the user was found
+            if (data.email) {
+                localStorage.setItem('userEmailForReset', data.email);
+                window.location.href = '../Tela-Verificar-Código/tela.html';
+            } else {
+                // User not found, but we pretend it was successful for security
+                successMessage.textContent = 'Se um usuário com esta credencial existir, um e-mail de recuperação foi enviado.';
+                // Do not redirect
+            }
 
         } catch (error) {
             successMessage.textContent = '';
