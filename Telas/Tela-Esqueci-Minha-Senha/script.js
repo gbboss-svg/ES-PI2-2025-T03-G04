@@ -36,11 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // The next screen will have to handle the verification.
             // For now, we can store the identifier to show it on the next page.
             localStorage.setItem('userIdentifierForReset', identifier);
-            successMessage.textContent = 'Código enviado com sucesso! Redirecionando...';
-
-            setTimeout(() => {
-                window.location.href = '../Tela-Verificar-Código/tela.html';
-            }, 2000);
+            window.location.href = '../Tela-Verificar-Código/tela.html';
 
         } catch (error) {
             successMessage.textContent = '';
