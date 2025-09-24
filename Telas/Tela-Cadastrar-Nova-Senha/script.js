@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const newPasswordInput = document.getElementById('new-password');
     const confirmPasswordInput = document.getElementById('confirm-password');
     const message = document.getElementById('message');
+    const backButton = document.getElementById('back-to-start-button');
 
     const email = localStorage.getItem('userEmailForReset');
     const isVerified = localStorage.getItem('passwordResetVerified');
@@ -52,5 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             message.textContent = error.message;
         }
+    });
+
+    backButton.addEventListener('click', () => {
+        window.location.href = '../Tela-Login/tela.html';
     });
 });

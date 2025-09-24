@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const formError = document.getElementById('form-error');
     const resendBtn = document.getElementById('resend-btn');
     const cancelMessage = document.getElementById('cancel-message');
+    const backButton = document.getElementById('back-button');
 
     const email = localStorage.getItem('userEmailForReset');
     if (!email) {
@@ -99,5 +100,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             formError.textContent = 'Erro ao conectar com o servidor.';
         }
+    });
+
+    backButton.addEventListener('click', () => {
+        window.location.href = '../Tela-Esqueci-Minha-Senha/tela.html';
     });
 });
