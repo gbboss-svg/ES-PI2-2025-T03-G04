@@ -9,9 +9,13 @@ class AuthController {
   }
 
   async login(req: Request, res: Response) {
-    const { email, senha } = req.body;
-    const token = await AuthService.login(email, senha);
-    return res.json({ token });
+    try {
+      const { identifier, senha } = req.body;
+      const token = await AuthService.login(identifier, senha);
+      return res.json({ token });
+    } catch (error: any) {
+      return res.status(401).json({ message: error.message });
+    }
   }
 
   async forgotPassword(req: Request, res: Response) {

@@ -153,20 +153,36 @@ class AuthService {
     }
   }
 
-  async login(email: string, senha: string) {
+  async login(identifier: string, senha: string) {
     let conn;
     try {
       conn = await getConnection();
-      const result = await conn.execute(
-        `SELECT * FROM PROFESSORES WHERE EMAIL = :email`,
-        { email },
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }
-      );
+
+      // Verifica se o identificador parece um e-mail
+      const isEmail = identifier.includes('@');
+      let result;
+
+      if (isEmail) {
+        // Se for um e-mail, a busca é direta
+        result = await conn.execute(
+          `SELECT * FROM PROFESSORES WHERE EMAIL = :identifier`,
+          { identifier },
+          { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+      } else {
+        // Se for CPF ou Telefone, limpamos os dados para a comparação
+        const cleanedIdentifier = identifier.replace(/\D/g, '');
+        result = await conn.execute(
+          `SELECT * FROM PROFESSORES WHERE REGEXP_REPLACE(CPF, '[^0-9]', '') = :cleanedIdentifier OR REGEXP_REPLACE(CELULAR, '[^0-9]', '') = :cleanedIdentifier`,
+          { cleanedIdentifier },
+          { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+      }
 
       const rows = result.rows as any[];
 
       if (!rows || rows.length === 0) {
-        throw new Error('Usuário não cadastrado');
+        throw new Error('Credenciais inválidas');
       }
 
       const user = rows[0];
@@ -177,7 +193,7 @@ class AuthService {
       const isPasswordValid = await bcrypt.compare(senha, user.SENHA);
 
       if (!isPasswordValid) {
-        throw new Error('E-mail ou senha inválidos');
+        throw new Error('Credenciais inválidas');
       }
 
       return jwt.sign({ id: user.ID }, 'your-secret-key', { expiresIn: '1h' });
@@ -237,6 +253,27 @@ class AuthService {
     let conn;
     try {
       conn = await getConnection();
+
+      // 1. Buscar o usuário e sua senha atual
+      const result = await conn.execute(
+        `SELECT SENHA FROM PROFESSORES WHERE EMAIL = :email`,
+        { email },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+
+      const rows = result.rows as any[];
+      if (!rows || rows.length === 0) {
+        throw new Error('Usuário não encontrado.');
+      }
+      const user = rows[0];
+
+      // 2. Comparar a nova senha com a senha antiga
+      const isSamePassword = await bcrypt.compare(novaSenha, user.SENHA);
+      if (isSamePassword) {
+        throw new Error('A nova senha não pode ser igual à senha anterior.');
+      }
+
+      // 3. Se forem diferentes, prosseguir com a atualização
       const hashedPassword = await bcrypt.hash(novaSenha, 10);
 
       await conn.execute(
