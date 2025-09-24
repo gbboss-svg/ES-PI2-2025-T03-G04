@@ -31,8 +31,13 @@ h1 {
   margin-bottom: 2.5rem !important;
 }
 
-input[type="text"] {
-  width: 100%;                 
+.input-container {
+    margin-bottom: 1.5rem; /* Espaçamento abaixo do campo de entrada */
+}
+
+input[type="text"],
+input[type="tel"] {
+  width: 420px;                 
   padding: 0.75rem 1rem;         
   background-color: #ffffff;  
   color: #1f2937;
@@ -42,11 +47,13 @@ input[type="text"] {
   transition: all 0.3s;
 }
 
-input[type="text"]::placeholder {
+input[type="text"]::placeholder,
+input[type="tel"]::placeholder {
   color: #9ca3af;
 }
 
-input[type="text"]:focus {
+input[type="text"]:focus,
+input[type="tel"]:focus {
   outline: none;
   border-color: transparent;
   box-shadow: 0 0 0 2px #22c55e;
