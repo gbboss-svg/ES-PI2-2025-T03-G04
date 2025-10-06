@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotaDez - Adicionar Disciplina</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo">
+                <img src="logo-favicon.png" alt="Logo NotaDez">
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#">SEU PERFIL</a></li>
+                    <li><a href="#">PAINEL PRINCIPAL</a></li>
+                    <li><a href="#">ADICIONAR DISCIPLINA</a></li>
+                    <li><a href="#">IMPORTAR CSV/XML</a></li>
+                    <li><a href="#">EXPORTAR ARQUIVOS</a></li>
+                    <li><a href="#">CONFIGURAÇÕES</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main">
+            <header>
+                <h2>ADICIONE A SUA DISCIPLINA!</h2>
+            </header>
+
+            <section class="form-section">
+                <h3>ESSA MATÉRIA PERTENCERÁ A<br><span>*INSTITUIÇÃO</span></h3>
+
+                <input type="text" id="disciplina" placeholder="Digite o nome de sua disciplina">
+                <input type="text" id="turma" placeholder="Digite o número de sua turma">
+
+                <div class="buttons">
+                    <button id="criar">CRIAR DISCIPLINA</button>
+                    <button id="voltar" class="voltar">VOLTAR</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
