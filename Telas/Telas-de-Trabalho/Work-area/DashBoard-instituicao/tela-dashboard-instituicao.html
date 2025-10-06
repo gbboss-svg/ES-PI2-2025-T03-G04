@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bem-vindo!</title>
+    <!-- Vinculando o Google Fonts para a fonte 'Poppins' -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <main class="welcome-container">
+        <div class="welcome-box">
+            <h1 class="welcome-title">BEM VINDO</h1>
+            <p class="username" id="username-display">*username!</p>
+            <p class="welcome-subtitle">PARECE SER SUA PRIMEIRA SESSÃO POR AQUI!</p>
+
+            <div class="selection-group">
+                <!-- ELEMENTO ATUALIZADO -->
+                <input type="text" id="institution-input" class="institution-input" list="institutions-list" placeholder="DIGITE OU SELECIONE SUA INSTITUIÇÃO">
+                <datalist id="institutions-list">
+                    <!-- Opções serão adicionadas via JavaScript -->
+                </datalist>
+                <a class="link-help" id="add-institution-link">SUA INSTITUIÇÃO NÃO ESTÁ NA LISTA?</a>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" id="dashboard-button">ACESSAR DASHBOARD</button>
+                <button class="btn btn-secondary" id="logout-button">SAIR</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Estrutura do Modal (inicialmente invisível) -->
+    <div class="modal-overlay" id="add-institution-modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Adicionar Nova Instituição</h2>
+            <input type="text" id="new-institution-input" class="modal-input" placeholder="Nome da instituição">
+            <div class="modal-button-group">
+                <button class="btn btn-secondary" id="cancel-add-button">CANCELAR</button>
+                <button class="btn btn-primary" id="confirm-add-button">ADICIONAR</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -3,7 +3,7 @@ import sgMail = require('@sendgrid/mail');
 class EmailService {
   constructor() {
     // Configura a API Key do SendGrid
-    sgMail.setApiKey('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');
+    sgMail.setApiKey('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');
   }
 
   // Gera um código de verificação de 6 dígitos
@@ -15,7 +15,7 @@ class EmailService {
   async sendVerificationEmail(to: string, code: string) {
     const msg = {
       to: to,
-      from: 'alex.soares.gabriel111@gmail.com', // Seu e-mail verificado no SendGrid
+      from: 'staff.notadez@gmail.com', // Seu e-mail verificado no SendGrid
       subject: 'Código de Verificação',
       html: `
         <h1>Seu código de verificação</h1>
@@ -43,7 +43,7 @@ class EmailService {
   async sendPasswordResetEmail(to: string, code: string) {
     const msg = {
       to: to,
-      from: 'alex.soares.gabriel111@gmail.com', // Seu e-mail verificado no SendGrid
+      from: 'staff.notadez@gmail.com', // Seu e-mail verificado no SendGrid
       subject: 'Recuperação de Senha',
       html: `
         <h1>Código de Recuperação de Senha</h1>
