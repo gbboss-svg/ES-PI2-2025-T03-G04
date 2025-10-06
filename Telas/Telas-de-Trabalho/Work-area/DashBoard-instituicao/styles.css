@@ -1,0 +1,220 @@
+/* --- Reset Básico e Definições Globais --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f0f2f5; /* Um fundo cinza claro para contraste */
+    color: #4a4a4a; /* Cor de texto padrão */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Garante que o corpo ocupe toda a altura da tela */
+    padding: 1rem;
+}
+
+/* --- Container Principal --- */
+.welcome-container {
+    width: 100%;
+    max-width: 500px; /* Largura máxima para o conteúdo */
+}
+
+/* --- Caixa de Boas-Vindas --- */
+.welcome-box {
+    background-color: #ffffff;
+    border: 2px solid #cccccc;
+    border-radius: 12px; /* Bordas arredondadas */
+    padding: 2.5rem; /* Espaçamento interno generoso */
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Sombra suave */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.welcome-box:hover {
+    transform: translateY(-5px); /* Efeito de elevação sutil */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+
+/* --- Tipografia --- */
+.welcome-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.username {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+    margin-top: 0.25rem;
+}
+
+.welcome-subtitle {
+    font-size: 0.875rem;
+    color: #888888;
+    margin-top: 0.5rem;
+    margin-bottom: 2rem; /* Espaço antes do seletor */
+}
+
+/* --- Grupo de Seleção --- */
+.selection-group {
+    margin-bottom: 2rem;
+}
+
+/* ESTILO ATUALIZADO PARA O INPUT */
+.institution-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.875rem;
+    background-color: #fff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.institution-input:focus {
+    outline: none;
+    border-color: #007bff; /* Cor de destaque ao focar */
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+}
+
+.link-help {
+    display: block;
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    color: #007bff;
+    text-decoration: none;
+    cursor: pointer; /* Muda o cursor para indicar que é clicável */
+    transition: color 0.2s ease;
+}
+
+.link-help:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+
+/* --- Grupo de Botões --- */
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem; /* Espaço entre os botões */
+}
+
+.btn {
+    padding: 0.85rem 1rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    width: 100%;
+}
+
+.btn:hover {
+    transform: translateY(-2px); /* Efeito de elevação */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary {
+    background-color: #28a745; /* Verde do design */
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: #218838; /* Verde um pouco mais escuro */
+}
+
+.btn-secondary {
+    background-color: #1c1c1c; /* Preto do design */
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background-color: #333333; /* Preto um pouco mais claro */
+}
+
+/* --- Estilos do Modal --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Fundo semi-transparente */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 450px;
+    text-align: center;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.visible .modal-content {
+    transform: scale(1);
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.modal-button-group {
+    display: flex;
+    gap: 0.75rem;
+}
+
+
+/* --- Responsividade para Telas Menores --- */
+@media (max-width: 480px) {
+    .welcome-box {
+        padding: 2rem 1.5rem;
+    }
+
+    .welcome-title {
+        font-size: 1.3rem;
+    }
+
+    .username {
+        font-size: 1.1rem;
+    }
+
+    .modal-content {
+        padding: 1.5rem;
+    }
+}

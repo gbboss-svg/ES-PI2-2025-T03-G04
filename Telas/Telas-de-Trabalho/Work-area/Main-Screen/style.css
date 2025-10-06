@@ -1,0 +1,28 @@
+body {
+    font-family: 'Inter', sans-serif;
+}
+/* Custom scrollbar for better aesthetics */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #2d3748;
+}
+::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #718096;
+}
+/* Transition for sidebar */
+#sidebar {
+    transition: width 0.3s ease-in-out;
+}
+/* Hover lift effect */
+.hover-lift {
+    transition: transform 0.2s ease-out;
+}
+.hover-lift:hover {
+    transform: translateY(-4px);
+}
