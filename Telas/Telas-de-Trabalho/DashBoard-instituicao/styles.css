@@ -7,7 +7,7 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #f0f2f5; /* Um fundo cinza claro para contraste */
+    background-image: url('backgroung-register.png');/* Um fundo cinza claro para contraste */
     color: #4a4a4a; /* Cor de texto padrão */
     display: flex;
     justify-content: center;
