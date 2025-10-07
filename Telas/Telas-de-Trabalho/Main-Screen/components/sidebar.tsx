@@ -4,6 +4,7 @@ import { User, Clock, PlusCircle, Upload, Download, Settings, ChevronLeft, Chevr
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
+import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 import { ProfileModal } from "./profile-modal"
 import Image from "next/image"
@@ -19,8 +20,11 @@ const menuItems = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { theme } = useTheme()
   const [collapsed, setCollapsed] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+
+  const logoSrc = theme === "light" ? "/logo-preto.png" : "/logo-preto-branco.png"
 
   useEffect(() => {
     const main = document.querySelector("main")
@@ -40,23 +44,23 @@ export function Sidebar() {
         <div>
           <div className="px-6 py-6">
             <Image
-              src="/logo-notadez.png"
+              src={logoSrc}
               alt="NotaDez Logo"
               width={150}
               height={50}
               className={cn(
-                "w-full h-auto transition-all duration-300",
-                collapsed ? "opacity-0 h-0" : "opacity-100 max-w-[150px] mx-auto",
+                "w-auto h-10 transition-all duration-300 mx-auto",
+                collapsed ? "opacity-0 h-0" : "opacity-100",
               )}
               priority
             />
             {collapsed && (
               <Image
-                src="/logo-favicon.png"
+                src="/logo-preto-branco.png"
                 alt="NotaDez"
-                width={40}
-                height={40}
-                className="w-10 h-10 mx-auto"
+                width={60}
+                height={20}
+                className="w-16 h-auto mx-auto"
                 priority
               />
             )}
