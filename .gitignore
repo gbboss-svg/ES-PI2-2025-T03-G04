@@ -1,5 +1,0 @@
-# Ignora o diretório de módulos de dependências
-node_modules/
-
-# Ignora o cache do pnpm
-.pnpm-store/
