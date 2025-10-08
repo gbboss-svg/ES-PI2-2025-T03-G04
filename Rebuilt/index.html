@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard de Disciplinas</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <aside id="sidebar" class="sidebar">
+      <div>
+        <div class="px-4 py-4">
+          <img src="https://via.placeholder.com/150x50" alt="NotaDez Logo" class="logo-expanded" />
+          <img src="https://via.placeholder.com/60x20" alt="NotaDez" class="logo-collapsed" />
+        </div>
+
+        <nav class="mt-4">
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
+                <i class="bi bi-person"></i>
+                <span>SEU PERFIL</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="#">
+                <i class="bi bi-clock"></i>
+                <span>PAINEL PRINCIPAL</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="add-discipline.html">
+                <i class="bi bi-plus-circle"></i>
+                <span>ADICIONAR DISCIPLINA</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="import.html">
+                <i class="bi bi-upload"></i>
+                <span>IMPORTAR CSV/XML</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="export.html">
+                <i class="bi bi-download"></i>
+                <span>EXPORTAR ARQUIVOS</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">
+                <i class="bi bi-gear"></i>
+                <span>CONFIGURAÇÕES</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="px-2 pb-4">
+        <button id="collapse-btn" class="btn btn-sidebar w-100">
+          <i class="bi bi-chevron-left"></i>
+          <span>Recolher</span>
+        </button>
+      </div>
+    </aside>
+
+    <main id="main-content" class="container py-5">
+      <header class="text-white px-4 py-5 text-center">
+        <h1 class="display-5 fw-bold text-uppercase">BEM VINDO A AREA DE TRABALHO *USERNAME</h1>
+      </header>
+      <div id="disciplines-grid" class="row g-4">
+        <!-- Cards de disciplina serão inseridos aqui pelo script.js -->
+      </div>
+    </main>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteModalLabel">Confirmar exclusão</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            Tem certeza que deseja excluir esta disciplina? Esta ação não pode ser desfeita e todos os dados de alunos e
+            notas serão perdidos.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Excluir</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Perfil -->
+    <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="profileModalLabel">Seu Perfil</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>Informações do perfil do usuário.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+    <script src="script.js"></script>
+  </body>
+</html>
