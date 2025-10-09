@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotaDez - Dashboard do Professor</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://css.gg/css?family=Inter:400,500,600,700" rel="stylesheet">
+
+    <style>
+        /* Estilos customizados */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa; /* Fundo principal mais suave */
+        }
+
+        .sidebar {
+            width: 280px;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            transition: all 0.3s;
+            background-color: #000000; /* Sidebar preta */
+            color: white;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            transition: all 0.3s;
+            padding: 2rem;
+        }
+
+        /* Estilo para sidebar recolhida */
+        body.sidebar-collapsed .sidebar {
+            width: 90px;
+        }
+
+        body.sidebar-collapsed .main-content {
+            margin-left: 90px;
+        }
+
+        body.sidebar-collapsed .sidebar .sidebar-brand-text,
+        body.sidebar-collapsed .sidebar .nav-link-text,
+        body.sidebar-collapsed .sidebar .user-info,
+        body.sidebar-collapsed .sidebar .toggler-text {
+            display: none;
+        }
+        
+        body.sidebar-collapsed .sidebar .nav-link,
+        body.sidebar-collapsed .sidebar .sidebar-toggler,
+        body.sidebar-collapsed .sidebar .sidebar-brand {
+           justify-content: center;
+        }
+
+        .sidebar .nav-link {
+            color: #adb5bd;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+        }
+        
+        .sidebar .nav-link .bi {
+            margin-right: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .sidebar .nav-link:hover {
+            color: #f8f9fa;
+            background-color: #343a40;
+            transform: scale(1.05) translateX(10px);
+        }
+        
+        body.sidebar-collapsed .sidebar .nav-link:hover {
+            transform: scale(1.1);
+        }
+        
+        body.sidebar-collapsed .sidebar .nav-link .bi,
+        body.sidebar-collapsed .sidebar .sidebar-brand .bi {
+             margin-right: 0;
+        }
+
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: #0d6efd;
+        }
+        
+        .sidebar-brand {
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+        }
+        
+        .sidebar-brand .bi {
+            font-size: 1.5rem;
+        }
+        
+        .sidebar-toggler {
+            background: transparent;
+            border: none;
+            color: #adb5bd;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+        }
+        
+        .sidebar-toggler .toggler-text {
+            font-weight: bold;
+            font-size: 1.05rem;
+        }
+        
+        .sidebar-toggler:hover {
+            color: #f8f9fa;
+            background-color: #343a40;
+            transform: scale(1.05) translateX(10px);
+        }
+        
+        body.sidebar-collapsed .sidebar-toggler:hover {
+            transform: scale(1.1);
+        }
+        
+        .grade-input {
+            width: 70px;
+            text-align: center;
+            border-radius: 0.375rem;
+            border: 1px solid #dee2e6;
+            padding: 0.375rem;
+        }
+
+        .grade-input:focus {
+            outline: none;
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .audit-panel {
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 0.8rem;
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            border: 1px solid #dee2e6;
+        }
+        
+        .audit-panel .alert-light {
+            background-color: #fff;
+            border-color: #dee2e6 !important;
+        }
+        
+        .table-responsive {
+            max-height: 60vh;
+        }
+        
+        h1, h2, h5, .card-title {
+            font-weight: 600; /* Fonte Inter mais destacada para títulos */
+        }
+    </style>
+</head>
+<body>
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="sidebar d-flex flex-column p-3">
+            <a href="#" class="sidebar-brand d-flex align-items-center mb-4">
+                <i class="bi bi-journal-check me-2"></i>
+                <span class="fs-4 text-white sidebar-brand-text">NotaDez</span>
+            </a>
+
+            <ul class="nav nav-pills flex-column flex-grow-1">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" aria-current="page" data-view="profile">
+                        <i class="bi bi-person-circle"></i>
+                        <span class="nav-link-text">Perfil</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-view="dashboard">
+                        <i class="bi bi-grid"></i>
+                        <span class="nav-link-text">Painel Principal</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link" data-view="institutions">
+                        <i class="bi bi-building"></i>
+                        <span class="nav-link-text">Instituições</span>
+                    </a>
+                </li>
+                 <li>
+                    <a href="#" class="nav-link" data-view="turma-detail">
+                        <i class="bi bi-people"></i>
+                        <span class="nav-link-text">Turma Ativa</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link" data-view="settings">
+                        <i class="bi bi-gear"></i>
+                        <span class="nav-link-text">Configurações</span>
+                    </a>
+                </li>
+            </ul>
+            
+             <button id="sidebarToggler" class="sidebar-toggler mt-auto">
+                <i class="bi bi-chevron-left"></i>
+                <span class="toggler-text nav-link-text ms-2">Recolher</span>
+            </button>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content flex-grow-1">
+            <div id="profile-view" class="d-none">
+                <!-- Conteúdo do perfil será renderizado aqui -->
+            </div>
+            
+            <div id="dashboard-view" class="d-none">
+                <h1 id="welcome-message"></h1>
+                <p class="lead text-muted">Aqui você pode gerenciar suas instituições, disciplinas, turmas e notas.</p>
+                <div class="row g-4 mt-4">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="p-3 bg-primary bg-opacity-10 rounded-3 me-4">
+                                    <i class="bi bi-building fs-2 text-primary"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title">Instituições</h5>
+                                    <p class="card-text fs-4 fw-bold">2</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="p-3 bg-success bg-opacity-10 rounded-3 me-4">
+                                    <i class="bi bi-journal-text fs-2 text-success"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title">Disciplinas</h5>
+                                    <p class="card-text fs-4 fw-bold">2</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="p-3 bg-info bg-opacity-10 rounded-3 me-4">
+                                    <i class="bi bi-people fs-2 text-info"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title">Turmas</h5>
+                                    <p class="card-text fs-4 fw-bold">2</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="institutions-view" class="d-none">
+                <h2>Gerenciamento</h2>
+                <p>Navegue e gerencie suas instituições, disciplinas e turmas.</p>
+                 <div id="institutions-accordion"></div>
+            </div>
+
+            <div id="turma-detail-view" class="d-none">
+                <!-- Conteúdo da turma será renderizado aqui pelo JS -->
+            </div>
+            
+            <div id="settings-view" class="d-none">
+                <!-- Conteúdo das configurações será renderizado aqui -->
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    // --- DADOS MOCK (Simulando o banco de dados) ---
+    const MOCK_DATA = {
+        user: {
+            name: 'Prof. Dr. Lua Muriana',
+            email: 'lua.marcelo@puc-campinas.edu.br'
+        },
+        institutions: [
+            {
+                id: 1,
+                name: 'PUC-Campinas',
+                disciplines: [
+                    {
+                        id: 101,
+                        name: 'Projeto Integrador 2',
+                        code: 'ES-PI2',
+                        period: '4º Semestre',
+                        gradeComponents: [
+                            { id: 201, name: 'Entrega 1', acronym: 'E1', description: 'Documento de Visão e Requisitos' },
+                            { id: 202, name: 'Entrega 2', acronym: 'E2', description: 'Protótipo e Modelagem' },
+                            { id: 203, name: 'Apresentação Final', acronym: 'AF', description: 'Apresentação para a banca' },
+                        ],
+                        finalGradeFormula: '(E1*0.3) + (E2*0.3) + (AF*0.4)',
+                        hasAdjustedColumn: true,
+                        turmas: [
+                            {
+                                id: 1001,
+                                name: 'Turma 1',
+                                code: 'T1',
+                                students: [
+                                    { id: 11111, name: 'Abel Antimônio', grades: { 'E1': 8.5, 'E2': 9.0, 'AF': 9.5 } },
+                                    { id: 11112, name: 'Bianca Nióbio', grades: { 'E1': 7.0, 'E2': 6.5, 'AF': 8.0 } },
+                                    { id: 11113, name: 'Carla Polônio', grades: { 'E1': 9.5, 'E2': 9.8, 'AF': 10.0 } },
+                                    { id: 11114, name: 'Carlos Zinco', grades: { 'E1': 4.3, 'E2': 5.0, 'AF': 3.5 } },
+                                ]
+                            },
+                            { id: 1002, name: 'Turma 2', code: 'T2', students: [] }
+                        ]
+                    },
+                    { id: 102, name: 'Cálculo I', code: 'MAT001', period: '1º Semestre', gradeComponents: [], finalGradeFormula: '', hasAdjustedColumn: false, turmas: [] }
+                ]
+            },
+            { id: 2, name: 'UNICAMP', disciplines: [] }
+        ],
+        auditLog: [
+            { timestamp: '2025-10-09 14:30:15', message: 'Nota de "Entrega 1" do aluno Abel Antimônio alterada de 8.0 para 8.5.' },
+            { timestamp: '2025-10-09 14:28:02', message: 'Nota de "Entrega 1" do aluno Bianca Nióbio lançada: 7.0.' },
+            { timestamp: '2025-10-08 11:05:41', message: 'Aluno Carlos Zinco adicionado à Turma 1.' },
+        ]
+    };
+
+    // --- LÓGICA DA APLICAÇÃO ---
+    document.addEventListener('DOMContentLoaded', function() {
+        const views = {
+            profile: document.getElementById('profile-view'),
+            dashboard: document.getElementById('dashboard-view'),
+            institutions: document.getElementById('institutions-view'),
+            turmaDetail: document.getElementById('turma-detail-view'),
+            settings: document.getElementById('settings-view'),
+        };
+        const navLinks = document.querySelectorAll('.sidebar .nav-link');
+        const welcomeMessage = document.getElementById('welcome-message');
+        const institutionsAccordion = document.getElementById('institutions-accordion');
+        
+        function switchView(viewName) {
+            Object.values(views).forEach(v => v.classList.add('d-none'));
+            if (views[viewName]) {
+                views[viewName].classList.remove('d-none');
+            }
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.dataset.view === viewName) {
+                    link.classList.add('active');
+                }
+            });
+        }
+        
+        function calculateFinalGrade(grades, formula, components) {
+            if (!formula || components.length === 0) return 0;
+            let formulaToEvaluate = formula;
+            for(const comp of components) {
+                const grade = grades[comp.acronym] ?? 0;
+                const regex = new RegExp(`\\b${comp.acronym}\\b`, 'g');
+                formulaToEvaluate = formulaToEvaluate.replace(regex, grade);
+            }
+            try {
+                return new Function(`return ${formulaToEvaluate}`)();
+            } catch (e) {
+                console.error("Erro ao calcular fórmula:", e);
+                return NaN;
+            }
+        }
+        
+        function adjustGrade(grade) {
+            const decimal = grade - Math.floor(grade);
+            if (decimal <= 0.25) return Math.floor(grade);
+            if (decimal > 0.25 && decimal <= 0.75) return Math.floor(grade) + 0.5;
+            return Math.ceil(grade);
+        }
+
+        function validateFormula(formula, components) {
+            const validAcronyms = components.map(c => c.acronym);
+            if (!formula.trim()) {
+                return { valid: true, message: 'Digite a fórmula.' };
+            }
+
+            const variablesInFormula = formula.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+            const uniqueVariables = [...new Set(variablesInFormula)];
+
+            for (const variable of uniqueVariables) {
+                if (!validAcronyms.includes(variable)) {
+                    return { valid: false, message: `Erro: Atividade "${variable}" não existe.` };
+                }
+            }
+
+            try {
+                let testFormula = formula;
+                validAcronyms.forEach(acronym => {
+                    const regex = new RegExp(`\\b${acronym}\\b`, 'g');
+                    testFormula = testFormula.replace(regex, '1');
+                });
+                new Function(`return ${testFormula}`)();
+            } catch (e) {
+                return { valid: false, message: 'Erro de sintaxe na fórmula.' };
+            }
+
+            return { valid: true, message: 'Fórmula válida!' };
+        }
+
+        function renderProfileView() {
+            const container = views.profile;
+            const user = MOCK_DATA.user;
+            container.innerHTML = `
+                <div class="d-flex align-items-center mb-4">
+                    <img src="https://placehold.co/100x100/E2E8F0/4A5568?text=${user.name.charAt(0)}" class="rounded-circle me-4" alt="Avatar">
+                    <div>
+                        <h1>${user.name}</h1>
+                        <p class="lead text-muted">${user.email}</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Informações Pessoais</h5>
+                        <p>Aqui você poderá editar suas informações de perfil, como nome, e-mail e senha.</p>
+                        <button class="btn btn-primary">Editar Perfil</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderTurmaView(turma, disciplina) {
+            const container = views.turmaDetail;
+            container.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2>${disciplina.name} - ${turma.name}</h2>
+                        <p class="text-muted">Gerenciamento de notas e alunos.</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-secondary me-2"><i class="bi bi-upload me-1"></i> Importar Alunos</button>
+                        <button class="btn btn-primary"><i class="bi bi-person-plus-fill me-1"></i> Adicionar Aluno</button>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Fórmula de Cálculo da Nota Final</h5>
+                            <button class="btn btn-outline-primary" id="toggle-formula-btn"><i class="bi bi-pencil-square me-1"></i> Editar Fórmula</button>
+                        </div>
+                        <div id="formula-editor" class="d-none mt-3">
+                            <div class="mb-2">
+                                <label for="formula-input" class="form-label">Use as siglas das atividades para montar a fórmula:</label>
+                                <input type="text" id="formula-input" class="form-control" value="${disciplina.finalGradeFormula}">
+                                <div id="formula-feedback" class="form-text mt-2"></div>
+                            </div>
+                            <button id="save-formula-btn" class="btn btn-success">Salvar Fórmula</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Quadro de Notas</h5>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="edit-mode-toggle">
+                                    <label class="form-check-label" for="edit-mode-toggle">Modo Edição Completa</label>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light" id="grades-table-head"></thead>
+                                        <tbody id="grades-table-body"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card shadow-sm">
+                             <div class="card-header bg-white"><h5 class="mb-0">Atividades e Avaliações</h5></div>
+                             <div class="card-body">
+                                <ul class="list-group mb-3" id="grade-components-list"></ul>
+                                <h6>Adicionar Nova Atividade</h6>
+                                <div class="row g-2">
+                                    <div class="col-12"><input type="text" id="new-comp-name" class="form-control" placeholder="Nome (Ex: Prova 1)"></div>
+                                    <div class="col-12"><input type="text" id="new-comp-acronym" class="form-control" placeholder="Sigla (Ex: P1)"></div>
+                                </div>
+                                <button id="add-component-btn" class="btn btn-primary mt-2 w-100">Adicionar Atividade</button>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            updateGradeComponentsList(disciplina);
+            updateGradesTable(turma, disciplina);
+            
+            // --- Event Listeners ---
+            document.getElementById('edit-mode-toggle').addEventListener('change', (e) => {
+                const inputs = document.querySelectorAll('#grades-table-body .grade-input');
+                inputs.forEach(input => input.disabled = !e.target.checked);
+            });
+
+            document.getElementById('add-component-btn').addEventListener('click', () => {
+                const nameInput = document.getElementById('new-comp-name');
+                const acronymInput = document.getElementById('new-comp-acronym');
+                if (nameInput.value && acronymInput.value) {
+                    disciplina.gradeComponents.push({
+                        id: Date.now(),
+                        name: nameInput.value,
+                        acronym: acronymInput.value,
+                        description: ''
+                    });
+                    renderTurmaView(turma, disciplina); // Re-render view
+                }
+            });
+
+            document.getElementById('toggle-formula-btn').addEventListener('click', (e) => {
+                document.getElementById('formula-editor').classList.toggle('d-none');
+                e.currentTarget.innerHTML = document.getElementById('formula-editor').classList.contains('d-none') 
+                    ? '<i class="bi bi-pencil-square me-1"></i> Editar Fórmula' 
+                    : '<i class="bi bi-x-lg me-1"></i> Fechar';
+            });
+
+            const formulaInput = document.getElementById('formula-input');
+            const formulaFeedback = document.getElementById('formula-feedback');
+            formulaInput.addEventListener('input', () => {
+                const result = validateFormula(formulaInput.value, disciplina.gradeComponents);
+                formulaFeedback.textContent = result.message;
+                formulaFeedback.className = result.valid ? 'form-text text-success' : 'form-text text-danger';
+            });
+            
+            document.getElementById('save-formula-btn').addEventListener('click', () => {
+                const result = validateFormula(formulaInput.value, disciplina.gradeComponents);
+                if (result.valid) {
+                    disciplina.finalGradeFormula = formulaInput.value;
+                    updateGradesTable(turma, disciplina); // Just update table, no need to re-render everything
+                    alert('Fórmula salva com sucesso!');
+                } else {
+                    alert(`Não foi possível salvar: ${result.message}`);
+                }
+            });
+        }
+        
+        function updateGradeComponentsList(disciplina) {
+            const list = document.getElementById('grade-components-list');
+            list.innerHTML = disciplina.gradeComponents.map(comp => `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><strong>${comp.acronym}:</strong> ${comp.name}</span>
+                </li>
+            `).join('');
+        }
+
+        function updateGradesTable(turma, disciplina) {
+            const tableHead = document.getElementById('grades-table-head');
+            const tableBody = document.getElementById('grades-table-body');
+            
+            let tableHeaders = `
+                <th scope="col">Matrícula</th>
+                <th scope="col">Nome</th>
+            `;
+            disciplina.gradeComponents.forEach(comp => {
+                tableHeaders += `<th scope="col" title="${comp.description}">${comp.name} (${comp.acronym})</th>`;
+            });
+            tableHeaders += `<th scope="col">Nota Final</th>`;
+            if (disciplina.hasAdjustedColumn) {
+                tableHeaders += '<th scope="col">Final Ajustada</th>';
+            }
+            tableHead.innerHTML = `<tr>${tableHeaders}</tr>`;
+
+            tableBody.innerHTML = '';
+            turma.students.forEach(student => {
+                const finalGrade = calculateFinalGrade(student.grades, disciplina.finalGradeFormula, disciplina.gradeComponents);
+                let gradeCells = '';
+                disciplina.gradeComponents.forEach(comp => {
+                    gradeCells += `<td><input type="number" class="grade-input" value="${student.grades[comp.acronym] || ''}" min="0" max="10" step="0.01" disabled></td>`;
+                });
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.id}</td>
+                    <td>${student.name}</td>
+                    ${gradeCells}
+                    <td>${isNaN(finalGrade) ? 'Erro' : finalGrade.toFixed(2)}</td>
+                    ${disciplina.hasAdjustedColumn ? `<td><input type="number" class="grade-input" value="${isNaN(finalGrade) ? '' : adjustGrade(finalGrade).toFixed(1)}" min="0" max="10" step="0.5" disabled></td>` : ''}
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function renderInstitutions() {
+            institutionsAccordion.innerHTML = MOCK_DATA.institutions.map((inst, i) => `
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading-inst-${inst.id}">
+                        <button class="accordion-button ${i !== 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-inst-${inst.id}" aria-expanded="${i === 0}" aria-controls="collapse-inst-${inst.id}">
+                            <i class="bi bi-building me-2"></i> ${inst.name}
+                        </button>
+                    </h2>
+                    <div id="collapse-inst-${inst.id}" class="accordion-collapse collapse ${i === 0 ? 'show' : ''}" aria-labelledby="heading-inst-${inst.id}">
+                        <div class="accordion-body">
+                           ${inst.disciplines.length > 0 ? inst.disciplines.map(disc => `
+                                <div class="card mb-2">
+                                    <div class="card-header">${disc.name} (${disc.code})</div>
+                                    <ul class="list-group list-group-flush">
+                                        ${disc.turmas.map(turma => `
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                ${turma.name} (${turma.code})
+                                                <button class="btn btn-sm btn-outline-primary view-turma-btn" data-inst-id="${inst.id}" data-disc-id="${disc.id}" data-turma-id="${turma.id}">
+                                                    Abrir Turma <i class="bi bi-arrow-right-short"></i>
+                                                </button>
+                                            </li>`).join('')}
+                                    </ul>
+                                </div>
+                           `).join('') : '<p>Nenhuma disciplina cadastrada.</p>'}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.view-turma-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                   const inst = MOCK_DATA.institutions.find(i => i.id == btn.dataset.instId);
+                   const disc = inst.disciplines.find(d => d.id == btn.dataset.discId);
+                   const turma = disc.turmas.find(t => t.id == btn.dataset.turmaId);
+                   renderTurmaView(turma, disc);
+                   switchView('turmaDetail');
+                });
+            });
+        }
+        
+        function renderSettingsView() {
+            const container = views.settings;
+            container.innerHTML = `
+                <h1>Configurações</h1>
+                <p class="lead text-muted">Gerencie as configurações da sua conta e da aplicação.</p>
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Preferências da Conta</h5>
+                        <p>Ajuste suas notificações por e-mail, tema da interface e outras preferências.</p>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="emailNotifications" checked>
+                            <label class="form-check-label" for="emailNotifications">Receber notificações por e-mail</label>
+                        </div>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" role="switch" id="darkMode">
+                            <label class="form-check-label" for="darkMode">Modo Escuro</label>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function init() {
+            welcomeMessage.textContent = `Bem-vindo(a), ${MOCK_DATA.user.name.split(' ')[0]} ${MOCK_DATA.user.name.split(' ').slice(-1)[0]}!`;
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    switchView(e.currentTarget.dataset.view);
+                });
+            });
+
+            const sidebarToggler = document.getElementById('sidebarToggler');
+            const togglerIcon = sidebarToggler.querySelector('i');
+            sidebarToggler.addEventListener('click', () => {
+                document.body.classList.toggle('sidebar-collapsed');
+                if (document.body.classList.contains('sidebar-collapsed')) {
+                    togglerIcon.classList.remove('bi-chevron-left');
+                    togglerIcon.classList.add('bi-chevron-right');
+                } else {
+                    togglerIcon.classList.remove('bi-chevron-right');
+                    togglerIcon.classList.add('bi-chevron-left');
+                }
+            });
+            
+            renderProfileView();
+            renderInstitutions();
+            renderSettingsView();
+            switchView('profile');
+            
+            const defaultInst = MOCK_DATA.institutions[0];
+            const defaultDisc = defaultInst.disciplines[0];
+            const defaultTurma = defaultDisc.turmas[0];
+            renderTurmaView(defaultTurma, defaultDisc);
+        }
+
+        init();
+    });
+    </script>
+</body>
+</html>
+
