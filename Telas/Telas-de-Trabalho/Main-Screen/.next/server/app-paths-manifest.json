@@ -1,8 +1,0 @@
-{
-  "/page": "app/page.js",
-  "/discipline/[id]/page": "app/discipline/[id]/page.js",
-  "/add-discipline/page": "app/add-discipline/page.js",
-  "/export/page": "app/export/page.js",
-  "/import/page": "app/import/page.js",
-  "/settings/page": "app/settings/page.js"
-}
