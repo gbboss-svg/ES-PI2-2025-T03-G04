@@ -1,0 +1,56 @@
+/* Estilos de Tema (Light/Dark Mode) */
+:root {
+    --sidebar-bg: #e9ecef;
+    --sidebar-text: #495057;
+    --sidebar-hover-bg: #dee2e6;
+    --sidebar-active-text: #fff;
+    --sidebar-active-bg: #0d6efd;
+    --main-bg: #f8f9fa;
+    --text-color: #212529;
+    --card-bg: #fff;
+    --card-border: rgba(0, 0, 0, 0.125);
+    --text-muted: #6c757d;
+}
+
+body.dark-mode {
+    --sidebar-bg: #212529;
+    --sidebar-text: #adb5bd;
+    --sidebar-hover-bg: #343a40;
+    --sidebar-active-text: #fff;
+    --sidebar-active-bg: #0d6efd;
+    --main-bg: #121212;
+    --text-color: #e0e0e0;
+    --card-bg: #1e1e1e;
+    --card-border: #333;
+    --text-muted: #a0a0a0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--main-bg);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Sobrescreve estilos de componentes para aplicar o tema */
+.card, .accordion-item, .modal-content {
+    background-color: var(--card-bg);
+    border-color: var(--card-border);
+    color: var(--text-color);
+}
+.card-header, .accordion-header .accordion-button {
+     background-color: var(--card-bg);
+     color: var(--text-color);
+}
+.text-muted {
+    color: var(--text-muted) !important;
+}
+body.dark-mode .accordion-button::after {
+    filter: invert(1) brightness(2);
+}
+ body.dark-mode .bg-white {
+    background-color: var(--card-bg) !important;
+}
+body.dark-mode .btn-close {
+    filter: invert(1);
+}
