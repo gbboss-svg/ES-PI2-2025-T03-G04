@@ -59,7 +59,7 @@ function updateGradesTable(turma, disciplina) {
         const finalGrade = calculateFinalGrade(student.grades, disciplina.finalGradeFormula, disciplina.gradeComponents);
         let gradeCells = '';
         disciplina.gradeComponents.forEach(comp => {
-            gradeCells += `<td><input type="number" class="grade-input" data-acronym="${comp.acronym}" data-student-name="${student.name}" data-component-name="${comp.name}" value="${student.grades[comp.acronym] || ''}" min="0" max="${maxGrade}" step="0.01" disabled></td>`;
+            gradeCells += `<td><input type="number" class="grade-input" data-acronym="${comp.acronym}" data-student-name="${student.name}" data-component-name="${comp.name}" value="${student.grades[comp.acronym] || ''}" min="0" max="${maxGrade}" step="0.01"></td>`;
         });
         
         const row = document.createElement('tr');
@@ -171,10 +171,6 @@ export function renderTurmaDetailView(turma, disciplina) {
                 <div class="card shadow-sm">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Quadro de Notas</h5>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" role="switch" id="edit-mode-toggle" ${isFinalized ? 'disabled' : ''}>
-                            <label class="form-check-label" for="edit-mode-toggle">Modo Edição Completa</label>
-                        </div>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -224,13 +220,6 @@ export function renderTurmaDetailView(turma, disciplina) {
     
     // Adiciona os event listeners específicos desta view
     if (!isFinalized) {
-        document.getElementById('edit-mode-toggle').addEventListener('change', (e) => {
-            const isChecked = e.target.checked;
-            document.querySelectorAll('#grades-table-body .grade-input').forEach(input => input.disabled = !isChecked);
-            addAuditLog(isChecked ? `Modo de edição completa ativado.` : `Modo de edição completa desativado.`);
-            renderAuditLog(currentTurmaContext, renderTurmaDetailView);
-        });
-
         document.getElementById('add-component-btn').addEventListener('click', () => {
             const nameInput = document.getElementById('new-comp-name');
             const acronymInput = document.getElementById('new-comp-acronym');
