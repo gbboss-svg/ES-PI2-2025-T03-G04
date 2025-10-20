@@ -141,7 +141,10 @@ export function renderTurmaDetailView(turma, disciplina) {
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Configurações de Avaliação</h5>
-                    <button class="btn btn-outline-primary" id="toggle-formula-btn" ${isFinalized ? 'disabled' : ''}><i class="bi bi-pencil-square me-1"></i> Editar</button>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-outline-secondary" id="calc-media-simples-btn" ${isFinalized ? 'disabled' : ''} title="Calcular Média Simples"><i class="bi bi-calculator-fill me-1"></i> Calcular Média Simples</button>
+                        <button class="btn btn-outline-primary" id="toggle-formula-btn" ${isFinalized ? 'disabled' : ''}><i class="bi bi-pencil-square me-1"></i> Editar</button>
+                    </div>
                 </div>
                 <div id="formula-editor" class="d-none mt-3">
                     <div class="row g-3">
@@ -264,6 +267,22 @@ export function renderTurmaDetailView(turma, disciplina) {
         });
         document.getElementById('finalize-semester-btn').addEventListener('click', () => finalizeSemesterModal.show());
         document.getElementById('toggle-formula-btn').addEventListener('click', () => document.getElementById('formula-editor').classList.toggle('d-none'));
+
+        document.getElementById('calc-media-simples-btn').addEventListener('click', () => {
+            const { disciplina } = currentTurmaContext;
+            if (disciplina.gradeComponents && disciplina.gradeComponents.length > 0) {
+                const acronyms = disciplina.gradeComponents.map(c => c.acronym);
+                const formula = `(${acronyms.join(' + ')}) / ${acronyms.length}`;
+                const formulaInput = document.getElementById('formula-input');
+                formulaInput.value = formula;
+                // Dispara o evento de input para acionar a validação da fórmula
+                formulaInput.dispatchEvent(new Event('input', { bubbles: true }));
+                // Mostra o editor de fórmula se estiver escondido
+                document.getElementById('formula-editor').classList.remove('d-none');
+            } else {
+                alert('Adicione pelo menos uma atividade de avaliação antes de calcular a média.');
+            }
+        });
 
         const formulaInput = document.getElementById('formula-input');
         const formulaFeedback = document.getElementById('formula-feedback');
