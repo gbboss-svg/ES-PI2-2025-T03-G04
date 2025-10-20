@@ -1,7 +1,7 @@
 import { MOCK_DATA } from './services/DataService.js';
 import { addAuditLog } from './services/AuditService.js';
 import { createSnapshot } from './utils/helpers.js';
-
+//testes!
 // Importa as funções de renderização das views
 import { renderProfileView, initProfileViewModals } from './views/ProfileView.js';
 import { renderDashboardView } from './views/DashboardView.js';
