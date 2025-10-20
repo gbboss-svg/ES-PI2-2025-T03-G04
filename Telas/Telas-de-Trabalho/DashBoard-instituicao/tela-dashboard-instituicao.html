@@ -20,13 +20,22 @@
             <p class="username" id="username-display">*username!</p>
             <p class="welcome-subtitle">PARECE SER SUA PRIMEIRA SESSÃO POR AQUI!</p>
 
+            <!-- Seleção de Instituição -->
             <div class="selection-group">
-                <!-- ELEMENTO ATUALIZADO -->
                 <input type="text" id="institution-input" class="institution-input" list="institutions-list" placeholder="DIGITE OU SELECIONE SUA INSTITUIÇÃO">
                 <datalist id="institutions-list">
                     <!-- Opções serão adicionadas via JavaScript -->
                 </datalist>
                 <a class="link-help" id="add-institution-link">SUA INSTITUIÇÃO NÃO ESTÁ NA LISTA?</a>
+            </div>
+
+            <!-- Nova Seleção de Disciplina -->
+            <div class="selection-group">
+                <input type="text" id="discipline-input" class="institution-input" list="disciplines-list" placeholder="DIGITE OU SELECIONE SUA DISCIPLINA">
+                <datalist id="disciplines-list">
+                    <!-- Opções serão adicionadas via JavaScript -->
+                </datalist>
+                <a class="link-help" id="add-discipline-link">SUA DISCIPLINA NÃO ESTÁ NA LISTA?</a>
             </div>
 
             <div class="button-group">
@@ -36,18 +45,29 @@
         </div>
     </main>
 
-    <!-- Estrutura do Modal (inicialmente invisível) -->
+    <!-- Modal para adicionar Instituição -->
     <div class="modal-overlay" id="add-institution-modal">
         <div class="modal-content">
             <h2 class="modal-title">Adicionar Nova Instituição</h2>
             <input type="text" id="new-institution-input" class="modal-input" placeholder="Nome da instituição">
             <div class="modal-button-group">
-                <button class="btn btn-secondary" id="cancel-add-button">CANCELAR</button>
-                <button class="btn btn-primary" id="confirm-add-button">ADICIONAR</button>
+                <button class="btn btn-secondary" id="cancel-add-institution-button">CANCELAR</button>
+                <button class="btn btn-primary" id="confirm-add-institution-button">ADICIONAR</button>
             </div>
         </div>
     </div>
 
+    <!-- Novo Modal para adicionar Disciplina -->
+    <div class="modal-overlay" id="add-discipline-modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Adicionar Nova Disciplina</h2>
+            <input type="text" id="new-discipline-input" class="modal-input" placeholder="Nome da disciplina">
+            <div class="modal-button-group">
+                <button class="btn btn-secondary" id="cancel-add-discipline-button">CANCELAR</button>
+                <button class="btn btn-primary" id="confirm-add-discipline-button">ADICIONAR</button>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
