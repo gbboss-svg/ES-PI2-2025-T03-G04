@@ -59,7 +59,7 @@ function updateGradesTable(turma, disciplina) {
         const finalGrade = calculateFinalGrade(student.grades, disciplina.finalGradeFormula, disciplina.gradeComponents);
         let gradeCells = '';
         disciplina.gradeComponents.forEach(comp => {
-            gradeCells += `<td><input type="number" class="grade-input" data-acronym="${comp.acronym}" data-student-name="${student.name}" data-component-name="${comp.name}" value="${student.grades[comp.acronym] || ''}" min="0" max="${maxGrade}" step="0.01"></td>`;
+            gradeCells += `<td><input type="number" class="grade-input" data-acronym="${comp.acronym}" data-student-name="${student.name}" data-component-name="${comp.name}" value="${student.grades[comp.acronym] || ''}" min="0" max="${maxGrade}" step="0.01" disabled></td>`;
         });
         
         const row = document.createElement('tr');
@@ -169,10 +169,18 @@ export function renderTurmaDetailView(turma, disciplina) {
         <div class="row g-4">
             <div class="col-lg-8">
                 <div class="card shadow-sm">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <div class="card-header bg-white">
                         <h5 class="mb-0">Quadro de Notas</h5>
                     </div>
                     <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-7 ms-md-auto text-md-end">
+                                <label for="grade-edit-selector" class="form-label d-inline-block me-2">Escolha sua edição:</label>
+                                <select class="form-select form-select-sm d-inline-block" id="grade-edit-selector" style="width: auto;" ${isFinalized ? 'disabled' : ''}>
+                                    <!-- Options will be populated by JS -->
+                                </select>
+                            </div>
+                        </div>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle">
                                 <thead class="table-light" id="grades-table-head"></thead>
@@ -220,6 +228,26 @@ export function renderTurmaDetailView(turma, disciplina) {
     
     // Adiciona os event listeners específicos desta view
     if (!isFinalized) {
+        // Lógica para o seletor de edição de notas
+        const gradeEditSelector = document.getElementById('grade-edit-selector');
+        let options = '<option value="">Selecione para editar...</option>';
+        disciplina.gradeComponents.forEach(comp => {
+            options += `<option value="${comp.acronym}">${comp.name}</option>`;
+        });
+        gradeEditSelector.innerHTML = options;
+
+        gradeEditSelector.addEventListener('change', (e) => {
+            const selectedAcronym = e.target.value;
+            const allInputs = document.querySelectorAll('#grades-table-body .grade-input[data-acronym]');
+            
+            allInputs.forEach(input => input.disabled = true);
+
+            if (selectedAcronym) {
+                const inputsToEnable = document.querySelectorAll(`#grades-table-body .grade-input[data-acronym="${selectedAcronym}"]`);
+                inputsToEnable.forEach(input => input.disabled = false);
+            }
+        });
+
         document.getElementById('add-component-btn').addEventListener('click', () => {
             const nameInput = document.getElementById('new-comp-name');
             const acronymInput = document.getElementById('new-comp-acronym');

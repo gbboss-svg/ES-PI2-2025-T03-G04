@@ -18,9 +18,9 @@
     <link href="https://css.gg/css?family=Inter:400,500,600,700" rel="stylesheet">
 
     <!-- Links para os nossos CSS customizados e modularizados -->
-    <link rel="stylesheet" href="src/styles/themes.css">
-    <link rel="stylesheet" href="src/styles/components.css">
-    <link rel="stylesheet" href="src/styles/views.css">
+    <link rel="stylesheet" href="src/styles/themes.css?v=1.1">
+    <link rel="stylesheet" href="src/styles/components.css?v=1.1">
+    <link rel="stylesheet" href="src/styles/views.css?v=1.1">
 </head>
 <body>
     <div class="d-flex">
@@ -77,9 +77,10 @@
 
         <!-- Conteúdo Principal -->
         <main class="main-content flex-grow-1">
-            <div id="profile-view" class="d-none">
-                <!-- Conteúdo do perfil será renderizado aqui -->
-            </div>
+            <div class="container-fluid">
+                <div id="profile-view" class="d-none">
+                    <!-- Conteúdo do perfil será renderizado aqui -->
+                </div>
             
             <div id="dashboard-view" class="d-none">
                 <!-- Conteúdo do painel principal será renderizado aqui -->
@@ -104,7 +105,7 @@
             <div id="settings-view" class="d-none">
                 <!-- Conteúdo das configurações será renderizado aqui -->
             </div>
-
+        </div>
         </main>
     </div>
 
@@ -419,6 +420,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Nosso script principal modularizado -->
-    <script type="module" src="src/app.js"></script>
+    <script type="module" src="src/app.js?v=1.1"></script>
 </body>
 </html>
