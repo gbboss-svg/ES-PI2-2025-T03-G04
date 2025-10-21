@@ -176,3 +176,59 @@ body.sidebar-collapsed .sidebar-toggler:hover {
 .submenu-item:hover {
     background-color: var(--sidebar-hover-bg);
 }
+
+/* --- Estilos para Upload de Foto de Perfil --- */
+.profile-photo-container {
+    position: relative;
+    cursor: pointer;
+    width: 100px;
+    height: 100px;
+}
+
+.profile-photo-container #profile-photo-img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+}
+
+.profile-photo-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.profile-photo-container:hover .profile-photo-overlay {
+    opacity: 1;
+}
+
+/* --- Estilos para Validação de Fórmula --- */
+#formula-input.is-valid-formula {
+    border-color: var(--bs-success);
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-success-rgb), 0.25);
+}
+
+#formula-input.is-invalid-formula {
+    border-color: var(--bs-danger);
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-danger-rgb), 0.25);
+}
+
+.shake-error {
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+    20%, 40%, 60%, 80% { transform: translateX(10px); }
+}

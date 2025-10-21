@@ -310,6 +310,12 @@ export function renderTurmaDetailView(turma, disciplina) {
             const result = testAndValidateFormula(formulaInput.value, disciplina);
             formulaFeedback.textContent = result.message;
             formulaFeedback.className = result.valid ? 'form-text text-success' : 'form-text text-danger';
+            
+            // Adiciona/remove classes para o feedback visual da borda
+            formulaInput.classList.remove('is-valid-formula', 'is-invalid-formula');
+            if (formulaInput.value) { // Só aplica a classe se o campo não estiver vazio
+                formulaInput.classList.add(result.valid ? 'is-valid-formula' : 'is-invalid-formula');
+            }
         });
         
         maxGradeInput.addEventListener('input', () => formulaInput.dispatchEvent(new Event('input')));
@@ -328,8 +334,9 @@ export function renderTurmaDetailView(turma, disciplina) {
             const snapshot = createSnapshot(turma);
             disciplina.maxGrade = parseFloat(maxGradeInput.value) || 10;
             const result = testAndValidateFormula(formulaInput.value, disciplina);
-            formulaFeedback.classList.remove('shake-error');
             
+            formulaInput.classList.remove('shake-error');
+
             if (result.valid) {
                 disciplina.finalGradeFormula = formulaInput.value;
                 updateGradesTable(turma, disciplina);
@@ -337,9 +344,9 @@ export function renderTurmaDetailView(turma, disciplina) {
                 renderAuditLog(currentTurmaContext, renderTurmaDetailView);
                 alert('Configurações de avaliação salvas com sucesso!');
             } else {
-                alert(`Configurações inválidas: ${result.message}\n\nAs alterações não foram salvas.`);
-                void formulaFeedback.offsetWidth; // Trigger reflow to restart animation
-                formulaFeedback.classList.add('shake-error');
+                // Em vez de um alerta, aciona a animação de "tremor"
+                void formulaInput.offsetWidth; // Trigger reflow para reiniciar a animação
+                formulaInput.classList.add('shake-error');
             }
         });
     } else {
