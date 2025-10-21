@@ -29,13 +29,13 @@
                 <a class="link-help" id="add-institution-link">SUA INSTITUIÇÃO NÃO ESTÁ NA LISTA?</a>
             </div>
 
-            <!-- Nova Seleção de Disciplina -->
+            <!-- Nova Seleção de Curso -->
             <div class="selection-group">
-                <input type="text" id="discipline-input" class="institution-input" list="disciplines-list" placeholder="DIGITE OU SELECIONE SUA DISCIPLINA">
-                <datalist id="disciplines-list">
+                <input type="text" id="course-input" class="institution-input" list="courses-list" placeholder="DIGITE OU SELECIONE SEU CURSO">
+                <datalist id="courses-list">
                     <!-- Opções serão adicionadas via JavaScript -->
                 </datalist>
-                <a class="link-help" id="add-discipline-link">SUA DISCIPLINA NÃO ESTÁ NA LISTA?</a>
+                <a class="link-help" id="add-course-link">SEU CURSO NÃO ESTÁ NA LISTA?</a>
             </div>
 
             <div class="button-group">
@@ -57,14 +57,14 @@
         </div>
     </div>
 
-    <!-- Novo Modal para adicionar Disciplina -->
-    <div class="modal-overlay" id="add-discipline-modal">
+    <!-- Novo Modal para adicionar Curso -->
+    <div class="modal-overlay" id="add-course-modal">
         <div class="modal-content">
-            <h2 class="modal-title">Adicionar Nova Disciplina</h2>
-            <input type="text" id="new-discipline-input" class="modal-input" placeholder="Nome da disciplina">
+            <h2 class="modal-title">Adicionar Novo Curso</h2>
+            <input type="text" id="new-course-input" class="modal-input" placeholder="Nome do curso">
             <div class="modal-button-group">
-                <button class="btn btn-secondary" id="cancel-add-discipline-button">CANCELAR</button>
-                <button class="btn btn-primary" id="confirm-add-discipline-button">ADICIONAR</button>
+                <button class="btn btn-secondary" id="cancel-add-course-button">CANCELAR</button>
+                <button class="btn btn-primary" id="confirm-add-course-button">ADICIONAR</button>
             </div>
         </div>
     </div>
