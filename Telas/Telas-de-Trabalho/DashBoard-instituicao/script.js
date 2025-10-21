@@ -15,14 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmAddInstitutionButton: document.getElementById('confirm-add-institution-button'),
         cancelAddInstitutionButton: document.getElementById('cancel-add-institution-button'),
 
-        // Novos Elementos da Disciplina
-        disciplineInput: document.getElementById('discipline-input'),
-        disciplinesList: document.getElementById('disciplines-list'),
-        addDisciplineLink: document.getElementById('add-discipline-link'),
-        disciplineModal: document.getElementById('add-discipline-modal'),
-        newDisciplineInput: document.getElementById('new-discipline-input'),
-        confirmAddDisciplineButton: document.getElementById('confirm-add-discipline-button'),
-        cancelAddDisciplineButton: document.getElementById('cancel-add-discipline-button')
+        // Novos Elementos de Curso
+        courseInput: document.getElementById('course-input'),
+        coursesList: document.getElementById('courses-list'),
+        addCourseLink: document.getElementById('add-course-link'),
+        courseModal: document.getElementById('add-course-modal'),
+        newCourseInput: document.getElementById('new-course-input'),
+        confirmAddCourseButton: document.getElementById('confirm-add-course-button'),
+        cancelAddCourseButton: document.getElementById('cancel-add-course-button')
     };
 
     // --- Estado da Aplicação ---
@@ -34,12 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
             "Instituto de Inovação Digital (IID)",
             "Escola Superior de Artes e Design (ESAD)"
         ],
-        // Nova lista de disciplinas
-        disciplines: [
-            "Cálculo I",
-            "Algoritmos e Estrutura de Dados",
-            "Física Experimental",
-            "Introdução à Engenharia"
+        // Nova lista de cursos
+        courses: [
+            "Engenharia de Software",
+            "Ciência da Computação",
+            "Design Gráfico",
+            "Engenharia Civil"
         ]
     };
 
@@ -66,25 +66,25 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.institutionsList.appendChild(option);
     }
 
-    // --- Novas Funções da Disciplina ---
-    function populateDisciplines() {
-        if (!elements.disciplinesList) return;
-        elements.disciplinesList.innerHTML = '';
-        state.disciplines.forEach(discipline => {
-            addDisciplineToDatalist(discipline);
+    // --- Novas Funções de Curso ---
+    function populateCourses() {
+        if (!elements.coursesList) return;
+        elements.coursesList.innerHTML = '';
+        state.courses.forEach(course => {
+            addCourseToDatalist(course);
         });
     }
 
-    function addDisciplineToDatalist(disciplineName) {
+    function addCourseToDatalist(courseName) {
         const option = document.createElement('option');
-        option.value = disciplineName;
-        elements.disciplinesList.appendChild(option);
+        option.value = courseName;
+        elements.coursesList.appendChild(option);
     }
 
     // --- Função de Acesso Principal ATUALIZADA ---
     function handleDashboardAccess() {
         const selectedInstitution = elements.institutionInput.value.trim();
-        const selectedDiscipline = elements.disciplineInput.value.trim();
+        const selectedCourse = elements.courseInput.value.trim();
 
         if (!selectedInstitution) {
             alert('Por favor, digite ou selecione uma instituição de ensino para continuar.');
@@ -92,13 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (!selectedDiscipline) {
-            alert('Por favor, digite ou selecione uma disciplina para continuar.');
-            elements.disciplineInput.focus();
+        if (!selectedCourse) {
+            alert('Por favor, digite ou selecione um curso para continuar.');
+            elements.courseInput.focus();
             return;
         }
 
-        alert(`Acessando o dashboard para:\nInstituição: ${selectedInstitution}\nDisciplina: ${selectedDiscipline}`);
+        alert(`Acessando o dashboard para:\nInstituição: ${selectedInstitution}\nCurso: ${selectedCourse}`);
     }
 
     function handleLogout() {
@@ -132,30 +132,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Novas Funções do Modal da Disciplina ---
-    function openDisciplineModal() {
-        elements.disciplineModal.classList.add('visible');
-        elements.newDisciplineInput.focus();
+    // --- Novas Funções do Modal de Curso ---
+    function openCourseModal() {
+        elements.courseModal.classList.add('visible');
+        elements.newCourseInput.focus();
     }
 
-    function closeDisciplineModal() {
-        elements.disciplineModal.classList.remove('visible');
-        elements.newDisciplineInput.value = '';
+    function closeCourseModal() {
+        elements.courseModal.classList.remove('visible');
+        elements.newCourseInput.value = '';
     }
 
-    function handleConfirmAddDiscipline() {
-        const newDiscipline = elements.newDisciplineInput.value.trim();
-        if (newDiscipline) {
-            if (!state.disciplines.find(disc => disc.toLowerCase() === newDiscipline.toLowerCase())) {
-                state.disciplines.push(newDiscipline);
-                addDisciplineToDatalist(newDiscipline);
+    function handleConfirmAddCourse() {
+        const newCourse = elements.newCourseInput.value.trim();
+        if (newCourse) {
+            if (!state.courses.find(c => c.toLowerCase() === newCourse.toLowerCase())) {
+                state.courses.push(newCourse);
+                addCourseToDatalist(newCourse);
             }
-            elements.disciplineInput.value = newDiscipline;
-            alert(`Disciplina "${newDiscipline}" adicionada com sucesso!`);
-            closeDisciplineModal();
+            elements.courseInput.value = newCourse;
+            alert(`Curso "${newCourse}" adicionado com sucesso!`);
+            closeCourseModal();
         } else {
-            alert('Por favor, digite o nome da disciplina.');
-            elements.newDisciplineInput.focus();
+            alert('Por favor, digite o nome do curso.');
+            elements.newCourseInput.focus();
         }
     }
 
@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function init() {
         setUsername();
         populateInstitutions();
-        populateDisciplines(); // Adicionado
+        populateCourses(); // Adicionado
 
         // Event Listeners principais
         elements.dashboardButton.addEventListener('click', handleDashboardAccess);
@@ -182,16 +182,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Novos Event Listeners do Modal da Disciplina
-        elements.addDisciplineLink.addEventListener('click', (e) => {
+        // Novos Event Listeners do Modal de Curso
+        elements.addCourseLink.addEventListener('click', (e) => {
             e.preventDefault(); 
-            openDisciplineModal();
+            openCourseModal();
         });
-        elements.cancelAddDisciplineButton.addEventListener('click', closeDisciplineModal);
-        elements.confirmAddDisciplineButton.addEventListener('click', handleConfirmAddDiscipline);
-        elements.disciplineModal.addEventListener('click', (e) => {
-            if (e.target === elements.disciplineModal) {
-                closeDisciplineModal();
+        elements.cancelAddCourseButton.addEventListener('click', closeCourseModal);
+        elements.confirmAddCourseButton.addEventListener('click', handleConfirmAddCourse);
+        elements.courseModal.addEventListener('click', (e) => {
+            if (e.target === elements.courseModal) {
+                closeCourseModal();
             }
         });
     }
