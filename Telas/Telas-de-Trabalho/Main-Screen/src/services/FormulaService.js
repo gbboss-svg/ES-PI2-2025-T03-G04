@@ -97,9 +97,13 @@ export function testAndValidateFormula(formula, disciplina) {
     if (result < 0) { 
          return { valid: false, message: `O resultado do teste (${result.toFixed(2)}) é negativo. A fórmula deve resultar em um valor positivo.` };
     }
-    // Adiciona uma pequena tolerância para problemas com ponto flutuante
-    if (result > disciplina.maxGrade * 1.01) { 
-        return { valid: false, message: `O resultado do teste (${result.toFixed(2)}) excede a nota máxima da disciplina (${disciplina.maxGrade}).` };
+    // Validação exata: o resultado do teste com notas máximas deve ser igual à nota máxima da disciplina.
+    // Usamos uma pequena tolerância (0.01) para evitar problemas com a precisão de ponto flutuante.
+    if (Math.abs(result - disciplina.maxGrade) > 0.01) { 
+        return { 
+            valid: false, 
+            message: `Erro: O resultado do teste (${result.toFixed(2)}) é diferente da nota máxima (${disciplina.maxGrade}). Ajuste os pesos da fórmula.` 
+        };
     }
 
     return { valid: true, message: 'Fórmula válida e testada com sucesso!', testResult: result };

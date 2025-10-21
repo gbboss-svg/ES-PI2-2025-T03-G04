@@ -71,9 +71,18 @@ function renderCourseManagement(instId) {
  */
 export function renderProfileView(container, previouslySelectedInstId = null) {
     const user = MOCK_DATA.user;
+    const savedPhoto = localStorage.getItem(`profile_photo_${user.cpf}`);
+    const photoSrc = savedPhoto ? savedPhoto : `https://placehold.co/100x100/E2E8F0/4A5568?text=${user.name.charAt(0)}`;
+
     container.innerHTML = `
         <div class="d-flex align-items-center mb-4">
-            <img src="https://placehold.co/100x100/E2E8F0/4A5568?text=${user.name.charAt(0)}" class="rounded-circle me-4" alt="Avatar">
+            <div class="profile-photo-container me-4">
+                <img src="${photoSrc}" class="rounded-circle" alt="Avatar" id="profile-photo-img">
+                <div class="profile-photo-overlay">
+                    <i class="bi bi-camera-fill"></i>
+                </div>
+                <input type="file" id="photo-upload-input" class="d-none" accept="image/*">
+            </div>
             <div>
                 <h1>${user.name}</h1>
                 <p class="lead text-muted">${user.email}</p>
@@ -150,4 +159,27 @@ export function renderProfileView(container, previouslySelectedInstId = null) {
     if (MOCK_DATA.institutions.length > 0) {
         renderCourseManagement(instCourseSelect.value);
     }
+
+    // Lógica para o upload da foto de perfil
+    const photoContainer = container.querySelector('.profile-photo-container');
+    const photoUploadInput = container.querySelector('#photo-upload-input');
+
+    photoContainer.addEventListener('click', () => {
+        photoUploadInput.click();
+    });
+
+    photoUploadInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const base64Image = e.target.result;
+                // Salva a imagem no localStorage usando o CPF como parte da chave
+                localStorage.setItem(`profile_photo_${user.cpf}`, base64Image);
+                // Atualiza a imagem na tela
+                document.getElementById('profile-photo-img').src = base64Image;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
 }
