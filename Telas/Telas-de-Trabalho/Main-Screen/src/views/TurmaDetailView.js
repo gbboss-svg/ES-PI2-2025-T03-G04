@@ -174,8 +174,8 @@ export function renderTurmaDetailView(turma, disciplina) {
                     </div>
                     <div class="card-body">
                         <div class="row mb-3">
-                            <div class="col-md-7 ms-md-auto text-md-end">
-                                <label for="grade-edit-selector" class="form-label d-inline-block me-2">Escolha sua edição:</label>
+                            <div class="col-12">
+                                <label for="grade-edit-selector" class="form-label d-inline-block me-2"><strong>Escolha qual coluna você quer editar:</strong></label>
                                 <select class="form-select form-select-sm d-inline-block" id="grade-edit-selector" style="width: auto;" ${isFinalized ? 'disabled' : ''}>
                                     <!-- Options will be populated by JS -->
                                 </select>
