@@ -104,12 +104,23 @@ export function renderCreationView(container) {
     function updateDisciplineSelect(instId, courseName) {
         const institution = MOCK_DATA.institutions.find(i => i.id == instId);
         discSelect.innerHTML = '';
-        newDiscFields.classList.remove('expanded');
+        newDiscFields.classList.remove('expanded'); // Garante que o campo esteja oculto por padrão
         if (institution) {
             const filteredDisciplines = institution.disciplines.filter(d => d.curso === courseName);
-            discSelect.innerHTML = filteredDisciplines.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
-            discSelect.innerHTML += '<option value="new">--- Criar nova disciplina ---</option>';
+            
+            if (filteredDisciplines.length > 0) {
+                discSelect.innerHTML = filteredDisciplines.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+                discSelect.innerHTML += '<option value="new">--- Criar nova disciplina ---</option>';
+                discSelect.value = filteredDisciplines[0].id; // Seleciona a primeira por padrão
+                newDiscFields.classList.remove('expanded');
+            } else {
+                // Se não houver disciplinas, força a criação de uma nova
+                discSelect.innerHTML = '<option value="new" selected>--- Criar nova disciplina ---</option>';
+                newDiscFields.classList.add('expanded');
+            }
             discSelect.disabled = false;
+        } else {
+            discSelect.disabled = true;
         }
     }
     
