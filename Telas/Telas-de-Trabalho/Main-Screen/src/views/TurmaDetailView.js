@@ -2,6 +2,7 @@ import { MOCK_DATA } from '../services/DataService.js';
 import { addAuditLog, renderAuditLog } from '../services/AuditService.js';
 import { calculateFinalGrade, adjustGrade, testAndValidateFormula } from '../services/FormulaService.js';
 import { createSnapshot } from '../utils/helpers.js';
+import { exportTurmaToCsv, downloadFile, importStudentsFromCsv } from '../services/CsvService.js';
 
 // Variáveis de estado e modais que serão gerenciadas pelo app.js
 let currentTurmaContext = {};
@@ -126,8 +127,8 @@ export function renderTurmaDetailView(turma, disciplina) {
                 </div>
                 <div class="btn-group me-2 mb-2" role="group">
                     <button id="add-student-btn" class="btn btn-primary" ${isFinalized ? 'disabled' : ''}><i class="bi bi-person-plus-fill me-1"></i> Adicionar Aluno</button>
-                    <button class="btn btn-outline-secondary"><i class="bi bi-upload me-1"></i> Importar</button>
-                    <button class="btn btn-outline-secondary"><i class="bi bi-download me-1"></i> Exportar</button>
+                    <button id="import-csv-btn" class="btn btn-outline-secondary"><i class="bi bi-upload me-1"></i> Importar</button>
+                    <button id="export-csv-btn" class="btn btn-outline-secondary"><i class="bi bi-download me-1"></i> Exportar</button>
                 </div>
                 <div class="btn-group mb-2" role="group">
                     <button class="btn btn-info text-white" id="toggle-audit-panel-btn"><i class="bi bi-terminal me-1"></i> Auditoria</button>
@@ -276,6 +277,45 @@ export function renderTurmaDetailView(turma, disciplina) {
         });
         
         document.getElementById('add-student-btn').addEventListener('click', () => addStudentModal.show());
+
+        document.getElementById('export-csv-btn').addEventListener('click', () => {
+            const csvData = exportTurmaToCsv(turma, disciplina);
+            downloadFile(csvData, `turma_${turma.name}.csv`, 'text/csv');
+        });
+
+        document.getElementById('import-csv-btn').addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.csv';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const { headers, students } = importStudentsFromCsv(event.target.result);
+                        const snapshot = createSnapshot(turma);
+                        
+                        students.forEach(newStudent => {
+                            const existingStudent = turma.students.find(s => s.id === newStudent.id);
+                            if (existingStudent) {
+                                Object.assign(existingStudent, newStudent);
+                            } else {
+                                turma.students.push(newStudent);
+                            }
+                        });
+
+                        addAuditLog(`${students.length} alunos importados via CSV.`, snapshot);
+                        renderTurmaDetailView(turma, disciplina);
+                        alert('Alunos importados com sucesso!');
+                    } catch (error) {
+                        alert(`Erro ao importar CSV: ${error.message}`);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        });
+
         document.getElementById('calculate-avg-btn').addEventListener('click', () => {
             updateGradesTable(turma, disciplina);
             addAuditLog('Médias recalculadas para todos os alunos.');
