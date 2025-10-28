@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        alert(`Acessando o dashboard para:\nInstituição: ${selectedInstitution}\nCurso: ${selectedCourse}`);
+        window.location.href = '../../Telas-de-Trabalho/Main-Screen/index.html';
     }
 
     function handleLogout() {
