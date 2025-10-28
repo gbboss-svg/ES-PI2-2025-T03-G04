@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!email || !isVerified) {
         alert('Acesso inválido. Por favor, inicie o processo de recuperação de senha novamente.');
-        window.location.href = '../Tela-Login/tela.html';
+        window.location.href = '/login';
         return;
     }
 
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Limpa o localStorage e redireciona
             localStorage.removeItem('userEmailForReset');
             localStorage.removeItem('passwordResetVerified');
-            window.location.href = '../Tela-Login/tela.html';
+            window.location.href = '/login';
 
         } catch (error) {
             message.textContent = error.message;
@@ -56,6 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     backButton.addEventListener('click', () => {
-        window.location.href = '../Tela-Login/tela.html';
+        window.location.href = '/login';
     });
 });

@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const email = localStorage.getItem('userEmailForReset');
     if (!email) {
-        window.location.href = '../Tela-Esqueci-Minha-Senha/tela.html';
+        window.location.href = '/esqueci-senha';
         return;
     }
 
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 // O código está correto, redireciona para a tela de nova senha
                 localStorage.setItem('passwordResetVerified', 'true'); // Seta uma flag de permissão
-                window.location.href = '../Tela-Cadastrar-Nova-Senha/tela.html';
+                window.location.href = '/cadastrar-nova-senha';
             } else {
                 const errorData = await response.json();
                 
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     setTimeout(() => {
                         localStorage.removeItem('userEmailForReset');
-                        window.location.href = '../Tela-Login/tela.html';
+                        window.location.href = '/login';
                     }, 5000);
                 } else {
                     formError.textContent = 'Código inválido. Tente novamente.';
@@ -103,6 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     backButton.addEventListener('click', () => {
-        window.location.href = '../Tela-Esqueci-Minha-Senha/tela.html';
+        window.location.href = '/esqueci-senha';
     });
 });
