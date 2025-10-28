@@ -13,6 +13,10 @@ app.use(router);
 // --- Configuração de Rotas Estáticas ---
 
 const basePath = path.join(__dirname, '..', '..', 'Telas');
+<<<<<<< HEAD
+=======
+
+>>>>>>> 063de9e (todas as telas interconectadas - telas de registro/login)
 // Área de Login e Cadastro
 const loginCadastroPath = path.join(basePath, 'Telas-Area-de-Login-Cadastro');
 app.use('/login', express.static(path.join(loginCadastroPath, 'Tela-Login')));

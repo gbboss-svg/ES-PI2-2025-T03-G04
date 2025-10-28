@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const email = localStorage.getItem('userEmailForVerification');
     if (!email) {
-        window.location.href = '../Tela-Novo-Cadastro/tela-registro.html';
+        window.location.href = '/novo-cadastro';
         return;
     }
 
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setTimeout(() => {
             localStorage.removeItem('userEmailForVerification');
-            window.location.href = '../Tela-Login/tela.html';
+            window.location.href = '/login';
         }, 5000);
     }
 
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 alert('Conta verificada com sucesso! Você será redirecionado para o login.');
                 localStorage.removeItem('userEmailForVerification');
-                window.location.href = '../Tela-Login/tela.html';
+                window.location.href = '/login';
             } else {
                 const errorData = await response.json();
                 if (errorData.message === 'MAX_ATTEMPTS_REACHED') {
@@ -107,10 +107,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ email })
             });
             // Redirect regardless of whether the backend call succeeds or fails
-            window.location.href = '../Tela-Novo-Cadastro/tela-registro.html';
+            window.location.href = '/novo-cadastro';
         } catch (error) {
             console.error('Failed to cancel registration, redirecting anyway.');
-            window.location.href = '../Tela-Novo-Cadastro/tela-registro.html';
+            window.location.href = '/novo-cadastro';
         }
     });
 });
