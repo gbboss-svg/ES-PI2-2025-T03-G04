@@ -6,6 +6,8 @@ const dbConfig = {
   connectString: "BD-ACD:1521/xe"
 };
 
+
+
 async function initialize() {
   try {
     await oracledb.createPool({

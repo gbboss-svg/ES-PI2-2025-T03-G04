@@ -303,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (data.email) {
                 localStorage.setItem('userEmailForReset', data.email);
-                window.location.href = '../Tela-Verificar-Código/tela.html';
+                window.location.href = '/verificar-codigo';
             } else {
                 successMessage.textContent = 'Credencial não encontrada.';
                 successMessage.style.color = 'red';
@@ -317,6 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     backButton.addEventListener('click', () => {
-        window.location.href = '../Tela-Login/tela.html';
+        window.location.href = '/login';
     });
 });
