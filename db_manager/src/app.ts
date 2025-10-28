@@ -12,8 +12,7 @@ app.use(router);
 
 // --- Configuração de Rotas Estáticas ---
 
-const basePath = 'C:/Users/24013653/Desktop/ES-PI2-2025-T03-G04/Telas';
-
+const basePath = path.join(__dirname, '..', '..', 'Telas');
 // Área de Login e Cadastro
 const loginCadastroPath = path.join(basePath, 'Telas-Area-de-Login-Cadastro');
 app.use('/login', express.static(path.join(loginCadastroPath, 'Tela-Login')));
@@ -44,6 +43,10 @@ app.get('/novo-cadastro', (req, res) => res.sendFile(path.join(loginCadastroPath
 app.get('/cadastrar-nova-senha', (req, res) => res.sendFile(path.join(loginCadastroPath, 'Tela-Cadastrar-Nova-Senha', 'tela.html')));
 app.get('/verificar-codigo', (req, res) => res.sendFile(path.join(loginCadastroPath, 'Tela-Verificar-Código', 'tela.html')));
 app.get('/verificacao-codigo-registro', (req, res) => res.sendFile(path.join(loginCadastroPath, 'Tela-Verificação-Código-Para-Registro', 'tela.html')));
+
+// Servir HTML das telas de trabalho
+app.get('/dashboard-instituicao', (req, res) => res.sendFile(path.join(trabalhoPath, 'DashBoard-instituicao', 'tela-dashboard-instituicao.html')));
+app.get('/main', (req, res) => res.sendFile(path.join(trabalhoPath, 'Main-Screen', 'index.html')));
 
 // Middleware global de erros
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

@@ -165,13 +165,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             localStorage.setItem('token', data.token);
 
-            // Verifica se é o primeiro login do usuário
-            if (data.isFirstLogin) {
-                // Redireciona para a tela de dashboard da instituição se for o primeiro login
-                showLoadingAndRedirect('../../Telas-de-Trabalho/DashBoard-instituicao/tela-dashboard-instituicao.html');
+            // Redireciona para a rota definida pelo backend
+            if (data.redirectTo) {
+                // O redirecionamento agora usa a rota diretamente do backend
+                showLoadingAndRedirect(data.redirectTo);
             } else {
-                // Redireciona para a tela principal se não for o primeiro login
-                showLoadingAndRedirect('../../Telas-de-Trabalho/Main-Screen/index.html');
+                // Fallback, caso 'redirectTo' não seja enviado
+                showLoadingAndRedirect('/main');
             }
 
         } catch (err) {
