@@ -12,7 +12,8 @@ app.use(router);
 
 // --- Configuração de Rotas Estáticas ---
 
-const basePath = path.join(__dirname, '..', '..', 'Telas');
+const basePath = 'C:/Users/24013653/Desktop/ES-PI2-2025-T03-G04/Telas';
+
 // Área de Login e Cadastro
 const loginCadastroPath = path.join(basePath, 'Telas-Area-de-Login-Cadastro');
 app.use('/login', express.static(path.join(loginCadastroPath, 'Tela-Login')));
