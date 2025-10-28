@@ -164,7 +164,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
             localStorage.setItem('token', data.token);
-            showLoadingAndRedirect('/dashboard'); // Substitua pelo URL real do dashboard
+
+            // Verifica se é o primeiro login do usuário
+            if (data.isFirstLogin) {
+                // Redireciona para a tela de dashboard da instituição se for o primeiro login
+                showLoadingAndRedirect('../../Telas-de-Trabalho/DashBoard-instituicao/tela-dashboard-instituicao.html');
+            } else {
+                // Redireciona para a tela principal se não for o primeiro login
+                showLoadingAndRedirect('../../Telas-de-Trabalho/Main-Screen/index.html');
+            }
 
         } catch (err) {
             errorMessage.textContent = err.message;
