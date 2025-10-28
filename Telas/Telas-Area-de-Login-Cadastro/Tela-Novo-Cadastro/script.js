@@ -9,7 +9,7 @@ const backButton = document.getElementById('back-button');
 
 // Event listener para o botão de voltar
 backButton.addEventListener('click', () => {
-    window.location.href = '../Tela-Login/tela.html';
+    window.location.href = '/login';
 });
 
 // Máscara para o campo de CPF
@@ -158,7 +158,7 @@ signupForm.addEventListener('submit', async (e) => {
 
         // Salva o e-mail para a próxima tela e redireciona
         localStorage.setItem('userEmailForVerification', emailInput.value);
-        window.location.href = '../Tela-Verificação-Código-Para-Registro/tela.html';
+        window.location.href = '/verificacao-codigo-registro';
 
     } catch (error) {
         formError.textContent = error.message;
