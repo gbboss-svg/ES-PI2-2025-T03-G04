@@ -103,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleLogout() {
         alert('Você foi desconectado. Até a próxima!');
+        window.location.href = '/login';
     }
 
     // --- Funções do Modal da Instituição ---
