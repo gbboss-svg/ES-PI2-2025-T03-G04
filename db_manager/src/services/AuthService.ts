@@ -24,7 +24,7 @@ class AuthService {
       const verificationCode = EmailService.generateVerificationCode();
 
       await conn.execute(
-        `INSERT INTO PROFESSORES (NOME, EMAIL, CPF, CELULAR, SENHA, VERIFICATION_CODE) VALUES (:nome, :email, :cpf, :celular, :senha, :verificationCode)`,
+        `INSERT INTO PROFESSORES (NOME, EMAIL, CPF, CELULAR, SENHA, VERIFICATION_CODE, PRIMEIRO_ACESSO) VALUES (:nome, :email, :cpf, :celular, :senha, :verificationCode, 1)`,
         { nome, email, cpf, celular, senha: hashedPassword, verificationCode },
         { autoCommit: true }
       );
