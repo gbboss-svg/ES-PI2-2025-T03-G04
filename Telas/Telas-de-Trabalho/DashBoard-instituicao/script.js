@@ -28,19 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Estado da Aplicação ---
     const state = {
         username: "Maria Silva",
-        institutions: [
-            "Universidade Federal de Exemplo (UFE)",
-            "Centro Tecnológico Estadual (CTE)",
-            "Instituto de Inovação Digital (IID)",
-            "Escola Superior de Artes e Design (ESAD)"
-        ],
-        // Nova lista de cursos
-        courses: [
-            "Engenharia de Software",
-            "Ciência da Computação",
-            "Design Gráfico",
-            "Engenharia Civil"
-        ]
+        institutions: [], // Será preenchido pelo backend
+        courses: []       // Será preenchido pelo backend
     };
 
     // --- Funções ---
@@ -52,53 +41,111 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Funções da Instituição ---
-    function populateInstitutions() {
-        if (!elements.institutionsList) return;
-        elements.institutionsList.innerHTML = '';
-        state.institutions.forEach(institution => {
-            addInstitutionToDatalist(institution);
-        });
+    async function populateInstitutions() {
+        try {
+            const response = await fetch('/professor/instituicoes', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            const data = await response.json();
+            state.institutions = data;
+            if (!elements.institutionsList) return;
+            elements.institutionsList.innerHTML = '';
+            state.institutions.forEach(institution => {
+                addInstitutionToDatalist(institution);
+            });
+        } catch (error) {
+            console.error('Erro ao buscar instituições:', error);
+            alert('Não foi possível carregar as instituições.');
+        }
     }
 
-    function addInstitutionToDatalist(institutionName) {
+    function addInstitutionToDatalist(institution) {
         const option = document.createElement('option');
-        option.value = institutionName;
+        option.value = institution.nome; // Assumindo que a API retorna objetos com 'nome'
         elements.institutionsList.appendChild(option);
     }
 
     // --- Novas Funções de Curso ---
-    function populateCourses() {
-        if (!elements.coursesList) return;
-        elements.coursesList.innerHTML = '';
-        state.courses.forEach(course => {
-            addCourseToDatalist(course);
-        });
+    async function populateCourses() {
+        try {
+            const response = await fetch('/professor/cursos', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            const data = await response.json();
+            state.courses = data;
+            if (!elements.coursesList) return;
+            elements.coursesList.innerHTML = '';
+            state.courses.forEach(course => {
+                addCourseToDatalist(course);
+            });
+        } catch (error) {
+            console.error('Erro ao buscar cursos:', error);
+            alert('Não foi possível carregar os cursos.');
+        }
     }
 
-    function addCourseToDatalist(courseName) {
+    function addCourseToDatalist(course) {
         const option = document.createElement('option');
-        option.value = courseName;
+        option.value = course.nome; // Assumindo que a API retorna objetos com 'nome'
         elements.coursesList.appendChild(option);
     }
 
     // --- Função de Acesso Principal ATUALIZADA ---
     function handleDashboardAccess() {
-        const selectedInstitution = elements.institutionInput.value.trim();
-        const selectedCourse = elements.courseInput.value.trim();
+        const selectedInstitutionName = elements.institutionInput.value.trim();
+        const selectedCourseName = elements.courseInput.value.trim();
 
-        if (!selectedInstitution) {
+        if (!selectedInstitutionName) {
             alert('Por favor, digite ou selecione uma instituição de ensino para continuar.');
             elements.institutionInput.focus();
             return;
         }
 
-        if (!selectedCourse) {
+        if (!selectedCourseName) {
             alert('Por favor, digite ou selecione um curso para continuar.');
             elements.courseInput.focus();
             return;
         }
 
-        window.location.href = '../../Telas-de-Trabalho/Main-Screen/index.html';
+        // Obtém os IDs da instituição e curso selecionados
+        const selectedInstitution = state.institutions.find(inst => inst.nome === selectedInstitutionName);
+        const selectedCourseObj = state.courses.find(course => course.nome === selectedCourseName);
+
+        if (!selectedInstitution || !selectedCourseObj) {
+            alert('Instituição ou curso selecionado inválido.');
+            return;
+        }
+
+        handleConfirmAssociate(selectedInstitution.id, selectedCourseObj.id);
+    }
+
+    async function handleConfirmAssociate(institutionId, courseId) {
+        try {
+            const response = await fetch('/professor/associar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ institutionId, courseId })
+            });
+
+            if (response.ok) {
+                alert('Associação realizada com sucesso! Redirecionando para a tela principal.');
+                // Passa os IDs da instituição e curso como parâmetros na URL
+                window.location.href = `/main?instId=${institutionId}&cursoId=${courseId}`;
+            } else {
+                const data = await response.json();
+                alert(`Erro ao associar: ${data.message}`);
+            }
+        } catch (error) {
+            console.error('Erro ao associar:', error);
+            alert('Erro ao associar.');
+        }
     }
 
     function handleLogout() {
@@ -117,16 +164,33 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.newInstitutionInput.value = '';
     }
 
-    function handleConfirmAddInstitution() {
-        const newInstitution = elements.newInstitutionInput.value.trim();
-        if (newInstitution) {
-            if (!state.institutions.find(inst => inst.toLowerCase() === newInstitution.toLowerCase())) {
-                state.institutions.push(newInstitution);
-                addInstitutionToDatalist(newInstitution);
+    async function handleConfirmAddInstitution() {
+        const newInstitutionName = elements.newInstitutionInput.value.trim();
+        if (newInstitutionName) {
+            try {
+                const response = await fetch('/professor/instituicoes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ nome: newInstitutionName, cnpj: '00.000.000/0001-00', endereco: 'Endereço genérico' }) // CNPJ e Endereço podem ser preenchidos depois
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    const newInstitution = { id: data.id, nome: newInstitutionName };
+                    state.institutions.push(newInstitution);
+                    addInstitutionToDatalist(newInstitution);
+                    elements.institutionInput.value = newInstitutionName;
+                    alert(`Instituição "${newInstitutionName}" adicionada com sucesso!`);
+                    closeInstitutionModal();
+                } else {
+                    alert(`Erro ao adicionar instituição: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar instituição:', error);
+                alert('Erro ao adicionar instituição.');
             }
-            elements.institutionInput.value = newInstitution;
-            alert(`Instituição "${newInstitution}" adicionada com sucesso!`);
-            closeInstitutionModal();
         } else {
             alert('Por favor, digite o nome da instituição.');
             elements.newInstitutionInput.focus();
@@ -144,16 +208,45 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.newCourseInput.value = '';
     }
 
-    function handleConfirmAddCourse() {
-        const newCourse = elements.newCourseInput.value.trim();
-        if (newCourse) {
-            if (!state.courses.find(c => c.toLowerCase() === newCourse.toLowerCase())) {
-                state.courses.push(newCourse);
-                addCourseToDatalist(newCourse);
+    async function handleConfirmAddCourse() {
+        const newCourseName = elements.newCourseInput.value.trim();
+        if (newCourseName) {
+            try {
+                const response = await fetch('/professor/cursos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ nome: newCourseName })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    const newCourse = { id: data.id, nome: newCourseName };
+                    state.courses.push(newCourse);
+                    addCourseToDatalist(newCourse);
+                    elements.courseInput.value = newCourseName;
+                    alert(`Curso "${newCourseName}" adicionado com sucesso!`);
+                    closeCourseModal();
+                    // Agora que o curso foi criado, podemos associá-lo
+                    const selectedInstitutionName = elements.institutionInput.value.trim();
+                    if (selectedInstitutionName) {
+                        const selectedInstitution = state.institutions.find(inst => inst.nome === selectedInstitutionName);
+                        if (selectedInstitution) {
+                            handleConfirmAssociate(selectedInstitution.id, newCourse.id);
+                        } else {
+                            alert('Instituição não encontrada. Por favor, selecione uma instituição válida.');
+                        }
+                    } else {
+                        alert('Por favor, selecione uma instituição.');
+                    }
+                } else {
+                    alert(`Erro ao adicionar curso: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar curso:', error);
+                alert('Erro ao adicionar curso.');
             }
-            elements.courseInput.value = newCourse;
-            alert(`Curso "${newCourse}" adicionado com sucesso!`);
-            closeCourseModal();
         } else {
             alert('Por favor, digite o nome do curso.');
             elements.newCourseInput.focus();

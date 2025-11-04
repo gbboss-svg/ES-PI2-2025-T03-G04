@@ -167,7 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Redireciona para a rota definida pelo backend
             if (data.redirectTo) {
-                // O redirecionamento agora usa a rota diretamente do backend
                 showLoadingAndRedirect(data.redirectTo);
             } else {
                 // Fallback, caso 'redirectTo' não seja enviado
