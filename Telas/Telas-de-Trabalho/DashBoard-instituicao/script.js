@@ -210,46 +210,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function handleConfirmAddCourse() {
         const newCourseName = elements.newCourseInput.value.trim();
-        if (newCourseName) {
-            try {
-                const response = await fetch('/professor/cursos', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ nome: newCourseName })
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    const newCourse = { id: data.id, nome: newCourseName };
-                    state.courses.push(newCourse);
-                    addCourseToDatalist(newCourse);
-                    elements.courseInput.value = newCourseName;
-                    alert(`Curso "${newCourseName}" adicionado com sucesso!`);
-                    closeCourseModal();
-                    // Agora que o curso foi criado, podemos associá-lo
-                    const selectedInstitutionName = elements.institutionInput.value.trim();
-                    if (selectedInstitutionName) {
-                        const selectedInstitution = state.institutions.find(inst => inst.nome === selectedInstitutionName);
-                        if (selectedInstitution) {
-                            handleConfirmAssociate(selectedInstitution.id, newCourse.id);
-                        } else {
-                            alert('Instituição não encontrada. Por favor, selecione uma instituição válida.');
-                        }
-                    } else {
-                        alert('Por favor, selecione uma instituição.');
-                    }
-                } else {
-                    alert(`Erro ao adicionar curso: ${data.message}`);
-                }
-            } catch (error) {
-                console.error('Erro ao adicionar curso:', error);
-                alert('Erro ao adicionar curso.');
-            }
-        } else {
+        const newCourseSigla = document.getElementById('new-course-sigla').value.trim();
+        const newCourseSemestres = parseInt(document.getElementById('new-course-semestres').value, 10);
+        const selectedInstitutionName = elements.institutionInput.value.trim();
+        const selectedInstitution = state.institutions.find(inst => inst.nome === selectedInstitutionName);
+
+        if (!newCourseName) {
             alert('Por favor, digite o nome do curso.');
             elements.newCourseInput.focus();
+            return;
+        }
+        if (!newCourseSigla) {
+            alert('Por favor, digite a sigla do curso.');
+            document.getElementById('new-course-sigla').focus();
+            return;
+        }
+        if (!newCourseSemestres || isNaN(newCourseSemestres) || newCourseSemestres < 1) {
+            alert('Por favor, informe a quantidade de semestres.');
+            document.getElementById('new-course-semestres').focus();
+            return;
+        }
+        if (!selectedInstitution) {
+            alert('Por favor, selecione uma instituição válida antes de criar o curso.');
+            elements.institutionInput.focus();
+            return;
+        }
+        try {
+            const response = await fetch('/professor/cursos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    nome: newCourseName,
+                    sigla: newCourseSigla,
+                    semestres: newCourseSemestres,
+                    idInstituicao: selectedInstitution.id
+                })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                const newCourse = { id: data.id, nome: newCourseName };
+                state.courses.push(newCourse);
+                addCourseToDatalist(newCourse);
+                elements.courseInput.value = newCourseName;
+                alert(`Curso "${newCourseName}" adicionado com sucesso!`);
+                closeCourseModal();
+            } else {
+                alert(`Erro ao adicionar curso: ${data.message}`);
+            }
+        } catch (error) {
+            console.error('Erro ao adicionar curso:', error);
+            alert('Erro ao adicionar curso.');
         }
     }
 

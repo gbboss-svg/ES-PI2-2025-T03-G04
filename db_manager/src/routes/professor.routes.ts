@@ -8,6 +8,6 @@ professorRouter.get('/instituicoes', authMiddleware, ProfessorController.getInst
 professorRouter.get('/cursos', authMiddleware, ProfessorController.getCursos);
 professorRouter.post('/instituicoes', authMiddleware, ProfessorController.createInstitution);
 professorRouter.post('/cursos', authMiddleware, ProfessorController.createCourse);
-professorRouter.post('/associar', authMiddleware, ProfessorController.associateProfessorToInstitutionCourse);
+// Removido: rota POST /associar (método não existe mais no controller)
 
 export { professorRouter };

@@ -30,22 +30,18 @@ export default class ProfessorService {
     }
   }
 
-  // Método para listar instituições do professor
+
+  // Método para listar instituições do professor (ajustado para novo modelo SQL)
   static async getInstituicoes(professorId: number) {
     let connection;
-
     try {
       connection = await getConnection();
-
+      // Exemplo: busca todas Instituicoes (ajuste conforme modelo relacional)
       const result = await connection.execute(
-        `SELECT i.id, i.nome, i.cnpj, i.endereco, i.data_criacao 
-         FROM instituicoes i
-         JOIN professor_instituicao_curso pic ON i.id = pic.instituicao_id
-         WHERE pic.professor_id = :id`,
-        [professorId],
+        `SELECT Id_Instituicao, Nome FROM Instituicao`,
+        [],
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
-
       return result.rows || [];
     } catch (error: any) {
       console.error('Erro ao listar instituições:', error);
@@ -55,22 +51,17 @@ export default class ProfessorService {
     }
   }
 
-  // Método para listar cursos do professor
+  // Método para listar cursos do professor (ajustado para novo modelo SQL)
   static async getCursos(professorId: number) {
     let connection;
-
     try {
       connection = await getConnection();
-
+      // Busca todos Cursos (agora sem Sigla/Semestres)
       const result = await connection.execute(
-        `SELECT c.id, c.nome, c.data_criacao 
-         FROM cursos c
-         JOIN professor_instituicao_curso pic ON c.id = pic.curso_id
-         WHERE pic.professor_id = :id`,
-        [professorId],
+        `SELECT Id_Curso, Nome, Id_Instituicao FROM Curso`,
+        [],
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
-
       return result.rows || [];
     } catch (error: any) {
       console.error('Erro ao listar cursos:', error);
@@ -80,28 +71,19 @@ export default class ProfessorService {
     }
   }
 
-  // Método para criar uma nova instituição
-  static async createInstitution(nome: string, cnpj: string, endereco: string, professorId: number): Promise<number> {
+
+  // Método para criar uma nova instituição (ajustado para novo modelo SQL)
+  static async createInstitution(nome: string): Promise<number> {
     let connection;
     try {
       connection = await getConnection();
       const result = await connection.execute<{ id: number }>(
-        `INSERT INTO instituicoes (nome, cnpj, endereco) VALUES (:nome, :cnpj, :endereco) RETURNING id INTO :id`,
-        { nome, cnpj, endereco, id: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT } },
-        { autoCommit: false } // Desativa o autoCommit para a transação
+        `INSERT INTO Instituicao (Nome) VALUES (:nome) RETURNING Id_Instituicao INTO :id`,
+        { nome, id: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT } },
+        { autoCommit: true }
       );
-      const institutionId = (result.outBinds as any).id[0];
-
-      // Associa a nova instituição ao professor
-      await connection.execute(
-        `INSERT INTO professor_instituicao_curso (professor_id, instituicao_id) VALUES (:professorId, :institutionId)`,
-        { professorId, institutionId },
-        { autoCommit: true } // Comita a transação
-      );
-
-      return institutionId;
+      return (result.outBinds as any).id[0];
     } catch (error: any) {
-      if (connection) await connection.rollback(); // Rollback em caso de erro
       console.error('Erro ao criar instituição:', error);
       throw new Error('Erro ao criar instituição.');
     } finally {
@@ -109,38 +91,20 @@ export default class ProfessorService {
     }
   }
 
-  // Método para criar um novo curso
-  static async createCourse(nome: string): Promise<number> {
+  // Método para criar um novo curso (ajustado para novo modelo SQL)
+  static async createCourse(nome: string, idInstituicao: number): Promise<number> {
     let connection;
     try {
       connection = await getConnection();
       const result = await connection.execute<{ id: number }>(
-        `INSERT INTO cursos (nome) VALUES (:nome) RETURNING id INTO :id`,
-        { nome, id: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT } },
+        `INSERT INTO Curso (Nome, Id_Instituicao) VALUES (:nome, :idInstituicao) RETURNING Id_Curso INTO :id`,
+        { nome, idInstituicao, id: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT } },
         { autoCommit: true }
       );
       return (result.outBinds as any).id[0];
     } catch (error: any) {
       console.error('Erro ao criar curso:', error);
       throw new Error('Erro ao criar curso.');
-    } finally {
-      if (connection) await connection.close();
-    }
-  }
-
-  // Método para associar professor, instituição e curso
-  static async associateProfessorToInstitutionCourse(professorId: number, institutionId: number, courseId: number): Promise<void> {
-    let connection;
-    try {
-      connection = await getConnection();
-      await connection.execute(
-        `INSERT INTO professor_instituicao_curso (professor_id, instituicao_id, curso_id) VALUES (:professorId, :institutionId, :courseId)`,
-        { professorId, institutionId, courseId },
-        { autoCommit: true }
-      );
-    } catch (error: any) {
-      console.error('Erro ao associar professor, instituição e curso:', error);
-      throw new Error('Erro ao associar professor, instituição e curso.');
     } finally {
       if (connection) await connection.close();
     }
