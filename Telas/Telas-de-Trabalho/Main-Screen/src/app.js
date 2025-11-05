@@ -12,16 +12,8 @@ import { renderTurmaDetailView, initTurmaDetailViewModals } from './views/TurmaD
 import { renderSettingsView, initSettingsView } from './views/SettingsView.js';
 
 document.addEventListener('DOMContentLoaded', function() {
-    // --- CACHE DE ELEMENTOS DO DOM ---
-    const views = {
-        profile: document.getElementById('profile-view'),
-        dashboard: document.getElementById('dashboard-view'),
-        institutions: document.getElementById('institutions-view'),
-        creation: document.getElementById('creation-view'),
-        activeTurmas: document.getElementById('activeTurmas-view'),
-        turmaDetail: document.getElementById('turma-detail-view'),
-        settings: document.getElementById('settings-view'),
-    };
+    // --- NOVO PONTO DE INJEÇÃO PARA DADOS ---
+    const mainDataRoot = document.getElementById('main-data-root');
     const navLinks = document.querySelectorAll('.sidebar .nav-link');
 
     // --- INICIALIZAÇÃO DOS MODAIS DO BOOTSTRAP ---
@@ -50,34 +42,28 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {string} viewName - O nome da view a ser exibida.
      * @param {object} params - Parâmetros opcionais para a view.
      */
-    function switchView(viewName, params = {}) {
-        Object.values(views).forEach(v => v.classList.add('d-none'));
-        if (views[viewName]) {
-            // Renderiza a view específica
-            switch (viewName) {
-                case 'profile':
-                    renderProfileView(views.profile);
-                    break;
-                case 'dashboard':
-                    renderDashboardView(views.dashboard, switchView);
-                    break;
-                case 'institutions':
-                    renderInstitutionsView(views.institutions, params);
-                    break;
-                case 'creation':
-                    renderCreationView(views.creation);
-                    break;
-                case 'activeTurmas':
-                    renderActiveTurmasView(views.activeTurmas);
-                    break;
-                case 'settings':
-                    renderSettingsView(views.settings);
-                    break;
-                // A 'turmaDetail' é renderizada por callbacks, não diretamente pelo switchView
-            }
-            views[viewName].classList.remove('d-none');
+    async function switchView(viewName, params = {}) {
+        mainDataRoot.innerHTML = '';
+        switch (viewName) {
+            case 'profile':
+                renderProfileView(mainDataRoot);
+                break;
+            case 'dashboard':
+                renderDashboardView(mainDataRoot, switchView);
+                break;
+            case 'institutions':
+                await renderInstitutionsView(mainDataRoot, params);
+                break;
+            case 'creation':
+                renderCreationView(mainDataRoot);
+                break;
+            case 'activeTurmas':
+                renderActiveTurmasView(mainDataRoot);
+                break;
+            case 'settings':
+                renderSettingsView(mainDataRoot);
+                break;
         }
-        // Atualiza o estado ativo dos links de navegação
         navLinks.forEach(link => {
             link.classList.remove('active');
             if (link.dataset.view === viewName) {
@@ -146,14 +132,12 @@ document.addEventListener('DOMContentLoaded', function() {
      * Função para renderizar todas as views e componentes que precisam ser atualizados após uma mudança nos dados.
      */
     function renderAll() {
-        // As views individuais são renderizadas sob demanda pelo switchView,
-        // mas componentes globais como o flyout precisam ser atualizados.
+        // Atualiza componentes globais como o flyout
         renderInstitutionsFlyout();
-        // Se a view atual for uma que depende dos dados alterados, ela também precisa ser re-renderizada.
-        // Esta lógica pode ser aprimorada para ser mais específica.
-        const activeView = Object.keys(views).find(key => !views[key].classList.contains('d-none'));
-        if (activeView) {
-            switchView(activeView);
+        // Re-renderiza a view atual
+        const activeLink = Array.from(navLinks).find(link => link.classList.contains('active'));
+        if (activeLink) {
+            switchView(activeLink.dataset.view);
         }
     }
 
@@ -248,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Renderiza os componentes iniciais
         renderInstitutionsFlyout();
-        
+
         // Define a view inicial
         switchView('profile');
     }
