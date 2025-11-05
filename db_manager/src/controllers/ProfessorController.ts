@@ -24,9 +24,8 @@ class ProfessorController {
 
   async createInstitution(req: Request, res: Response) {
     try {
-      const { nome, cnpj, endereco } = req.body;
-      const professorId = (req as any).user.id;
-      const institutionId = await ProfessorService.createInstitution(nome, cnpj, endereco, professorId);
+      const { nome } = req.body;
+      const institutionId = await ProfessorService.createInstitution(nome);
       return res.status(201).json({ id: institutionId, message: 'Instituição criada com sucesso!' });
     } catch (error: any) {
       return res.status(500).json({ message: error.message });
@@ -35,27 +34,15 @@ class ProfessorController {
 
   async createCourse(req: Request, res: Response) {
     try {
-      const { nome } = req.body;
-      const courseId = await ProfessorService.createCourse(nome);
+      const { nome, idInstituicao } = req.body;
+      const courseId = await ProfessorService.createCourse(nome, idInstituicao);
       return res.status(201).json({ id: courseId, message: 'Curso criado com sucesso!' });
     } catch (error: any) {
       return res.status(500).json({ message: error.message });
     }
   }
 
-  async associateProfessorToInstitutionCourse(req: Request, res: Response) {
-    try {
-      const professorId = (req as any).user.id;
-      const { institutionId, courseId } = req.body;
-
-      await ProfessorService.associateProfessorToInstitutionCourse(professorId, institutionId, courseId);
-      await ProfessorService.updateProfessorFirstAccess(professorId, false); // Marca como não sendo o primeiro acesso
-
-      return res.status(201).json({ message: 'Associação realizada com sucesso!' });
-    } catch (error: any) {
-      return res.status(500).json({ message: error.message });
-    }
-  }
+  // Removido: método de associação professor-instituição-curso, pois não existe mais no SQL
 }
 
 export default new ProfessorController();
