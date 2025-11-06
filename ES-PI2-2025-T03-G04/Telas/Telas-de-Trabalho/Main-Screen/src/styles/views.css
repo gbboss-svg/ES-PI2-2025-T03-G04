@@ -1,0 +1,42 @@
+/* Estilos Específicos das Views */
+
+/* --- TurmaDetailView --- */
+#audit-log-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+h1, h2, h5, .card-title {
+    font-weight: 600; /* Fonte Inter mais destacada para títulos */
+}
+
+/* --- CreationView --- */
+#new-discipline-fields {
+    transition: all 0.35s ease-out;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+#new-discipline-fields.expanded {
+    max-height: 400px;
+    opacity: 1;
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+    margin-bottom: 1rem !important;
+}
+
+/* --- Animações --- */
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+.shake-error {
+  animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+}

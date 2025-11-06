@@ -1,0 +1,113 @@
+/* Importando a fonte usada no design */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
+body {
+    /* ATUALIZADO: Fonte alterada para Montserrat */
+    font-family: 'Montserrat', sans-serif;
+    display: flex;              
+    align-items: center;        
+    justify-content: center;    
+    min-height: 100vh;          
+    margin: 0;
+    padding: 1rem;     
+    /* ATUALIZADO: Nome do arquivo de background corrigido para .jpg */
+    background-image: url('backgroung-register.png');
+    background-size: cover;
+    background-position: center;
+}
+
+.container {
+  color: #333; /* Cor do texto principal escurecida */
+  width: 100%;
+  max-width: 450px; /* Largura ajustada */
+  padding: 2rem;
+  border-radius: 1rem;
+}
+
+h1 {
+  font-size: 2rem !important; /* Tamanho da fonte aumentado */
+  font-weight: 700 !important; /* Peso da fonte ajustado */
+  text-align: center !important;
+  margin-bottom: 3rem !important; /* Espaçamento inferior aumentado */
+  color: #000; /* Cor do título alterada para preto */
+  line-height: 1.2;
+}
+
+/* NOVO: Regra para adicionar espaço entre os campos de senha */
+.input-group {
+    margin-bottom: 1.5rem;
+}
+
+input[type="password"] {
+  width: 100%;                 
+  padding: 1rem; /* Padding aumentado */      
+  background-color: #ffffff;  
+  color: #333;
+  /* ATUALIZADO: Raio da borda ajustado para o design */
+  border-radius: 50px;
+  /* ATUALIZADO: Borda ajustada para ser mais fina e cinza claro */
+  border: 6px solid #d1d5db;
+  text-align: center;
+  font-size: 0.9rem; /* Tamanho da fonte do placeholder ajustado */
+  transition: all 0.3s;
+  box-sizing: border-box; /* Garante que padding não afete a largura total */
+}
+
+input[type="password"]::placeholder {
+  color: #9ca3af;
+}
+
+input[type="password"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #22c55e, 
+              0 0 0 4px #ffffff;
+}
+
+div.text-center {
+  text-align: center;
+  /* ATUALIZADO: Espaçamento superior aumentado */
+  padding-top: 1rem; 
+}
+
+button[type="submit"] {
+  width: 60%; /* Botão ocupa a largura total */
+  padding: 1rem; /* Padding aumentado */
+  background-color: #22c55e;
+  color: #ffffff;
+  font-weight: bold;
+  /* ATUALIZADO: Raio da borda para combinar com os inputs */
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem; /* Tamanho da fonte do botão */
+  transition: all 0.3s;
+}
+
+button[type="submit"]:hover {
+  background-color: #16a34a;
+}
+
+button[type="submit"]:focus {
+  outline: none;
+}
+
+/* ATUALIZADO: Estilos para as mensagens de erro e sucesso */
+#message {
+    font-size: 0.9rem;
+    margin-top: 1.5rem;
+    text-align: center;
+    font-weight: bold;
+}
+
+.error {
+    color: #ef4444; /* Vermelho */
+}
+
+.success {
+    color: #22c55e; /* Verde */
+}
+
+/* Estilo para deixar o texto do placeholder em negrito */
+::placeholder { 
+  font-weight: bold;
+}

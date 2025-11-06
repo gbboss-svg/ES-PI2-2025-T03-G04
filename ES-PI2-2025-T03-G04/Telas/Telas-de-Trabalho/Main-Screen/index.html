@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotaDez - Dashboard do Professor</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="icon" href="logo-favicon.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://css.gg/css?family=Inter:400,500,600,700" rel="stylesheet">
+
+    <!-- Links para os nossos CSS customizados e modularizados -->
+    <link rel="stylesheet" href="src/styles/themes.css?v=1.1">
+    <link rel="stylesheet" href="src/styles/components.css?v=1.1">
+    <link rel="stylesheet" href="src/styles/views.css?v=1.1">
+</head>
+<body>
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="sidebar d-flex flex-column p-3">
+            <a href="#" class="sidebar-brand d-flex align-items-center mb-4">
+                <i class="bi bi-journal-check me-2"></i>
+                <span class="fs-4 sidebar-brand-text">NotaDez</span>
+            </a>
+
+            <ul class="nav nav-pills flex-column flex-grow-1">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" aria-current="page" data-view="profile">
+                        <i class="bi bi-person-circle"></i>
+                        <span class="nav-link-text">Perfil</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-view="dashboard">
+                        <i class="bi bi-grid"></i>
+                        <span class="nav-link-text">Painel Principal</span>
+                    </a>
+                </li>
+                <li class="nav-item has-submenu">
+                    <a href="#" class="nav-link" data-view="institutions">
+                        <i class="bi bi-building"></i>
+                        <span class="nav-link-text">Instituições</span>
+                    </a>
+                    <div class="submenu">
+                        <ul class="list-unstyled p-1" id="institutions-flyout-list">
+                             <!-- Conteúdo gerado pelo JS -->
+                        </ul>
+                    </div>
+                </li>
+                 <li>
+                    <a href="#" class="nav-link" data-view="activeTurmas">
+                        <i class="bi bi-people"></i>
+                        <span class="nav-link-text">Turmas Ativas</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link" data-view="settings">
+                        <i class="bi bi-gear"></i>
+                        <span class="nav-link-text">Configurações</span>
+                    </a>
+                </li>
+            </ul>
+            
+             <button id="sidebarToggler" class="sidebar-toggler mt-auto">
+                <i class="bi bi-chevron-left"></i>
+                <span class="toggler-text nav-link-text ms-2">Recolher</span>
+            </button>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content flex-grow-1">
+            <div class="container-fluid">
+                <!-- Views dinâmicas serão renderizadas via JS -->
+                <div id="main-data-root"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logoutModalLabel">Confirmar Saída</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Você tem certeza que deseja sair do sistema?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirm-logout-btn">Sair</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addInstitutionModal" tabindex="-1" aria-labelledby="addInstitutionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addInstitutionModalLabel">Adicionar Nova Instituição</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-institution-form">
+                        <div class="mb-3">
+                            <label for="new-institution-name" class="form-label">Nome da Instituição</label>
+                            <input type="text" class="form-control" id="new-institution-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="current-password-inst" class="form-label">Confirme sua senha atual</label>
+                            <input type="password" class="form-control" id="current-password-inst" required>
+                             <div class="form-text">Por segurança, precisamos confirmar sua identidade.</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirm-add-institution-btn">Adicionar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCourseModalLabel">Adicionar Novo Curso</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-course-form">
+                        <div class="mb-3">
+                            <label for="new-course-name" class="form-label">Nome do Curso</label>
+                            <input type="text" class="form-control" id="new-course-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="current-password-course" class="form-label">Confirme sua senha atual</label>
+                            <input type="password" class="form-control" id="current-password-course" required>
+                             <div class="form-text">Por segurança, precisamos confirmar sua identidade.</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirm-add-course-btn">Adicionar Curso</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editTurmaModal" tabindex="-1" aria-labelledby="editTurmaModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editTurmaModalLabel">Editar Turma</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-turma-form">
+                        <div class="mb-3">
+                            <label for="edit-turma-name" class="form-label">Nome da Turma</label>
+                            <input type="text" class="form-control" id="edit-turma-name" required>
+                        </div>
+                        <hr>
+                        <h6 class="text-muted">Mover/Editar Disciplina</h6>
+                        <div class="mb-3">
+                            <label for="edit-turma-inst-select" class="form-label">Instituição</label>
+                            <select class="form-select" id="edit-turma-inst-select" required></select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-discipline-curso-select" class="form-label">Curso</label>
+                            <select class="form-select" id="edit-discipline-curso-select" required></select>
+                        </div>
+                         <div class="mb-3">
+                            <label for="edit-discipline-period" class="form-label">Período/Semestre</label>
+                            <input type="text" class="form-control" id="edit-discipline-period" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-discipline-max-grade" class="form-label">Nota Máxima da Disciplina</label>
+                            <input type="number" class="form-control" id="edit-discipline-max-grade" required min="0" value="10">
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <label for="current-password-edit" class="form-label">Confirme sua senha atual para salvar</label>
+                            <input type="password" class="form-control" id="current-password-edit" required>
+                             <div class="form-text">Por segurança, precisamos confirmar sua identidade.</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirm-edit-turma-btn">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editDisciplineModal" tabindex="-1" aria-labelledby="editDisciplineModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editDisciplineModalLabel">Editar Disciplina</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-discipline-form">
+                        <div class="mb-3">
+                            <label for="edit-discipline-name" class="form-label">Nome da Disciplina</label>
+                            <input type="text" class="form-control" id="edit-discipline-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-discipline-code" class="form-label">Código da Disciplina</label>
+                            <input type="text" class="form-control" id="edit-discipline-code" required>
+                        </div>
+                        <hr>
+                        <h6 class="text-muted">Mover Disciplina</h6>
+                        <div class="mb-3">
+                            <label for="edit-discipline-inst-select" class="form-label">Instituição de Destino</label>
+                            <select class="form-select" id="edit-discipline-inst-select" required></select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-discipline-course-select-move" class="form-label">Curso de Destino</label>
+                            <select class="form-select" id="edit-discipline-course-select-move" required></select>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <label for="current-password-edit-disc" class="form-label">Confirme sua senha atual para salvar</label>
+                            <input type="password" class="form-control" id="current-password-edit-disc" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirm-edit-discipline-btn">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addStudentModalLabel">Adicionar Novo Aluno</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-student-form">
+                        <div class="mb-3">
+                            <label for="new-student-id" class="form-label">Número de Matrícula</label>
+                            <input type="number" class="form-control" id="new-student-id" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new-student-name" class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" id="new-student-name" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirm-add-student-btn">Adicionar Aluno</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="finalizeSemesterModal" tabindex="-1" aria-labelledby="finalizeSemesterModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="finalizeSemesterModalLabel">Finalizar Semestre</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Atenção!</strong> Esta ação é irreversível.</p>
+                    <p>Ao finalizar o semestre, todas as notas e informações da turma serão <strong>permanentemente bloqueadas</strong> e não poderão mais ser editadas.</p>
+                    <p>Você tem certeza que deseja continuar?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirm-finalize-btn">Sim, Finalizar Semestre</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="reopenTurmaModal" tabindex="-1" aria-labelledby="reopenTurmaModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reopenTurmaModalLabel">Reabrir Turma</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Para reabrir esta turma para edição, por favor confirme sua senha.</p>
+                    <form id="reopen-turma-form">
+                        <div class="mb-3">
+                            <label for="current-password-reopen" class="form-label">Sua Senha Atual</label>
+                            <input type="password" class="form-control" id="current-password-reopen" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning" id="confirm-reopen-btn">Reabrir Turma</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteTurmaModal" tabindex="-1" aria-labelledby="deleteTurmaModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteTurmaModalLabel">Confirmar Exclusão de Turma</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Você tem certeza que deseja excluir a turma <strong id="turma-to-delete-name"></strong>? Todos os dados de alunos e notas associados a ela serão perdidos permanentemente.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete-turma-btn">Sim, Excluir Turma</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteDisciplineModal" tabindex="-1" aria-labelledby="deleteDisciplineModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteDisciplineModalLabel">Confirmar Exclusão de Disciplina</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Você tem certeza que deseja excluir a disciplina <strong id="discipline-to-delete-name"></strong>? Todas as turmas, alunos e notas associadas a ela serão perdidos permanentemente.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete-discipline-btn">Sim, Excluir Disciplina</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteInstitutionModal" tabindex="-1" aria-labelledby="deleteInstitutionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteInstitutionModalLabel">Confirmar Exclusão de Instituição</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Você tem certeza que deseja excluir a instituição <strong id="institution-to-delete-name"></strong>? Todos os cursos, disciplinas, turmas e alunos associados a ela serão perdidos permanentemente.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete-institution-btn">Sim, Excluir Instituição</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="deleteCourseModal" tabindex="-1" aria-labelledby="deleteCourseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteCourseModalLabel">Confirmar Exclusão de Curso</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Você tem certeza que deseja excluir o curso <strong id="course-to-delete-name"></strong>? Todas as disciplinas e turmas associadas a este curso nesta instituição serão removidas permanentemente.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete-course-btn">Sim, Excluir Curso</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Nosso script principal modularizado -->
+    <script type="module" src="src/app.js?v=1.1"></script>
+</body>
+</html>

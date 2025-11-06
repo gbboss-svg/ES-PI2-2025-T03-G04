@@ -1,0 +1,234 @@
+/* Estilos de Componentes Reutilizáveis */
+
+/* --- Sidebar --- */
+.sidebar {
+    width: 280px;
+    min-height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    transition: all 0.3s;
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+}
+
+.main-content {
+    margin-left: 280px;
+    transition: all 0.3s;
+    padding: 2rem;
+}
+
+/* Estilo para sidebar recolhida */
+body.sidebar-collapsed .sidebar {
+    width: 90px;
+}
+
+body.sidebar-collapsed .main-content {
+    margin-left: 90px;
+}
+
+body.sidebar-collapsed .sidebar .sidebar-brand-text,
+body.sidebar-collapsed .sidebar .nav-link-text,
+body.sidebar-collapsed .sidebar .user-info,
+body.sidebar-collapsed .sidebar .toggler-text {
+    display: none;
+}
+
+body.sidebar-collapsed .sidebar .nav-link,
+body.sidebar-collapsed .sidebar .sidebar-toggler,
+body.sidebar-collapsed .sidebar .sidebar-brand {
+   justify-content: center;
+}
+
+.sidebar .nav-link {
+    color: var(--sidebar-text);
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+}
+
+.sidebar .nav-link .bi {
+    margin-right: 1rem;
+    font-size: 1.2rem;
+}
+
+.sidebar-brand, .sidebar-brand:hover {
+    color: var(--text-color);
+}
+
+.sidebar .nav-link:hover {
+    color: var(--text-color);
+    background-color: var(--sidebar-hover-bg);
+    transform: scale(1.05) translateX(10px);
+}
+
+body.sidebar-collapsed .sidebar .nav-link:hover {
+    transform: scale(1.1);
+}
+
+body.sidebar-collapsed .sidebar .nav-link .bi,
+body.sidebar-collapsed .sidebar .sidebar-brand .bi {
+     margin-right: 0;
+}
+
+.sidebar .nav-link.active {
+    color: var(--sidebar-active-text);
+    background-color: var(--sidebar-active-bg);
+}
+
+.sidebar-brand {
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+}
+
+.sidebar-brand .bi {
+    font-size: 1.5rem;
+}
+
+.sidebar-toggler {
+    background: transparent;
+    border: none;
+    color: var(--sidebar-text);
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+}
+
+.sidebar-toggler .toggler-text {
+    font-weight: bold;
+    font-size: 1.05rem;
+}
+
+.sidebar-toggler:hover {
+    color: var(--text-color);
+    background-color: var(--sidebar-hover-bg);
+    transform: scale(1.05) translateX(10px);
+}
+
+body.sidebar-collapsed .sidebar-toggler:hover {
+    transform: scale(1.1);
+}
+
+/* --- Inputs e Tabelas --- */
+.grade-input {
+    width: 70px;
+    text-align: center;
+    border-radius: 0.375rem;
+    border: 1px solid #dee2e6;
+    padding: 0.375rem;
+}
+
+.grade-input:focus {
+    outline: none;
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.table-responsive {
+    max-height: 60vh;
+}
+
+/* --- Menu Flutuante (Flyout) --- */
+.nav-item.has-submenu {
+    position: relative;
+}
+
+.submenu {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    width: 280px;
+    background-color: var(--card-bg);
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    padding: 0.5rem;
+    z-index: 101;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 1px solid var(--card-border);
+}
+
+.nav-item.has-submenu:hover .submenu {
+    opacity: 1;
+    visibility: visible;
+}
+
+.submenu-item {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: var(--text-color);
+    text-decoration: none;
+    border-radius: 0.375rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.submenu-item:hover {
+    background-color: var(--sidebar-hover-bg);
+}
+
+/* --- Estilos para Upload de Foto de Perfil --- */
+.profile-photo-container {
+    position: relative;
+    cursor: pointer;
+    width: 100px;
+    height: 100px;
+}
+
+.profile-photo-container #profile-photo-img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+}
+
+.profile-photo-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.profile-photo-container:hover .profile-photo-overlay {
+    opacity: 1;
+}
+
+/* --- Estilos para Validação de Fórmula --- */
+#formula-input.is-valid-formula {
+    border-color: var(--bs-success);
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-success-rgb), 0.25);
+}
+
+#formula-input.is-invalid-formula {
+    border-color: var(--bs-danger);
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-danger-rgb), 0.25);
+}
+
+.shake-error {
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+    20%, 40%, 60%, 80% { transform: translateX(10px); }
+}

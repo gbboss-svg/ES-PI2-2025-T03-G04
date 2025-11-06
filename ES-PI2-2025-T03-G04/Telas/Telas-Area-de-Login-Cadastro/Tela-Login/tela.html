@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotaDez - Bem Vindo!</title>
+    <link rel="icon" href="logo-favicon.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main-container">
+        <div class="image-section">
+            </div>
+        <div class="login-section">
+            <div class="login-form">
+                <img src="imagem-logo-tela-inicial.png" class="logo"> <h1>BEM VINDO!</h1>
+                <form id="form-login">
+                    <div class="input-group">
+                        <input type="text" id="usuario" name="usuario" placeholder="DIGITE SEU EMAIL/CPF/TELEFONE" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="senha" name="senha" placeholder="SENHA" required>
+                    </div>
+                    <div class="links">
+                        <a href="/esqueci-senha">Esqueci Minha Senha</a>
+                        <a href="/novo-cadastro">Faça Seu Cadastro</a>
+                    </div>
+                    <p id="error-message" class="error-message"></p>
+                    <button type="submit" class="btn-acessar">ACESSAR</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faça seu Cadastro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="logo-favicon.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="text-gray-800 w-full max-w-lg p-8 sm:p-12 rounded-2xl">
+        
+        <h1 class="text-2xl font-bold text-center mb-10">
+            FAÇA SEU CADASTRO
+        </h1>
+        
+        <form id="signup-form" action="#" method="POST" novalidate>
+            <div class="space-y-6">
+                <div>
+                    <input type="text" title="Digite seu nome" name="name" id="name" placeholder="NOME" class="w-full px-4 py-3 bg-white text-gray-800 rounded-full border-[6px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-300 text-center placeholder-gray-400" required>
+                </div>
+                
+                <div>
+                    <input 
+                        type="email" 
+                        name="email" 
+                        id="email" 
+                        placeholder="EMAIL" 
+                        class="w-full px-4 py-3 bg-white text-gray-800 rounded-full border-[6px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-300 text-center placeholder-gray-400"
+                        required
+                        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                        title="Por favor, insira um endereço de e-mail válido.">
+                </div>
+
+                <div>
+                    <input 
+                        type="text" 
+                        name="cpf" 
+                        id="cpf" 
+                        placeholder="CPF" 
+                        class="w-full px-4 py-3 bg-white text-gray-800 rounded-full border-[6px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-300 text-center placeholder-gray-400"
+                        maxlength="14" 
+                        required
+                        title="Por favor insira um CPF válido!">
+                </div>
+
+                <div>
+                    <input 
+                        type="text" 
+                        name="phone" 
+                        id="phone" 
+                        placeholder="TELEFONE" 
+                        class="w-full px-4 py-3 bg-white text-gray-800 rounded-full border-[6px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-300 text-center placeholder-gray-400"
+                        maxlength="19" 
+                        required
+                        title="Certifique-se de colocar um número de CPF correto!">
+                </div>
+
+                <div>
+                    <input 
+                        type="password" 
+                        name="password" 
+                        id="password" 
+                        placeholder="SENHA" 
+                        class="w-full px-4 py-3 bg-white text-gray-800 rounded-full border-[6px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-300 text-center placeholder-gray-400"
+                        required 
+                        minlength="6"
+                        title="A senha deve ter pelo menos 6 caracteres.">
+                </div>
+                 <div id="form-error" class="error-message"></div>
+
+                <div class="text-center pt-4">
+                    <button type="submit" class="px-12 py-3 bg-green-500 text-white font-bold rounded-full hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300">
+                        CADASTRAR
+                    </button><br>
+                    <button type="button" id="back-button" class="mt-4 px-8 py-2 bg-gray-400 text-white font-bold rounded-full hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-all duration-300">
+                        VOLTAR
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
