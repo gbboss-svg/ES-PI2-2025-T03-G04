@@ -4,6 +4,9 @@ import cors from 'cors';
 import path from 'path';
 import { router } from './routes/auth.routes';
 import { professorRouter } from './routes/professor.routes';
+import courseRoutes from './routes/course.routes';
+import disciplineRoutes from './routes/discipline.routes';
+import turmaRoutes from './routes/turma.routes';
 
 const app = express();
 
@@ -11,6 +14,9 @@ app.use(cors());
 app.use(express.json());
 app.use(router);
 app.use('/professor', professorRouter);
+app.use(courseRoutes);
+app.use(disciplineRoutes);
+app.use(turmaRoutes);
 
 // --- Configuração de Rotas Estáticas ---
 

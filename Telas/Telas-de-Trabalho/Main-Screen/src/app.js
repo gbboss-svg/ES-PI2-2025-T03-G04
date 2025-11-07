@@ -1,4 +1,4 @@
-import { MOCK_DATA } from './services/DataService.js';
+import { fetchInstitutions, fetchCourses, fetchDisciplines, fetchTurmas } from './services/DataService.js';
 import { addAuditLog } from './services/AuditService.js';
 import { createSnapshot } from './utils/helpers.js';
 //testes!
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
     /**
      * Renderiza o menu flutuante de instituições e turmas.
      */
-    function renderInstitutionsFlyout() {
+    async function renderInstitutionsFlyout() {
         const flyoutList = document.getElementById('institutions-flyout-list');
         if (!flyoutList) return;
 
@@ -89,36 +89,41 @@ document.addEventListener('DOMContentLoaded', function() {
             <li><hr class="dropdown-divider my-2"></li>
         `;
 
-        MOCK_DATA.institutions.forEach(inst => {
-            html += `<li class="px-3 py-1 text-muted text-uppercase small fw-bold">${inst.name}</li>`;
-            if (inst.disciplines.length > 0) {
-                inst.disciplines.forEach(disc => {
-                    disc.turmas.forEach(turma => {
-                        html += `
-                            <li>
-                                <a href="#" title="${disc.name} - ${turma.name}" class="submenu-item view-turma-flyout" data-inst-id="${inst.id}" data-disc-id="${disc.id}" data-turma-id="${turma.id}">
-                                    ${disc.name} - ${turma.name} ${turma.isFinalized ? '(Finalizada)' : ''}
-                                </a>
-                            </li>
-                        `;
-                    });
-                });
-            } else {
-                html += `<li><span class="submenu-item text-muted fst-italic px-3">Nenhuma disciplina</span></li>`;
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const institutions = await fetchInstitutions(token);
+        for (const inst of institutions) {
+            html += `<li class="px-3 py-1 text-muted text-uppercase small fw-bold">${inst.NOME}</li>`;
+            const courses = await fetchCourses(token, inst.ID_INSTITUICAO);
+            for (const course of courses) {
+                const disciplines = await fetchDisciplines(token, course.ID_CURSO);
+                if (disciplines.length > 0) {
+                    for (const disc of disciplines) {
+                        const turmas = await fetchTurmas(token, disc.ID_DISCIPLINA);
+                        for (const turma of turmas) {
+                            html += `
+                                <li>
+                                    <a href="#" title="${disc.NOME} - Turma ${turma.ID_TURMA}" class="submenu-item view-turma-flyout" data-inst-id="${inst.ID_INSTITUICAO}" data-disc-id="${disc.ID_DISCIPLINA}" data-turma-id="${turma.ID_TURMA}">
+                                        ${disc.NOME} - Turma ${turma.ID_TURMA}
+                                    </a>
+                                </li>
+                            `;
+                        }
+                    }
+                } else {
+                    html += `<li><span class="submenu-item text-muted fst-italic px-3">Nenhuma disciplina</span></li>`;
+                }
             }
-             html += `<li><hr class="dropdown-divider my-2"></li>`;
-        });
+            html += `<li><hr class="dropdown-divider my-2"></li>`;
+        }
 
         flyoutList.innerHTML = html;
 
         flyoutList.querySelectorAll('.view-turma-flyout').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                const inst = MOCK_DATA.institutions.find(i => i.id == btn.dataset.instId);
-                const disc = inst.disciplines.find(d => d.id == btn.dataset.discId);
-                const turma = disc.turmas.find(t => t.id == btn.dataset.turmaId);
-                renderTurmaDetailView(turma, disc);
-                switchView('turmaDetail');
+                // Lógica para buscar dados da turma e renderizar a view de detalhes
             });
         });
 
@@ -168,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('confirm-add-institution-btn').addEventListener('click', () => {
         const newInstNameInput = document.getElementById('new-institution-name');
         if(newInstNameInput.value && document.getElementById('current-password-inst').value) {
-            MOCK_DATA.institutions.push({ id: Date.now(), name: newInstNameInput.value, courses: [], disciplines: [] });
+            // Lógica para adicionar instituição via API
             document.getElementById('add-institution-form').reset();
             modals.addInstitutionModal.hide();
             renderAll();
@@ -182,14 +187,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const newCourseNameInput = document.getElementById('new-course-name');
         const instId = e.currentTarget.dataset.instId;
         if(newCourseNameInput.value && document.getElementById('current-password-course').value) {
-            const inst = MOCK_DATA.institutions.find(i => i.id == instId);
-            if (inst) {
-                inst.courses.push({ id: Date.now(), name: newCourseNameInput.value });
-                document.getElementById('add-course-form').reset();
-                modals.addCourseModal.hide();
-                renderAll();
-                alert(`Curso "${newCourseNameInput.value}" adicionado a ${inst.name} com sucesso!`);
-            }
+            // Lógica para adicionar curso via API
+            document.getElementById('add-course-form').reset();
+            modals.addCourseModal.hide();
+            renderAll();
+            alert(`Curso "${newCourseNameInput.value}" adicionado com sucesso!`);
         } else {
             alert('Por favor, preencha todos os campos.');
         }
