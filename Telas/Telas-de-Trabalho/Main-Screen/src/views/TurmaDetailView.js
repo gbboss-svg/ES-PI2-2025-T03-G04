@@ -1,4 +1,4 @@
-// import { fetchTurma, fetchDisciplina } from '../services/DataService.js';
+import { MOCK_DATA } from '../services/DataService.js';
 import { addAuditLog, renderAuditLog } from '../services/AuditService.js';
 import { calculateFinalGrade, adjustGrade, testAndValidateFormula } from '../services/FormulaService.js';
 import { createSnapshot } from '../utils/helpers.js';
@@ -16,7 +16,7 @@ export function initTurmaDetailViewModals(modals) {
     addStudentModal = modals.addStudentModal;
     finalizeSemesterModal = modals.finalizeSemesterModal;
     reopenTurmaModal = modals.reopenTurmaModal;
-// ...existing code...
+}
 
 /**
  * Atualiza a lista de componentes de nota (atividades) na UI.
@@ -97,12 +97,131 @@ function updateGradesTable(turma, disciplina) {
  * @param {object} turma - O objeto da turma a ser renderizada.
  * @param {object} disciplina - O objeto da disciplina associada.
  */
-    currentTurmaContext = { turma, disciplina };
+export function renderTurmaDetailView(turma, disciplina) {
+    currentTurmaContext = { turma, disciplina }; 
     const isFinalized = turma.isFinalized;
     const container = document.getElementById('turma-detail-view');
     if (!container) return;
-    // Aqui você pode buscar dados reais do backend se necessário
-    container.innerHTML = `<div class="alert alert-info">Dados da turma e disciplina devem ser buscados do backend.</div>`;
+
+    container.innerHTML = `
+        ${isFinalized ? `
+            <div class="alert alert-warning d-flex align-items-center justify-content-between" role="alert">
+              <div class="d-flex align-items-center">
+                  <i class="bi bi-lock-fill me-2"></i>
+                  <div>
+                    <strong>Semestre Finalizado!</strong> Esta turma está bloqueada e não pode mais ser editada.
+                  </div>
+              </div>
+              <button id="reopen-turma-btn" class="btn btn-sm btn-outline-dark">Retornar Turma</button>
+            </div>
+        ` : ''}
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h2>${disciplina.curso}</h2>
+                <h3 class="text-muted fw-normal">${disciplina.name} - ${turma.name}</h3>
+                <p class="text-muted mb-0">Gerenciamento de notas e alunos.</p>
+            </div>
+            <div class="btn-toolbar" role="toolbar">
+                <div class="btn-group me-2 mb-2" role="group">
+                    <button id="save-grades-btn" class="btn btn-success" ${isFinalized ? 'disabled' : ''}><i class="bi bi-check2-circle me-1"></i> Salvar</button>
+                </div>
+                <div class="btn-group me-2 mb-2" role="group">
+                    <button id="add-student-btn" class="btn btn-primary" ${isFinalized ? 'disabled' : ''}><i class="bi bi-person-plus-fill me-1"></i> Adicionar Aluno</button>
+                    <button id="import-csv-btn" class="btn btn-outline-secondary"><i class="bi bi-upload me-1"></i> Importar</button>
+                    <button id="export-csv-btn" class="btn btn-outline-secondary"><i class="bi bi-download me-1"></i> Exportar</button>
+                </div>
+                <div class="btn-group mb-2" role="group">
+                    <button class="btn btn-info text-white" id="toggle-audit-panel-btn"><i class="bi bi-terminal me-1"></i> Auditoria</button>
+                    <button id="calculate-avg-btn" class="btn btn-warning" ${isFinalized ? 'disabled' : ''}><i class="bi bi-calculator me-1"></i> Calcular Médias</button>
+                    <button id="finalize-semester-btn" class="btn btn-danger" ${isFinalized ? 'disabled' : ''}><i class="bi bi-lock me-1"></i> Finalizar Semestre</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Configurações de Avaliação</h5>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-outline-secondary" id="calc-media-simples-btn" ${isFinalized ? 'disabled' : ''} title="Calcular Média Simples"><i class="bi bi-calculator-fill me-1"></i> Calcular Média Simples</button>
+                        <button class="btn btn-outline-primary" id="toggle-formula-btn" ${isFinalized ? 'disabled' : ''}><i class="bi bi-pencil-square me-1"></i> Editar</button>
+                    </div>
+                </div>
+                <div id="formula-editor" class="d-none mt-3">
+                    <div class="row g-3">
+                        <div class="col-md-9">
+                            <label for="formula-input" class="form-label">Fórmula de Cálculo</label>
+                            <input type="text" id="formula-input" class="form-control" value="${disciplina.finalGradeFormula}" ${isFinalized ? 'disabled' : ''}>
+                            <div id="formula-feedback" class="form-text mt-2"></div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="max-grade-input" class="form-label">Nota Máxima</label>
+                            <input type="number" id="max-grade-input" class="form-control" value="${disciplina.maxGrade || 10}" min="0" ${isFinalized ? 'disabled' : ''}>
+                        </div>
+                    </div>
+                    <div class="btn-group mt-3">
+                        <button id="save-formula-btn" class="btn btn-success" ${isFinalized ? 'disabled' : ''}>Salvar Configurações</button>
+                        <button id="test-formula-btn" class="btn btn-outline-info" ${isFinalized ? 'disabled' : ''}>Testar Fórmula</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Quadro de Notas</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="grade-edit-selector" class="form-label d-inline-block me-2"><strong>Escolha qual coluna você quer editar:</strong></label>
+                                <select class="form-select form-select-sm d-inline-block" id="grade-edit-selector" style="width: auto;" ${isFinalized ? 'disabled' : ''}>
+                                    <!-- Options will be populated by JS -->
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light" id="grades-table-head"></thead>
+                                <tbody id="grades-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                     <div class="card-header bg-white"><h5 class="mb-0">Atividades e Avaliações</h5></div>
+                     <div class="card-body">
+                        <ul class="list-group mb-3" id="grade-components-list"></ul>
+                        <div ${isFinalized ? 'style="display:none;"' : ''}>
+                            <h6>Adicionar Nova Atividade</h6>
+                            <div class="row g-2">
+                                <div class="col-12"><input type="text" id="new-comp-name" class="form-control" placeholder="Nome (Ex: Prova 1)"></div>
+                                <div class="col-12"><input type="text" id="new-comp-acronym" class="form-control" placeholder="Sigla (Ex: P1)"></div>
+                            </div>
+                            <button id="add-component-btn" class="btn btn-primary mt-2 w-100">Adicionar Atividade</button>
+                        </div>
+                     </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow-sm mt-4 d-none" id="audit-panel-container">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-terminal me-2"></i>Painel de Auditoria (Console LOG)</h5>
+                <button class="btn-close" id="close-audit-panel-btn"></button>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Qualquer alteração ou modificação que acontecer nesta turma ficará registrada aqui.</p>
+                <div id="audit-log-list" class="list-group">
+                    <!-- Logs serão renderizados aqui -->
+                </div>
+            </div>
+        </div>
+    `;
     
     updateGradeComponentsList(disciplina);
     updateGradesTable(turma, disciplina);

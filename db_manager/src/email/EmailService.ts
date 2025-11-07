@@ -3,7 +3,7 @@ import sgMail = require('@sendgrid/mail');
 class EmailService {
   constructor() {
     // Configura a API Key do SendGrid
-    sgMail.setApiKey('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');
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY || 'YOUR_SENDGRID_API_KEY'); // Use environment variable
   }
 
   // Gera um código de verificação de 6 dígitos

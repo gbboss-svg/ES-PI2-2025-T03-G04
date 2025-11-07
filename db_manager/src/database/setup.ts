@@ -1,51 +1,76 @@
 import { getConnection } from './db';
 import fs from 'fs';
 import path from 'path';
+import oracledb from 'oracledb';
+
+async function executeSqlFile(connection: oracledb.Connection, filePath: string) {
+  const sql = fs.readFileSync(filePath, 'utf8');
+  // Splits statements by semicolon at the end of a line
+  const commands = sql.split(/;\s*$/m)
+    .map(cmd => cmd.trim())
+    .filter(cmd => cmd.length > 0);
+
+  for (const command of commands) {
+    try {
+      await connection.execute(command);
+    } catch (err) {
+      console.error(`Erro executando comando: ${command}`, err);
+      throw err;
+    }
+  }
+}
+
+async function executeSqlBlock(connection: oracledb.Connection, filePath: string) {
+  const sql = fs.readFileSync(filePath, 'utf8').trim();
+  if (sql.length === 0) {
+    return;
+  }
+  try {
+    await connection.execute(sql);
+  } catch (err) {
+    console.error(`Erro executando bloco SQL do arquivo: ${filePath}`, err);
+    throw err;
+  }
+}
 
 export async function setupDatabase() {
   let connection;
   try {
     connection = await getConnection();
-    // Verifica/cria todas as tabelas do novo SQL
-    const tabelas = [
-      'professores', 'Instituicao', 'Curso', 'Disciplina', 'Turma', 'Aluno', 'Notas', 'Aluno_Turma'
-    ];
-    let todasExistem = true;
-    for (const tabela of tabelas) {
-      try {
-        await connection.execute(`SELECT 1 FROM ${tabela} WHERE 1 = 0`);
-        console.log(`Tabela "${tabela}" já existe.`);
-      } catch (error: any) {
-        if (error.errorNum === 942) {
-          todasExistem = false;
-          console.log(`Tabela "${tabela}" não encontrada.`);
-        } else {
-          throw error;
-        }
-      }
+
+    const result = await connection.execute<{ TABLE_NAME: string }>(
+      `SELECT table_name FROM user_tables WHERE table_name = 'PROFESSOR'`
+    );
+
+    if (result.rows && result.rows.length > 0) {
+      console.log('Tabelas já existem. Nenhuma ação necessária.');
+      return;
     }
-    if (!todasExistem) {
-      console.log('Criando todas as tabelas do banco...');
-      const sqlFilePath = path.join(__dirname, '../../BD_MANAGER_ALL.sql');
-      const createTableSQL = fs.readFileSync(sqlFilePath, 'utf8');
-      const sqlCommands = createTableSQL.split(';').filter(cmd => cmd.trim() !== '' && !cmd.trim().toUpperCase().startsWith('COMMIT'));
-      for (const command of sqlCommands) {
-        if (command.trim()) {
-          await connection.execute(command);
-        }
-      }
-      console.log('Tabelas criadas com sucesso.');
-      await connection.commit();
-    }
+
+    console.log('Criando tabelas do banco...');
+    const tablesFilePath = path.join(__dirname, '../../BD_MANAGER_ALL.sql');
+    await executeSqlFile(connection, tablesFilePath);
+    console.log('Tabelas criadas com sucesso.');
+
+    console.log('Criando triggers...');
+    const triggersFilePath = path.join(__dirname, '../../triggers.sql');
+    await executeSqlBlock(connection, triggersFilePath);
+    console.log('Triggers criados com sucesso.');
+
+    await connection.commit();
+
   } catch (err) {
     console.error('Erro durante a configuração do banco de dados:', err);
-    throw err; // Lança o erro para ser tratado pelo server.ts
+    if (connection) {
+      await connection.rollback();
+    }
+    throw err;
   } finally {
     if (connection) {
       try {
-        await connection.close(); // Liberar a conexão de volta para o pool
+        await connection.close();
       } catch (err) {
-        console.error('Erro ao liberar a conexão:', err);
+        console.error('Erro ao fechar a conexão:', err);
       }
     }
   }

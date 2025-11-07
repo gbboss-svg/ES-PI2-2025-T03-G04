@@ -7,11 +7,13 @@ import { professorRouter } from './routes/professor.routes';
 import courseRoutes from './routes/course.routes';
 import disciplineRoutes from './routes/discipline.routes';
 import turmaRoutes from './routes/turma.routes';
+import { connectionMiddleware } from './middlewares/database'; // Import the new middleware
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(connectionMiddleware); // Use the connection middleware
 app.use(router);
 app.use('/professor', professorRouter);
 app.use(courseRoutes);

@@ -1,4 +1,3 @@
-import { getConnection } from '../database/db';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
@@ -6,174 +5,184 @@ import EmailService from '../email/EmailService';
 import oracledb from 'oracledb';
 
 class AuthService {
-  async register(nome: string, email: string, cpf: string, celular: string, senha: string) {
-    let conn;
+  async register(connection: oracledb.Connection, nome: string, email: string, cpf: string, celular: string, senha: string) {
     try {
-      conn = await getConnection();
-      const result = await conn.execute(
-        `SELECT * FROM PROFESSORES WHERE EMAIL = :email`,
+      // Validação de entrada
+      if (!nome || nome.trim().length === 0) {
+        throw new Error('O nome é obrigatório.');
+      }
+      if (!email || !/\S+@\S+\.\S+/.test(email)) {
+        throw new Error('O e-mail é inválido.');
+      }
+      if (!cpf || cpf.replace(/\D/g, '').length !== 11) {
+        throw new Error('O CPF é inválido.');
+      }
+      if (!celular || celular.replace(/\D/g, '').length < 10) { // Assuming minimum 10 digits for phone
+        throw new Error('O número de celular é inválido.');
+      }
+      if (!senha || senha.length < 6) {
+        throw new Error('A senha deve ter pelo menos 6 caracteres.');
+      }
+
+      // Verificar unicidade de E-mail
+      let result = await connection.execute(
+        `SELECT Id_Professor FROM Professor WHERE Email = :email`,
         { email },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
 
       if (result.rows && result.rows.length > 0) {
-        throw new Error('E-mail já cadastrado');
+        throw new Error('E-mail já cadastrado.');
+      }
+
+      // Verificar unicidade de CPF
+      result = await connection.execute(
+        `SELECT Id_Professor FROM Professor WHERE Cpf = :cpf`,
+        { cpf },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+
+      if (result.rows && result.rows.length > 0) {
+        throw new Error('CPF já cadastrado.');
+      }
+
+      // Verificar unicidade de Celular
+      result = await connection.execute(
+        `SELECT Id_Professor FROM Professor WHERE Celular = :celular`,
+        { celular },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+
+      if (result.rows && result.rows.length > 0) {
+        throw new Error('Celular já cadastrado.');
       }
 
       const hashedPassword = await bcrypt.hash(senha, 10);
       const verificationCode = EmailService.generateVerificationCode();
 
-      await conn.execute(
-        `INSERT INTO PROFESSORES (NOME, EMAIL, CPF, CELULAR, SENHA, VERIFICATION_CODE, PRIMEIRO_ACESSO) VALUES (:nome, :email, :cpf, :celular, :senha, :verificationCode, 1)`,
-        { nome, email, cpf, celular, senha: hashedPassword, verificationCode },
+      await connection.execute(
+        `INSERT INTO Professor (Nome, Email, Cpf, Celular, Senha, Verification_Code, Primeiro_Acesso) VALUES (:nome, :email, :cpf, :celular, :hashedPassword, :verificationCode, 1)`,
+        { nome, email, cpf, celular, hashedPassword, verificationCode },
         { autoCommit: true }
       );
 
-      // Dispara o envio de e-mail sem esperar pela conclusão
       EmailService.sendVerificationEmail(email, verificationCode).catch(error => {
-        // Log do erro para análise posterior, sem travar a aplicação
         console.error(`Falha ao enviar e-mail de verificação para ${email} em segundo plano:`, error);
       });
-    } finally {
-      if (conn) {
-        await conn.close();
-      }
+    } catch (error: any) {
+      console.error('Erro no registro:', error);
+      throw error;
     }
   }
 
-  async verifyEmail(email: string, code: string) {
-    let conn;
+  async verifyEmail(connection: oracledb.Connection, email: string, code: string) {
     try {
-      conn = await getConnection();
-      const result = await conn.execute(
-        `SELECT * FROM PROFESSORES WHERE EMAIL = :email`,
+      const result = await connection.execute(
+        `SELECT * FROM Professor WHERE Email = :email`,
         { email },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
       
       const rows = result.rows as any[];
       if (!rows || rows.length === 0) {
-        // Mesmo que o usuário não seja encontrado, retornamos uma mensagem genérica
-        // para não revelar se um e-mail está ou não cadastrado.
         throw new Error('Código de verificação inválido.');
       }
 
       const user = rows[0];
 
-      // Se o código estiver correto, verificamos o usuário e terminamos.
       if (user.VERIFICATION_CODE === code) {
-        await conn.execute(
-          `UPDATE PROFESSORES SET IS_VERIFIED = 1, VERIFICATION_CODE = NULL, VERIFICATION_ATTEMPTS = 0 WHERE EMAIL = :email`,
+        await connection.execute(
+          `UPDATE Professor SET Is_Verified = 1, Verification_Code = NULL, Verification_Attempts = 0 WHERE Email = :email`,
           { email },
           { autoCommit: true }
         );
-        return; // Sucesso
+        return;
       }
 
-      // Se o código estiver incorreto, incrementamos a tentativa.
       const newAttempts = user.VERIFICATION_ATTEMPTS + 1;
 
-      // Se o novo número de tentativas for 3 ou mais, bloqueamos.
       if (newAttempts >= 3) {
-        // Para um novo cadastro, deletamos. Para um reset, apenas bloqueamos.
         const userIsVerified = user.IS_VERIFIED === 1;
         if (!userIsVerified) {
-            await conn.execute(`DELETE FROM PROFESSORES WHERE EMAIL = :email`, { email }, { autoCommit: true });
+            await connection.execute(`DELETE FROM Professor WHERE Email = :email`, { email }, { autoCommit: true });
         }
-        // Lançamos um erro especial que o frontend pode identificar.
         throw new Error('MAX_ATTEMPTS_REACHED');
       } else {
-        // Se não, apenas atualizamos o contador.
-        await conn.execute(
-          `UPDATE PROFESSORES SET VERIFICATION_ATTEMPTS = :newAttempts WHERE EMAIL = :email`,
+        await connection.execute(
+          `UPDATE Professor SET Verification_Attempts = :newAttempts WHERE Email = :email`,
           { newAttempts, email },
           { autoCommit: true }
         );
         throw new Error('Código de verificação inválido.');
       }
-    } finally {
-      if (conn) {
-        await conn.close();
-      }
+    } catch (error: any) {
+      console.error('Erro na verificação de e-mail:', error);
+      throw error;
     }
   }
 
-  async resendVerificationEmail(email: string) {
-    let conn;
+  async resendVerificationEmail(connection: oracledb.Connection, email: string) {
     try {
-        conn = await getConnection();
-        const result = await conn.execute(
-            `SELECT * FROM PROFESSORES WHERE EMAIL = :email AND IS_VERIFIED = 0`,
+        const result = await connection.execute(
+            `SELECT * FROM Professor WHERE Email = :email AND Is_Verified = 0`,
             { email },
             { outFormat: oracledb.OUT_FORMAT_OBJECT }
         );
 
         const rows = result.rows as any[];
         if (!rows || rows.length === 0) {
-            // Don't reveal if user exists, just do nothing.
             return;
         }
 
         const user = rows[0];
 
-        if (user.RESEND_ATTEMPTS >= 2) { // This is the 3rd attempt
-            await conn.execute(`DELETE FROM PROFESSORES WHERE EMAIL = :email`, { email }, { autoCommit: true });
+        if (user.RESEND_ATTEMPTS >= 3) { // Changed from 2 to 3 to match frontend
+            await connection.execute(`DELETE FROM Professor WHERE Email = :email`, { email }, { autoCommit: true });
             throw new Error('MAX_ATTEMPTS_REACHED');
         }
 
         const newVerificationCode = EmailService.generateVerificationCode();
-        await conn.execute(
-            `UPDATE PROFESSORES SET VERIFICATION_CODE = :newVerificationCode, RESEND_ATTEMPTS = RESEND_ATTEMPTS + 1 WHERE EMAIL = :email`,
+        await connection.execute(
+            `UPDATE Professor SET Verification_Code = :newVerificationCode, Resend_Attempts = Resend_Attempts + 1 WHERE Email = :email`,
             { newVerificationCode, email },
             { autoCommit: true }
         );
 
         await EmailService.sendVerificationEmail(email, newVerificationCode);
-    } finally {
-        if (conn) {
-            await conn.close();
-        }
+    } catch (error: any) {
+      console.error('Erro ao reenviar e-mail de verificação:', error);
+      throw error;
     }
   }
 
-  async cancelRegistration(email: string) {
-    let conn;
+  async cancelRegistration(connection: oracledb.Connection, email: string) {
     try {
-      conn = await getConnection();
-      // Only delete if the user is not yet verified
-      await conn.execute(
-        `DELETE FROM PROFESSORES WHERE EMAIL = :email AND IS_VERIFIED = 0`,
+      await connection.execute(
+        `DELETE FROM Professor WHERE Email = :email AND Is_Verified = 0`,
         { email },
         { autoCommit: true }
       );
-    } finally {
-      if (conn) {
-        await conn.close();
-      }
+    } catch (error: any) {
+      console.error('Erro ao cancelar registro:', error);
+      throw error;
     }
   }
 
-  async login(identifier: string, senha: string) {
-    let conn;
+  async login(connection: oracledb.Connection, identifier: string, senha: string) {
     try {
-      conn = await getConnection();
-
-      // Verifica se o identificador parece um e-mail
       const isEmail = identifier.includes('@');
       let result;
 
       if (isEmail) {
-        // Se for um e-mail, a busca é direta
-        result = await conn.execute(
-          `SELECT * FROM PROFESSORES WHERE EMAIL = :identifier`,
+        result = await connection.execute(
+          `SELECT * FROM Professor WHERE Email = :identifier`,
           { identifier },
           { outFormat: oracledb.OUT_FORMAT_OBJECT }
         );
       } else {
-        // Se for CPF ou Telefone, limpamos os dados para a comparação
         const cleanedIdentifier = identifier.replace(/\D/g, '');
-        result = await conn.execute(
-          `SELECT * FROM PROFESSORES WHERE REGEXP_REPLACE(CPF, '[^0-9]', '') = :cleanedIdentifier OR REGEXP_REPLACE(CELULAR, '[^0-9]', '') = :cleanedIdentifier`,
+        result = await connection.execute(
+          `SELECT * FROM Professor WHERE REGEXP_REPLACE(Cpf, '[^0-9]', '') = :cleanedIdentifier OR REGEXP_REPLACE(Celular, '[^0-9]', '') = :cleanedIdentifier`,
           { cleanedIdentifier },
           { outFormat: oracledb.OUT_FORMAT_OBJECT }
         );
@@ -196,20 +205,21 @@ class AuthService {
         throw new Error('Credenciais inválidas');
       }
 
-      return jwt.sign({ id: user.ID }, 'your-secret-key', { expiresIn: '1h' });
-    } finally {
-      if (conn) {
-        await conn.close();
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        throw new Error('JWT_SECRET não está definido nas variáveis de ambiente.');
       }
+      return jwt.sign({ id: user.ID_PROFESSOR }, jwtSecret, { expiresIn: '1h' });
+    } catch (error: any) {
+      console.error('Erro no login:', error);
+      throw error;
     }
   }
 
-  async forgotPassword(identifier: string) {
-    let conn;
+  async forgotPassword(connection: oracledb.Connection, identifier: string) {
     try {
-      conn = await getConnection();
-      const result = await conn.execute(
-        `SELECT * FROM PROFESSORES WHERE EMAIL = :identifier OR CPF = :identifier OR CELULAR = :identifier`,
+      const result = await connection.execute(
+        `SELECT * FROM Professor WHERE Email = :identifier OR Cpf = :identifier OR Celular = :identifier`,
         { identifier },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
@@ -217,8 +227,6 @@ class AuthService {
       const rows = result.rows as any[];
 
       if (!rows || rows.length === 0) {
-        // To prevent user enumeration, we don't throw an error here.
-        // We can log this attempt and pretend the email was sent.
         console.log(`Password reset attempt for non-existent user: ${identifier}`);
         return;
       }
@@ -228,35 +236,29 @@ class AuthService {
 
       const verificationCode = EmailService.generateVerificationCode();
 
-      await conn.execute(
-        `UPDATE PROFESSORES 
-         SET VERIFICATION_CODE = :verificationCode, 
-             VERIFICATION_ATTEMPTS = 0, 
-             RESEND_ATTEMPTS = 0 
-         WHERE ID = :id`,
-        { verificationCode, id: user.ID },
+      await connection.execute(
+        `UPDATE Professor
+         SET Verification_Code = :verificationCode,
+             Verification_Attempts = 0,
+             Resend_Attempts = 0
+         WHERE Id_Professor = :id`,
+        { verificationCode, id: user.ID_PROFESSOR },
         { autoCommit: true }
       );
 
-      // Envia o e-mail de recuperação de senha
       await EmailService.sendPasswordResetEmail(userEmail, verificationCode);
 
       return userEmail;
-    } finally {
-      if (conn) {
-        await conn.close();
-      }
+    } catch (error: any) {
+      console.error('Erro em forgotPassword:', error);
+      throw error;
     }
   }
 
-  async resetPassword(email: string, novaSenha: string) {
-    let conn;
+  async resetPassword(connection: oracledb.Connection, email: string, novaSenha: string) {
     try {
-      conn = await getConnection();
-
-      // 1. Buscar o usuário e sua senha atual
-      const result = await conn.execute(
-        `SELECT SENHA FROM PROFESSORES WHERE EMAIL = :email`,
+      const result = await connection.execute(
+        `SELECT Senha FROM Professor WHERE Email = :email`,
         { email },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
@@ -267,27 +269,28 @@ class AuthService {
       }
       const user = rows[0];
 
-      // 2. Comparar a nova senha com a senha antiga
       const isSamePassword = await bcrypt.compare(novaSenha, user.SENHA);
       if (isSamePassword) {
         throw new Error('A nova senha não pode ser igual à senha anterior.');
       }
 
-      // 3. Se forem diferentes, prosseguir com a atualização
+      if (novaSenha.length < 6) {
+        throw new Error('A senha deve ter pelo menos 6 caracteres.');
+      }
+
       const hashedPassword = await bcrypt.hash(novaSenha, 10);
 
-      await conn.execute(
-        `UPDATE PROFESSORES 
-         SET SENHA = :hashedPassword, 
-             VERIFICATION_CODE = NULL 
-         WHERE EMAIL = :email`,
+      await connection.execute(
+        `UPDATE Professor
+         SET Senha = :hashedPassword,
+             Verification_Code = NULL
+         WHERE Email = :email`,
         { hashedPassword, email },
         { autoCommit: true }
       );
-    } finally {
-      if (conn) {
-        await conn.close();
-      }
+    } catch (error: any) {
+      console.error('Erro em resetPassword:', error);
+      throw error;
     }
   }
 }

@@ -1,4 +1,4 @@
-import { fetchInstitutions, fetchCourses, fetchDisciplines, fetchTurmas } from './services/DataService.js';
+import { MOCK_DATA } from './services/DataService.js';
 import { addAuditLog } from './services/AuditService.js';
 import { createSnapshot } from './utils/helpers.js';
 //testes!
@@ -12,8 +12,16 @@ import { renderTurmaDetailView, initTurmaDetailViewModals } from './views/TurmaD
 import { renderSettingsView, initSettingsView } from './views/SettingsView.js';
 
 document.addEventListener('DOMContentLoaded', function() {
-    // --- NOVO PONTO DE INJEÇÃO PARA DADOS ---
-    const mainDataRoot = document.getElementById('main-data-root');
+    // --- CACHE DE ELEMENTOS DO DOM ---
+    const views = {
+        profile: document.getElementById('profile-view'),
+        dashboard: document.getElementById('dashboard-view'),
+        institutions: document.getElementById('institutions-view'),
+        creation: document.getElementById('creation-view'),
+        activeTurmas: document.getElementById('activeTurmas-view'),
+        turmaDetail: document.getElementById('turma-detail-view'),
+        settings: document.getElementById('settings-view'),
+    };
     const navLinks = document.querySelectorAll('.sidebar .nav-link');
 
     // --- INICIALIZAÇÃO DOS MODAIS DO BOOTSTRAP ---
@@ -42,28 +50,34 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {string} viewName - O nome da view a ser exibida.
      * @param {object} params - Parâmetros opcionais para a view.
      */
-    async function switchView(viewName, params = {}) {
-        mainDataRoot.innerHTML = '';
-        switch (viewName) {
-            case 'profile':
-                renderProfileView(mainDataRoot);
-                break;
-            case 'dashboard':
-                renderDashboardView(mainDataRoot, switchView);
-                break;
-            case 'institutions':
-                await renderInstitutionsView(mainDataRoot, params);
-                break;
-            case 'creation':
-                renderCreationView(mainDataRoot);
-                break;
-            case 'activeTurmas':
-                renderActiveTurmasView(mainDataRoot);
-                break;
-            case 'settings':
-                renderSettingsView(mainDataRoot);
-                break;
+    function switchView(viewName, params = {}) {
+        Object.values(views).forEach(v => v.classList.add('d-none'));
+        if (views[viewName]) {
+            // Renderiza a view específica
+            switch (viewName) {
+                case 'profile':
+                    renderProfileView(views.profile);
+                    break;
+                case 'dashboard':
+                    renderDashboardView(views.dashboard, switchView);
+                    break;
+                case 'institutions':
+                    renderInstitutionsView(views.institutions, params);
+                    break;
+                case 'creation':
+                    renderCreationView(views.creation);
+                    break;
+                case 'activeTurmas':
+                    renderActiveTurmasView(views.activeTurmas);
+                    break;
+                case 'settings':
+                    renderSettingsView(views.settings);
+                    break;
+                // A 'turmaDetail' é renderizada por callbacks, não diretamente pelo switchView
+            }
+            views[viewName].classList.remove('d-none');
         }
+        // Atualiza o estado ativo dos links de navegação
         navLinks.forEach(link => {
             link.classList.remove('active');
             if (link.dataset.view === viewName) {
@@ -75,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
     /**
      * Renderiza o menu flutuante de instituições e turmas.
      */
-    async function renderInstitutionsFlyout() {
+    function renderInstitutionsFlyout() {
         const flyoutList = document.getElementById('institutions-flyout-list');
         if (!flyoutList) return;
 
@@ -89,41 +103,36 @@ document.addEventListener('DOMContentLoaded', function() {
             <li><hr class="dropdown-divider my-2"></li>
         `;
 
-        const token = localStorage.getItem('token');
-        if (!token) return;
-
-        const institutions = await fetchInstitutions(token);
-        for (const inst of institutions) {
-            html += `<li class="px-3 py-1 text-muted text-uppercase small fw-bold">${inst.NOME}</li>`;
-            const courses = await fetchCourses(token, inst.ID_INSTITUICAO);
-            for (const course of courses) {
-                const disciplines = await fetchDisciplines(token, course.ID_CURSO);
-                if (disciplines.length > 0) {
-                    for (const disc of disciplines) {
-                        const turmas = await fetchTurmas(token, disc.ID_DISCIPLINA);
-                        for (const turma of turmas) {
-                            html += `
-                                <li>
-                                    <a href="#" title="${disc.NOME} - Turma ${turma.ID_TURMA}" class="submenu-item view-turma-flyout" data-inst-id="${inst.ID_INSTITUICAO}" data-disc-id="${disc.ID_DISCIPLINA}" data-turma-id="${turma.ID_TURMA}">
-                                        ${disc.NOME} - Turma ${turma.ID_TURMA}
-                                    </a>
-                                </li>
-                            `;
-                        }
-                    }
-                } else {
-                    html += `<li><span class="submenu-item text-muted fst-italic px-3">Nenhuma disciplina</span></li>`;
-                }
+        MOCK_DATA.institutions.forEach(inst => {
+            html += `<li class="px-3 py-1 text-muted text-uppercase small fw-bold">${inst.name}</li>`;
+            if (inst.disciplines.length > 0) {
+                inst.disciplines.forEach(disc => {
+                    disc.turmas.forEach(turma => {
+                        html += `
+                            <li>
+                                <a href="#" title="${disc.name} - ${turma.name}" class="submenu-item view-turma-flyout" data-inst-id="${inst.id}" data-disc-id="${disc.id}" data-turma-id="${turma.id}">
+                                    ${disc.name} - ${turma.name} ${turma.isFinalized ? '(Finalizada)' : ''}
+                                </a>
+                            </li>
+                        `;
+                    });
+                });
+            } else {
+                html += `<li><span class="submenu-item text-muted fst-italic px-3">Nenhuma disciplina</span></li>`;
             }
-            html += `<li><hr class="dropdown-divider my-2"></li>`;
-        }
+             html += `<li><hr class="dropdown-divider my-2"></li>`;
+        });
 
         flyoutList.innerHTML = html;
 
         flyoutList.querySelectorAll('.view-turma-flyout').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                // Lógica para buscar dados da turma e renderizar a view de detalhes
+                const inst = MOCK_DATA.institutions.find(i => i.id == btn.dataset.instId);
+                const disc = inst.disciplines.find(d => d.id == btn.dataset.discId);
+                const turma = disc.turmas.find(t => t.id == btn.dataset.turmaId);
+                renderTurmaDetailView(turma, disc);
+                switchView('turmaDetail');
             });
         });
 
@@ -137,12 +146,14 @@ document.addEventListener('DOMContentLoaded', function() {
      * Função para renderizar todas as views e componentes que precisam ser atualizados após uma mudança nos dados.
      */
     function renderAll() {
-        // Atualiza componentes globais como o flyout
+        // As views individuais são renderizadas sob demanda pelo switchView,
+        // mas componentes globais como o flyout precisam ser atualizados.
         renderInstitutionsFlyout();
-        // Re-renderiza a view atual
-        const activeLink = Array.from(navLinks).find(link => link.classList.contains('active'));
-        if (activeLink) {
-            switchView(activeLink.dataset.view);
+        // Se a view atual for uma que depende dos dados alterados, ela também precisa ser re-renderizada.
+        // Esta lógica pode ser aprimorada para ser mais específica.
+        const activeView = Object.keys(views).find(key => !views[key].classList.contains('d-none'));
+        if (activeView) {
+            switchView(activeView);
         }
     }
 
@@ -173,7 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('confirm-add-institution-btn').addEventListener('click', () => {
         const newInstNameInput = document.getElementById('new-institution-name');
         if(newInstNameInput.value && document.getElementById('current-password-inst').value) {
-            // Lógica para adicionar instituição via API
+            MOCK_DATA.institutions.push({ id: Date.now(), name: newInstNameInput.value, courses: [], disciplines: [] });
             document.getElementById('add-institution-form').reset();
             modals.addInstitutionModal.hide();
             renderAll();
@@ -187,11 +198,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const newCourseNameInput = document.getElementById('new-course-name');
         const instId = e.currentTarget.dataset.instId;
         if(newCourseNameInput.value && document.getElementById('current-password-course').value) {
-            // Lógica para adicionar curso via API
-            document.getElementById('add-course-form').reset();
-            modals.addCourseModal.hide();
-            renderAll();
-            alert(`Curso "${newCourseNameInput.value}" adicionado com sucesso!`);
+            const inst = MOCK_DATA.institutions.find(i => i.id == instId);
+            if (inst) {
+                inst.courses.push({ id: Date.now(), name: newCourseNameInput.value });
+                document.getElementById('add-course-form').reset();
+                modals.addCourseModal.hide();
+                renderAll();
+                alert(`Curso "${newCourseNameInput.value}" adicionado a ${inst.name} com sucesso!`);
+            }
         } else {
             alert('Por favor, preencha todos os campos.');
         }
@@ -234,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Renderiza os componentes iniciais
         renderInstitutionsFlyout();
-
+        
         // Define a view inicial
         switchView('profile');
     }
