@@ -27,16 +27,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Estado da Aplicação ---
     const state = {
-        username: "Maria Silva",
+        username: "", // Será preenchido pelo backend
         institutions: [], // Será preenchido pelo backend
         courses: []       // Será preenchido pelo backend
     };
 
     // --- Funções ---
 
-    function setUsername() {
-        if (elements.usernameDisplay && state.username) {
-            elements.usernameDisplay.textContent = `${state.username}!`;
+    async function fetchUsername() {
+        try {
+            const response = await fetch('/professor/me', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Falha ao buscar dados do usuário.');
+            }
+            const data = await response.json();
+            state.username = data.NOME; // A API retorna a coluna NOME
+            if (elements.usernameDisplay) {
+                elements.usernameDisplay.textContent = `${state.username}!`;
+            }
+        } catch (error) {
+            console.error('Erro ao buscar nome do usuário:', error);
+            if (elements.usernameDisplay) {
+                elements.usernameDisplay.textContent = 'Usuário!'; // Fallback
+            }
         }
     }
 
@@ -131,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify({ institutionId, courseId })
+                body: JSON.stringify({ courseId }) // Envia apenas o courseId
             });
 
             if (response.ok) {
@@ -174,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
-                    body: JSON.stringify({ nome: newInstitutionName, cnpj: '00.000.000/0001-00', endereco: 'Endereço genérico' }) // CNPJ e Endereço podem ser preenchidos depois
+                    body: JSON.stringify({ nome: newInstitutionName }) // Envia apenas o nome
                 });
                 const data = await response.json();
                 if (response.ok) {
@@ -268,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Inicialização e Event Listeners ---
     function init() {
-        setUsername();
+        fetchUsername();
         populateInstitutions();
         populateCourses(); // Adicionado
 

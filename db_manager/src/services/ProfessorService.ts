@@ -68,17 +68,49 @@ export default class ProfessorService {
     }
   }
 
-  static async createCourse(connection: oracledb.Connection, nome: string, idInstituicao: number): Promise<number> {
+  static async createCourse(connection: oracledb.Connection, nome: string, sigla: string, semestres: number, idInstituicao: number): Promise<number> {
     try {
       const result = await connection.execute<{ id: number }>(
-        `INSERT INTO Curso (Nome, Id_Instituicao) VALUES (:nome, :idInstituicao) RETURNING Id_Curso INTO :id`,
-        { nome, idInstituicao, id: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT } },
+        `INSERT INTO Curso (Nome, Sigla, Semestres, Id_Instituicao) VALUES (:nome, :sigla, :semestres, :idInstituicao) RETURNING Id_Curso INTO :id`,
+        { nome, sigla, semestres, idInstituicao, id: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT } },
         { autoCommit: true }
       );
       return (result.outBinds as any).id[0];
     } catch (error: any) {
       console.error('Erro ao criar curso:', error);
       throw new Error('Erro ao criar curso.');
+    }
+  }
+
+  static async associateProfessorToCourse(connection: oracledb.Connection, professorId: number, courseId: number): Promise<void> {
+    try {
+      await connection.execute(
+        `INSERT INTO Professor_Curso (Id_Professor, Id_Curso) VALUES (:professorId, :courseId)`,
+        { professorId, courseId },
+        { autoCommit: true }
+      );
+    } catch (error: any) {
+      // Ignora o erro de chave única duplicada (caso a associação já exista)
+      if (error.errorNum === 1) {
+        console.log(`Associação entre Professor ID ${professorId} e Curso ID ${courseId} já existe.`);
+        return;
+      }
+      console.error('Erro ao associar professor ao curso:', error);
+      throw new Error('Erro ao associar professor ao curso.');
+    }
+  }
+
+  static async getProfessorById(connection: oracledb.Connection, professorId: number): Promise<{ NOME: string } | null> {
+    try {
+      const result = await connection.execute<{ NOME: string }>(
+        `SELECT Nome FROM professores WHERE Id_Professor = :id`,
+        [professorId],
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+      return result.rows?.[0] || null;
+    } catch (error: any) {
+      console.error('Erro ao buscar dados do professor:', error);
+      throw new Error('Erro ao buscar dados do professor.');
     }
   }
 }

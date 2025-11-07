@@ -143,11 +143,11 @@ signupForm.addEventListener('submit', async (e) => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                Nome: nameInput.value,
-                Email: emailInput.value,
-                Cpf: cpfInput.value,
-                Celular: phoneInput.value,
-                Senha: passwordInput.value
+                nome: nameInput.value,
+                email: emailInput.value,
+                cpf: cpfInput.value,
+                celular: phoneInput.value,
+                senha: passwordInput.value
             })
         });
 

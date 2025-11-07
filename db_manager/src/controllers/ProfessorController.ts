@@ -47,9 +47,35 @@ class ProfessorController {
   async createCourse(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
-      const { nome, idInstituicao } = req.body;
-      const courseId = await ProfessorService.createCourse(connection, nome, idInstituicao);
+      const { nome, sigla, semestres, idInstituicao } = req.body;
+      const courseId = await ProfessorService.createCourse(connection, nome, sigla, semestres, idInstituicao);
       return res.status(201).json({ id: courseId, message: 'Curso criado com sucesso!' });
+    } catch (error: any) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
+  async associateProfessorToCourse(req: Request, res: Response) {
+    try {
+      const connection = this.getDbConnection(req);
+      const professorId = (req as any).user.id;
+      const { courseId } = req.body; // O frontend enviará courseId
+      await ProfessorService.associateProfessorToCourse(connection, professorId, courseId);
+      return res.status(200).json({ message: 'Professor associado ao curso com sucesso!' });
+    } catch (error: any) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
+  async getProfessorInfo(req: Request, res: Response) {
+    try {
+      const connection = this.getDbConnection(req);
+      const professorId = (req as any).user.id;
+      const professor = await ProfessorService.getProfessorById(connection, professorId);
+      if (!professor) {
+        return res.status(404).json({ message: 'Professor não encontrado.' });
+      }
+      return res.status(200).json(professor);
     } catch (error: any) {
       return res.status(500).json({ message: error.message });
     }

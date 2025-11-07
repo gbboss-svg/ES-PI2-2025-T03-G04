@@ -3,12 +3,12 @@ import AuthController from '../controllers/AuthController';
 
 const router = Router();
 
-router.post('/register', AuthController.register);
-router.post('/login', AuthController.login);
-router.post('/forgot-password', AuthController.forgotPassword);
-router.post('/reset-password', AuthController.resetPassword);
-router.post('/verify-email', AuthController.verifyEmail);
-router.post('/resend-verification', AuthController.resendVerificationEmail);
-router.post('/cancel-registration', AuthController.cancelRegistration);
+router.post('/register', (req, res) => AuthController.register(req, res));
+router.post('/login', (req, res) => AuthController.login(req, res));
+router.post('/forgot-password', (req, res) => AuthController.forgotPassword(req, res));
+router.post('/reset-password', (req, res) => AuthController.resetPassword(req, res));
+router.post('/verify-email', (req, res) => AuthController.verifyEmail(req, res));
+router.post('/resend-verification', (req, res) => AuthController.resendVerificationEmail(req, res));
+router.post('/cancel-registration', (req, res) => AuthController.cancelRegistration(req, res));
 
 export { router };

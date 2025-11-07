@@ -39,7 +39,7 @@ export async function setupDatabase() {
     connection = await getConnection();
 
     const result = await connection.execute<{ TABLE_NAME: string }>(
-      `SELECT table_name FROM user_tables WHERE table_name = 'PROFESSOR'`
+      `SELECT table_name FROM user_tables WHERE table_name = 'PROFESSORES'`
     );
 
     if (result.rows && result.rows.length > 0) {

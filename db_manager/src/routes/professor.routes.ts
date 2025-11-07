@@ -4,10 +4,11 @@ import { authMiddleware } from '../middlewares/auth'; // Middleware para protege
 
 const professorRouter = Router();
 
-professorRouter.get('/instituicoes', authMiddleware, ProfessorController.getInstituicoes);
-professorRouter.get('/cursos', authMiddleware, ProfessorController.getCursos);
-professorRouter.post('/instituicoes', authMiddleware, ProfessorController.createInstitution);
-professorRouter.post('/cursos', authMiddleware, ProfessorController.createCourse);
-// Removido: rota POST /associar (método não existe mais no controller)
+professorRouter.get('/instituicoes', authMiddleware, (req, res) => ProfessorController.getInstituicoes(req, res));
+professorRouter.get('/cursos', authMiddleware, (req, res) => ProfessorController.getCursos(req, res));
+professorRouter.post('/instituicoes', authMiddleware, (req, res) => ProfessorController.createInstitution(req, res));
+professorRouter.post('/cursos', authMiddleware, (req, res) => ProfessorController.createCourse(req, res));
+professorRouter.post('/associar', authMiddleware, (req, res) => ProfessorController.associateProfessorToCourse(req, res));
+professorRouter.get('/me', authMiddleware, (req, res) => ProfessorController.getProfessorInfo(req, res));
 
 export { professorRouter };

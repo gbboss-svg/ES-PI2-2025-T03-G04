@@ -17,6 +17,7 @@
     "@types/twilio": "^3.19.2",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^4.19.2",
     "express-async-errors": "^3.1.1",
     "jsonwebtoken": "^9.0.2",

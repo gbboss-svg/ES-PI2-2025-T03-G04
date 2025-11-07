@@ -26,7 +26,7 @@ class AuthService {
 
       // Verificar unicidade de E-mail
       let result = await connection.execute(
-        `SELECT Id_Professor FROM Professor WHERE Email = :email`,
+        `SELECT Id_Professor FROM professores WHERE Email = :email`,
         { email },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
@@ -37,7 +37,7 @@ class AuthService {
 
       // Verificar unicidade de CPF
       result = await connection.execute(
-        `SELECT Id_Professor FROM Professor WHERE Cpf = :cpf`,
+        `SELECT Id_Professor FROM professores WHERE Cpf = :cpf`,
         { cpf },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
@@ -48,7 +48,7 @@ class AuthService {
 
       // Verificar unicidade de Celular
       result = await connection.execute(
-        `SELECT Id_Professor FROM Professor WHERE Celular = :celular`,
+        `SELECT Id_Professor FROM professores WHERE Celular = :celular`,
         { celular },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
@@ -61,7 +61,7 @@ class AuthService {
       const verificationCode = EmailService.generateVerificationCode();
 
       await connection.execute(
-        `INSERT INTO Professor (Nome, Email, Cpf, Celular, Senha, Verification_Code, Primeiro_Acesso) VALUES (:nome, :email, :cpf, :celular, :hashedPassword, :verificationCode, 1)`,
+        `INSERT INTO professores (Nome, Email, Cpf, Celular, Senha, Verification_Code, Primeiro_Acesso) VALUES (:nome, :email, :cpf, :celular, :hashedPassword, :verificationCode, 1)`,
         { nome, email, cpf, celular, hashedPassword, verificationCode },
         { autoCommit: true }
       );
@@ -78,7 +78,7 @@ class AuthService {
   async verifyEmail(connection: oracledb.Connection, email: string, code: string) {
     try {
       const result = await connection.execute(
-        `SELECT * FROM Professor WHERE Email = :email`,
+        `SELECT * FROM professores WHERE Email = :email`,
         { email },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
@@ -92,7 +92,7 @@ class AuthService {
 
       if (user.VERIFICATION_CODE === code) {
         await connection.execute(
-          `UPDATE Professor SET Is_Verified = 1, Verification_Code = NULL, Verification_Attempts = 0 WHERE Email = :email`,
+          `UPDATE professores SET Is_Verified = 1, Verification_Code = NULL, Verification_Attempts = 0 WHERE Email = :email`,
           { email },
           { autoCommit: true }
         );
@@ -104,12 +104,12 @@ class AuthService {
       if (newAttempts >= 3) {
         const userIsVerified = user.IS_VERIFIED === 1;
         if (!userIsVerified) {
-            await connection.execute(`DELETE FROM Professor WHERE Email = :email`, { email }, { autoCommit: true });
+            await connection.execute(`DELETE FROM professores WHERE Email = :email`, { email }, { autoCommit: true });
         }
         throw new Error('MAX_ATTEMPTS_REACHED');
       } else {
         await connection.execute(
-          `UPDATE Professor SET Verification_Attempts = :newAttempts WHERE Email = :email`,
+          `UPDATE professores SET Verification_Attempts = :newAttempts WHERE Email = :email`,
           { newAttempts, email },
           { autoCommit: true }
         );
@@ -124,7 +124,7 @@ class AuthService {
   async resendVerificationEmail(connection: oracledb.Connection, email: string) {
     try {
         const result = await connection.execute(
-            `SELECT * FROM Professor WHERE Email = :email AND Is_Verified = 0`,
+            `SELECT * FROM professores WHERE Email = :email AND Is_Verified = 0`,
             { email },
             { outFormat: oracledb.OUT_FORMAT_OBJECT }
         );
@@ -137,13 +137,13 @@ class AuthService {
         const user = rows[0];
 
         if (user.RESEND_ATTEMPTS >= 3) { // Changed from 2 to 3 to match frontend
-            await connection.execute(`DELETE FROM Professor WHERE Email = :email`, { email }, { autoCommit: true });
+            await connection.execute(`DELETE FROM professores WHERE Email = :email`, { email }, { autoCommit: true });
             throw new Error('MAX_ATTEMPTS_REACHED');
         }
 
         const newVerificationCode = EmailService.generateVerificationCode();
         await connection.execute(
-            `UPDATE Professor SET Verification_Code = :newVerificationCode, Resend_Attempts = Resend_Attempts + 1 WHERE Email = :email`,
+            `UPDATE professores SET Verification_Code = :newVerificationCode, Resend_Attempts = Resend_Attempts + 1 WHERE Email = :email`,
             { newVerificationCode, email },
             { autoCommit: true }
         );
@@ -158,7 +158,7 @@ class AuthService {
   async cancelRegistration(connection: oracledb.Connection, email: string) {
     try {
       await connection.execute(
-        `DELETE FROM Professor WHERE Email = :email AND Is_Verified = 0`,
+        `DELETE FROM professores WHERE Email = :email AND Is_Verified = 0`,
         { email },
         { autoCommit: true }
       );
@@ -175,14 +175,14 @@ class AuthService {
 
       if (isEmail) {
         result = await connection.execute(
-          `SELECT * FROM Professor WHERE Email = :identifier`,
+          `SELECT * FROM professores WHERE Email = :identifier`,
           { identifier },
           { outFormat: oracledb.OUT_FORMAT_OBJECT }
         );
       } else {
         const cleanedIdentifier = identifier.replace(/\D/g, '');
         result = await connection.execute(
-          `SELECT * FROM Professor WHERE REGEXP_REPLACE(Cpf, '[^0-9]', '') = :cleanedIdentifier OR REGEXP_REPLACE(Celular, '[^0-9]', '') = :cleanedIdentifier`,
+          `SELECT * FROM professores WHERE REGEXP_REPLACE(Cpf, '[^0-9]', '') = :cleanedIdentifier OR REGEXP_REPLACE(Celular, '[^0-9]', '') = :cleanedIdentifier`,
           { cleanedIdentifier },
           { outFormat: oracledb.OUT_FORMAT_OBJECT }
         );
@@ -219,7 +219,7 @@ class AuthService {
   async forgotPassword(connection: oracledb.Connection, identifier: string) {
     try {
       const result = await connection.execute(
-        `SELECT * FROM Professor WHERE Email = :identifier OR Cpf = :identifier OR Celular = :identifier`,
+        `SELECT * FROM professores WHERE Email = :identifier OR Cpf = :identifier OR Celular = :identifier`,
         { identifier },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
@@ -237,7 +237,7 @@ class AuthService {
       const verificationCode = EmailService.generateVerificationCode();
 
       await connection.execute(
-        `UPDATE Professor
+        `UPDATE professores
          SET Verification_Code = :verificationCode,
              Verification_Attempts = 0,
              Resend_Attempts = 0
@@ -258,7 +258,7 @@ class AuthService {
   async resetPassword(connection: oracledb.Connection, email: string, novaSenha: string) {
     try {
       const result = await connection.execute(
-        `SELECT Senha FROM Professor WHERE Email = :email`,
+        `SELECT Senha FROM professores WHERE Email = :email`,
         { email },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
@@ -281,7 +281,7 @@ class AuthService {
       const hashedPassword = await bcrypt.hash(novaSenha, 10);
 
       await connection.execute(
-        `UPDATE Professor
+        `UPDATE professores
          SET Senha = :hashedPassword,
              Verification_Code = NULL
          WHERE Email = :email`,
