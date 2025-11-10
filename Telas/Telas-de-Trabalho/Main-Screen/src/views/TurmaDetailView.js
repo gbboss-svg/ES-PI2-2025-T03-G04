@@ -1,20 +1,20 @@
-import { addAuditLog, renderAuditLog } from '../services/AuditService.js';
-import { calculateFinalGrade, adjustGrade, testAndValidateFormula } from '../services/FormulaService.js';
-import { createSnapshot } from '../utils/helpers.js';
-import { exportTurmaToCsv, downloadFile, importStudentsFromCsv } from '../services/CsvService.js';
+import { addAuditLog, renderAuditLog } from "../services/AuditService.js"
+import { calculateFinalGrade, adjustGrade, testAndValidateFormula } from "../services/FormulaService.js"
+import { createSnapshot } from "../utils/helpers.js"
+import { exportTurmaToCsv, downloadFile, importStudentsFromCsv } from "../services/CsvService.js"
 
 // Variáveis de estado e modais que serão gerenciadas pelo app.js
-let currentTurmaContext = {};
-let addStudentModal, finalizeSemesterModal, reopenTurmaModal;
+let currentTurmaContext = {}
+let addStudentModal, finalizeSemesterModal, reopenTurmaModal
 
 /**
  * Inicializa os modais que são usados nesta view.
  * @param {object} modals - Um objeto contendo as instâncias dos modais.
  */
 export function initTurmaDetailViewModals(modals) {
-    addStudentModal = modals.addStudentModal;
-    finalizeSemesterModal = modals.finalizeSemesterModal;
-    reopenTurmaModal = modals.reopenTurmaModal;
+  addStudentModal = modals.addStudentModal
+  finalizeSemesterModal = modals.finalizeSemesterModal
+  reopenTurmaModal = modals.reopenTurmaModal
 }
 
 /**
@@ -22,13 +22,23 @@ export function initTurmaDetailViewModals(modals) {
  * @param {object} disciplina - O objeto da disciplina.
  */
 function updateGradeComponentsList(disciplina) {
-    const list = document.getElementById('grade-components-list');
-    if (!list) return;
-    list.innerHTML = disciplina.gradeComponents.map(comp => `
+  const list = document.getElementById("grade-components-list")
+  if (!list) return
+
+  if (!disciplina.gradeComponents || disciplina.gradeComponents.length === 0) {
+    list.innerHTML = '<li class="list-group-item text-muted fst-italic">Nenhuma atividade cadastrada</li>'
+    return
+  }
+
+  list.innerHTML = disciplina.gradeComponents
+    .map(
+      (comp) => `
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <span><strong>${comp.acronym}:</strong> ${comp.name}</span>
         </li>
-    `).join('');
+    `,
+    )
+    .join("")
 }
 
 /**
@@ -37,58 +47,79 @@ function updateGradeComponentsList(disciplina) {
  * @param {object} disciplina - O objeto da disciplina.
  */
 function updateGradesTable(turma, disciplina) {
-    const tableHead = document.getElementById('grades-table-head');
-    const tableBody = document.getElementById('grades-table-body');
-    if (!tableHead || !tableBody) return;
+  const tableHead = document.getElementById("grades-table-head")
+  const tableBody = document.getElementById("grades-table-body")
+  if (!tableHead || !tableBody) return
 
-    const isFinalized = turma.isFinalized;
-    const maxGrade = disciplina.maxGrade || 10;
-    
-    let tableHeaders = `<th scope="col">Matrícula</th><th scope="col">Nome</th>`;
-    disciplina.gradeComponents.forEach(comp => {
-        tableHeaders += `<th scope="col" title="${comp.description}">${comp.name} (${comp.acronym})</th>`;
-    });
-    tableHeaders += `<th scope="col">Nota Final</th>`;
-    if (disciplina.hasAdjustedColumn) {
-        tableHeaders += '<th scope="col">Final Ajustada</th>';
+  const isFinalized = turma.isFinalized
+  const maxGrade = disciplina.maxGrade || 10
+
+  if (!disciplina.gradeComponents || disciplina.gradeComponents.length === 0) {
+    tableHead.innerHTML = '<tr><th scope="col" colspan="3">Configure as atividades de avaliação para começar</th></tr>'
+    tableBody.innerHTML = ""
+    return
+  }
+
+  let tableHeaders = `<th scope="col">Matrícula</th><th scope="col">Nome</th>`
+  disciplina.gradeComponents.forEach((comp) => {
+    tableHeaders += `<th scope="col" title="${comp.description || ""}">${comp.name} (${comp.acronym})</th>`
+  })
+  tableHeaders += `<th scope="col">Nota Final</th>`
+  if (disciplina.hasAdjustedColumn) {
+    tableHeaders += '<th scope="col">Final Ajustada</th>'
+  }
+  tableHead.innerHTML = `<tr>${tableHeaders}</tr>`
+
+  tableBody.innerHTML = ""
+
+  if (!turma.students || turma.students.length === 0) {
+    tableBody.innerHTML =
+      '<tr><td colspan="100%" class="text-center text-muted fst-italic py-4">Nenhum aluno cadastrado nesta turma</td></tr>'
+    return
+  }
+
+  turma.students.forEach((student) => {
+    if (!student.grades) {
+      student.grades = {}
     }
-    tableHead.innerHTML = `<tr>${tableHeaders}</tr>`;
 
-    tableBody.innerHTML = '';
-    turma.students.forEach(student => {
-        const finalGrade = calculateFinalGrade(student.grades, disciplina.finalGradeFormula, disciplina.gradeComponents);
-        let gradeCells = '';
-        disciplina.gradeComponents.forEach(comp => {
-            gradeCells += `<td><input type="number" class="grade-input" data-acronym="${comp.acronym}" data-student-name="${student.name}" data-component-name="${comp.name}" value="${student.grades[comp.acronym] || ''}" min="0" max="${maxGrade}" step="0.01" disabled></td>`;
-        });
-        
-        const row = document.createElement('tr');
-        row.dataset.studentId = student.id;
-        row.innerHTML = `
+    const finalGrade = calculateFinalGrade(student.grades, disciplina.finalGradeFormula, disciplina.gradeComponents)
+    let gradeCells = ""
+    disciplina.gradeComponents.forEach((comp) => {
+      gradeCells += `<td><input type="number" class="grade-input" data-acronym="${comp.acronym}" data-student-name="${student.name}" data-component-name="${comp.name}" value="${student.grades[comp.acronym] || ""}" min="0" max="${maxGrade}" step="0.01" disabled></td>`
+    })
+
+    const row = document.createElement("tr")
+    row.dataset.studentId = student.id
+    row.innerHTML = `
             <td>${student.id}</td>
             <td>${student.name}</td>
             ${gradeCells}
-            <td>${isNaN(finalGrade) ? 'Erro' : finalGrade.toFixed(2)}</td>
-            ${disciplina.hasAdjustedColumn ? `<td><input type="number" class="grade-input" value="${isNaN(finalGrade) ? '' : adjustGrade(finalGrade).toFixed(1)}" min="0" max="${maxGrade}" step="0.5" disabled></td>` : ''}
-        `;
-        tableBody.appendChild(row);
-    });
-    
-    tableBody.querySelectorAll('.grade-input[data-acronym]').forEach(input => {
-        let oldValue = input.value;
-        input.addEventListener('focus', (e) => { oldValue = e.target.value; });
-        input.addEventListener('change', (e) => {
-            const newValue = e.target.value;
-            const studentName = e.target.dataset.studentName;
-            const componentName = e.target.dataset.componentName;
-            addAuditLog(`Nota de "${componentName}" do aluno ${studentName} alterada de ${oldValue || 'vazio'} para ${newValue}.`);
-            renderAuditLog(currentTurmaContext, renderTurmaDetailView);
-        });
-    });
+            <td>${isNaN(finalGrade) ? "Erro" : finalGrade.toFixed(2)}</td>
+            ${disciplina.hasAdjustedColumn ? `<td><input type="number" class="grade-input" value="${isNaN(finalGrade) ? "" : adjustGrade(finalGrade).toFixed(1)}" min="0" max="${maxGrade}" step="0.5" disabled></td>` : ""}
+        `
+    tableBody.appendChild(row)
+  })
 
-     if (isFinalized) {
-        tableBody.querySelectorAll('.grade-input').forEach(i => i.disabled = true);
-    }
+  tableBody.querySelectorAll(".grade-input[data-acronym]").forEach((input) => {
+    let oldValue = input.value
+    input.addEventListener("focus", (e) => {
+      oldValue = e.target.value
+    })
+    input.addEventListener("change", (e) => {
+      const newValue = e.target.value
+      const studentName = e.target.dataset.studentName
+      const componentName = e.target.dataset.componentName
+      addAuditLog(
+        `Nota de "${componentName}" do aluno ${studentName} alterada de ${oldValue || "vazio"} para ${newValue}.`,
+      )
+      renderAuditLog(currentTurmaContext, renderTurmaDetailView)
+    })
+  })
+
+  if (isFinalized) {
+    tableBody.querySelectorAll(".grade-input").forEach((i) => (i.disabled = true))
+  }
 }
 
 /**
@@ -97,13 +128,25 @@ function updateGradesTable(turma, disciplina) {
  * @param {object} disciplina - O objeto da disciplina associada.
  */
 export function renderTurmaDetailView(turma, disciplina) {
-    currentTurmaContext = { turma, disciplina }; 
-    const isFinalized = turma.isFinalized;
-    const container = document.getElementById('turma-detail-view');
-    if (!container) return;
+  if (!turma || !disciplina) {
+    console.error("[v0] renderTurmaDetailView called with invalid parameters", { turma, disciplina })
+    return
+  }
 
-    container.innerHTML = `
-        ${isFinalized ? `
+  console.log("[v0] Rendering TurmaDetailView", { turma, disciplina })
+
+  currentTurmaContext = { turma, disciplina }
+  const isFinalized = turma.isFinalized
+  const container = document.getElementById("turma-detail-view")
+  if (!container) {
+    console.error("[v0] turma-detail-view container not found")
+    return
+  }
+
+  container.innerHTML = `
+        ${
+          isFinalized
+            ? `
             <div class="alert alert-warning d-flex align-items-center justify-content-between" role="alert">
               <div class="d-flex align-items-center">
                   <i class="bi bi-lock-fill me-2"></i>
@@ -113,26 +156,28 @@ export function renderTurmaDetailView(turma, disciplina) {
               </div>
               <button id="reopen-turma-btn" class="btn btn-sm btn-outline-dark">Retornar Turma</button>
             </div>
-        ` : ''}
+        `
+            : ""
+        }
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
             <div>
-                <h2>${disciplina.curso}</h2>
+                <h2>${disciplina.curso || "Curso"}</h2>
                 <h3 class="text-muted fw-normal">${disciplina.name} - ${turma.name}</h3>
                 <p class="text-muted mb-0">Gerenciamento de notas e alunos.</p>
             </div>
             <div class="btn-toolbar" role="toolbar">
                 <div class="btn-group me-2 mb-2" role="group">
-                    <button id="save-grades-btn" class="btn btn-success" ${isFinalized ? 'disabled' : ''}><i class="bi bi-check2-circle me-1"></i> Salvar</button>
+                    <button id="save-grades-btn" class="btn btn-success" ${isFinalized ? "disabled" : ""}><i class="bi bi-check2-circle me-1"></i> Salvar</button>
                 </div>
                 <div class="btn-group me-2 mb-2" role="group">
-                    <button id="add-student-btn" class="btn btn-primary" ${isFinalized ? 'disabled' : ''}><i class="bi bi-person-plus-fill me-1"></i> Adicionar Aluno</button>
+                    <button id="add-student-btn" class="btn btn-primary" ${isFinalized ? "disabled" : ""}><i class="bi bi-person-plus-fill me-1"></i> Adicionar Aluno</button>
                     <button id="import-csv-btn" class="btn btn-outline-secondary"><i class="bi bi-upload me-1"></i> Importar</button>
                     <button id="export-csv-btn" class="btn btn-outline-secondary"><i class="bi bi-download me-1"></i> Exportar</button>
                 </div>
                 <div class="btn-group mb-2" role="group">
                     <button class="btn btn-info text-white" id="toggle-audit-panel-btn"><i class="bi bi-terminal me-1"></i> Auditoria</button>
-                    <button id="calculate-avg-btn" class="btn btn-warning" ${isFinalized ? 'disabled' : ''}><i class="bi bi-calculator me-1"></i> Calcular Médias</button>
-                    <button id="finalize-semester-btn" class="btn btn-danger" ${isFinalized ? 'disabled' : ''}><i class="bi bi-lock me-1"></i> Finalizar Semestre</button>
+                    <button id="calculate-avg-btn" class="btn btn-warning" ${isFinalized ? "disabled" : ""}><i class="bi bi-calculator me-1"></i> Calcular Médias</button>
+                    <button id="finalize-semester-btn" class="btn btn-danger" ${isFinalized ? "disabled" : ""}><i class="bi bi-lock me-1"></i> Finalizar Semestre</button>
                 </div>
             </div>
         </div>
@@ -142,25 +187,25 @@ export function renderTurmaDetailView(turma, disciplina) {
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Configurações de Avaliação</h5>
                     <div class="btn-group" role="group">
-                        <button class="btn btn-outline-secondary" id="calc-media-simples-btn" ${isFinalized ? 'disabled' : ''} title="Calcular Média Simples"><i class="bi bi-calculator-fill me-1"></i> Calcular Média Simples</button>
-                        <button class="btn btn-outline-primary" id="toggle-formula-btn" ${isFinalized ? 'disabled' : ''}><i class="bi bi-pencil-square me-1"></i> Editar</button>
+                        <button class="btn btn-outline-secondary" id="calc-media-simples-btn" ${isFinalized ? "disabled" : ""} title="Calcular Média Simples"><i class="bi bi-calculator-fill me-1"></i> Calcular Média Simples</button>
+                        <button class="btn btn-outline-primary" id="toggle-formula-btn" ${isFinalized ? "disabled" : ""}><i class="bi bi-pencil-square me-1"></i> Editar</button>
                     </div>
                 </div>
                 <div id="formula-editor" class="d-none mt-3">
                     <div class="row g-3">
                         <div class="col-md-9">
                             <label for="formula-input" class="form-label">Fórmula de Cálculo</label>
-                            <input type="text" id="formula-input" class="form-control" value="${disciplina.finalGradeFormula}" ${isFinalized ? 'disabled' : ''}>
+                            <input type="text" id="formula-input" class="form-control" value="${disciplina.finalGradeFormula || ""}" ${isFinalized ? "disabled" : ""}>
                             <div id="formula-feedback" class="form-text mt-2"></div>
                         </div>
                         <div class="col-md-3">
                             <label for="max-grade-input" class="form-label">Nota Máxima</label>
-                            <input type="number" id="max-grade-input" class="form-control" value="${disciplina.maxGrade || 10}" min="0" ${isFinalized ? 'disabled' : ''}>
+                            <input type="number" id="max-grade-input" class="form-control" value="${disciplina.maxGrade || 10}" min="0" ${isFinalized ? "disabled" : ""}>
                         </div>
                     </div>
                     <div class="btn-group mt-3">
-                        <button id="save-formula-btn" class="btn btn-success" ${isFinalized ? 'disabled' : ''}>Salvar Configurações</button>
-                        <button id="test-formula-btn" class="btn btn-outline-info" ${isFinalized ? 'disabled' : ''}>Testar Fórmula</button>
+                        <button id="save-formula-btn" class="btn btn-success" ${isFinalized ? "disabled" : ""}>Salvar Configurações</button>
+                        <button id="test-formula-btn" class="btn btn-outline-info" ${isFinalized ? "disabled" : ""}>Testar Fórmula</button>
                     </div>
                 </div>
             </div>
@@ -176,7 +221,7 @@ export function renderTurmaDetailView(turma, disciplina) {
                         <div class="row mb-3">
                             <div class="col-12">
                                 <label for="grade-edit-selector" class="form-label d-inline-block me-2"><strong>Escolha qual coluna você quer editar:</strong></label>
-                                <select class="form-select form-select-sm d-inline-block" id="grade-edit-selector" style="width: auto;" ${isFinalized ? 'disabled' : ''}>
+                                <select class="form-select form-select-sm d-inline-block" id="grade-edit-selector" style="width: auto;" ${isFinalized ? "disabled" : ""}>
                                     <!-- Options will be populated by JS -->
                                 </select>
                             </div>
@@ -195,7 +240,7 @@ export function renderTurmaDetailView(turma, disciplina) {
                      <div class="card-header bg-white"><h5 class="mb-0">Atividades e Avaliações</h5></div>
                      <div class="card-body">
                         <ul class="list-group mb-3" id="grade-components-list"></ul>
-                        <div ${isFinalized ? 'style="display:none;"' : ''}>
+                        <div ${isFinalized ? 'style="display:none;"' : ""}>
                             <h6>Adicionar Nova Atividade</h6>
                             <div class="row g-2">
                                 <div class="col-12"><input type="text" id="new-comp-name" class="form-control" placeholder="Nome (Ex: Prova 1)"></div>
@@ -220,182 +265,268 @@ export function renderTurmaDetailView(turma, disciplina) {
                 </div>
             </div>
         </div>
-    `;
-    
-    updateGradeComponentsList(disciplina);
-    updateGradesTable(turma, disciplina);
-    renderAuditLog(currentTurmaContext, renderTurmaDetailView);
-    
-    // Adiciona os event listeners específicos desta view
-    if (!isFinalized) {
-        // Lógica para o seletor de edição de notas
-        const gradeEditSelector = document.getElementById('grade-edit-selector');
-        let options = '<option value="">Selecione para editar...</option>';
-        disciplina.gradeComponents.forEach(comp => {
-            options += `<option value="${comp.acronym}">${comp.name}</option>`;
-        });
-        gradeEditSelector.innerHTML = options;
+    `
 
-        gradeEditSelector.addEventListener('change', (e) => {
-            const selectedAcronym = e.target.value;
-            const allInputs = document.querySelectorAll('#grades-table-body .grade-input[data-acronym]');
-            
-            allInputs.forEach(input => input.disabled = true);
+  if (!disciplina.gradeComponents) {
+    disciplina.gradeComponents = []
+  }
+  if (!turma.students) {
+    turma.students = []
+  }
 
-            if (selectedAcronym) {
-                const inputsToEnable = document.querySelectorAll(`#grades-table-body .grade-input[data-acronym="${selectedAcronym}"]`);
-                inputsToEnable.forEach(input => input.disabled = false);
-            }
-        });
+  updateGradeComponentsList(disciplina)
+  updateGradesTable(turma, disciplina)
+  renderAuditLog(currentTurmaContext, renderTurmaDetailView)
 
-        document.getElementById('add-component-btn').addEventListener('click', () => {
-            const nameInput = document.getElementById('new-comp-name');
-            const acronymInput = document.getElementById('new-comp-acronym');
-            if (nameInput.value && acronymInput.value) {
-                const snapshot = createSnapshot(turma);
-                disciplina.gradeComponents.push({ id: Date.now(), name: nameInput.value, acronym: acronymInput.value, description: '' });
-                addAuditLog(`Nova atividade "${nameInput.value}" (${acronymInput.value}) adicionada.`, snapshot);
-                renderTurmaDetailView(turma, disciplina); // Re-renderiza a view para atualizar a lista e a tabela
-            }
-        });
-        
-        document.getElementById('save-grades-btn').addEventListener('click', () => {
-            const snapshot = createSnapshot(turma);
-            document.querySelectorAll('#grades-table-body tr').forEach(row => {
-                const student = turma.students.find(s => s.id == row.dataset.studentId);
-                if (student) {
-                    row.querySelectorAll('.grade-input[data-acronym]').forEach(input => {
-                        if (input.dataset.acronym) student.grades[input.dataset.acronym] = parseFloat(input.value) || 0;
-                    });
-                }
-            });
-            addAuditLog(`Notas salvas para a turma ${turma.name}.`, snapshot);
-            updateGradesTable(turma, disciplina);
-            renderAuditLog(currentTurmaContext, renderTurmaDetailView);
-            alert('Notas salvas com sucesso!');
-        });
-        
-        document.getElementById('add-student-btn').addEventListener('click', () => addStudentModal.show());
+  const gradeEditSelector = document.getElementById("grade-edit-selector")
+  if (gradeEditSelector) {
+    let options = '<option value="">Selecione para editar...</option>'
+    if (disciplina.gradeComponents && disciplina.gradeComponents.length > 0) {
+      disciplina.gradeComponents.forEach((comp) => {
+        options += `<option value="${comp.acronym}">${comp.name}</option>`
+      })
+    }
+    gradeEditSelector.innerHTML = options
+  }
 
-        document.getElementById('export-csv-btn').addEventListener('click', () => {
-            const csvData = exportTurmaToCsv(turma, disciplina);
-            downloadFile(csvData, `turma_${turma.name}.csv`, 'text/csv');
-        });
+  // Adiciona os event listeners específicos desta view
+  if (!isFinalized) {
+    if (gradeEditSelector) {
+      gradeEditSelector.addEventListener("change", (e) => {
+        const selectedAcronym = e.target.value
+        const allInputs = document.querySelectorAll("#grades-table-body .grade-input[data-acronym]")
 
-        document.getElementById('import-csv-btn').addEventListener('click', () => {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.csv';
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    try {
-                        const { headers, students } = importStudentsFromCsv(event.target.result);
-                        const snapshot = createSnapshot(turma);
-                        
-                        students.forEach(newStudent => {
-                            const existingStudent = turma.students.find(s => s.id === newStudent.id);
-                            if (existingStudent) {
-                                Object.assign(existingStudent, newStudent);
-                            } else {
-                                turma.students.push(newStudent);
-                            }
-                        });
+        allInputs.forEach((input) => (input.disabled = true))
 
-                        addAuditLog(`${students.length} alunos importados via CSV.`, snapshot);
-                        renderTurmaDetailView(turma, disciplina);
-                        alert('Alunos importados com sucesso!');
-                    } catch (error) {
-                        alert(`Erro ao importar CSV: ${error.message}`);
-                    }
-                };
-                reader.readAsText(file);
-            };
-            input.click();
-        });
-
-        document.getElementById('calculate-avg-btn').addEventListener('click', () => {
-            updateGradesTable(turma, disciplina);
-            addAuditLog('Médias recalculadas para todos os alunos.');
-            renderAuditLog(currentTurmaContext, renderTurmaDetailView);
-            alert('Médias recalculadas com sucesso!');
-        });
-        document.getElementById('finalize-semester-btn').addEventListener('click', () => finalizeSemesterModal.show());
-        document.getElementById('toggle-formula-btn').addEventListener('click', () => document.getElementById('formula-editor').classList.toggle('d-none'));
-
-        document.getElementById('calc-media-simples-btn').addEventListener('click', () => {
-            const { disciplina } = currentTurmaContext;
-            if (disciplina.gradeComponents && disciplina.gradeComponents.length > 0) {
-                const acronyms = disciplina.gradeComponents.map(c => c.acronym);
-                const formula = `(${acronyms.join(' + ')}) / ${acronyms.length}`;
-                const formulaInput = document.getElementById('formula-input');
-                formulaInput.value = formula;
-                // Dispara o evento de input para acionar a validação da fórmula
-                formulaInput.dispatchEvent(new Event('input', { bubbles: true }));
-                // Mostra o editor de fórmula se estiver escondido
-                document.getElementById('formula-editor').classList.remove('d-none');
-            } else {
-                alert('Adicione pelo menos uma atividade de avaliação antes de calcular a média.');
-            }
-        });
-
-        const formulaInput = document.getElementById('formula-input');
-        const formulaFeedback = document.getElementById('formula-feedback');
-        const maxGradeInput = document.getElementById('max-grade-input');
-
-        formulaInput.addEventListener('input', () => {
-            disciplina.maxGrade = parseFloat(maxGradeInput.value) || 10;
-            const result = testAndValidateFormula(formulaInput.value, disciplina);
-            formulaFeedback.textContent = result.message;
-            formulaFeedback.className = result.valid ? 'form-text text-success' : 'form-text text-danger';
-            
-            // Adiciona/remove classes para o feedback visual da borda
-            formulaInput.classList.remove('is-valid-formula', 'is-invalid-formula');
-            if (formulaInput.value) { // Só aplica a classe se o campo não estiver vazio
-                formulaInput.classList.add(result.valid ? 'is-valid-formula' : 'is-invalid-formula');
-            }
-        });
-        
-        maxGradeInput.addEventListener('input', () => formulaInput.dispatchEvent(new Event('input')));
-
-        document.getElementById('test-formula-btn').addEventListener('click', () => {
-            disciplina.maxGrade = parseFloat(maxGradeInput.value) || 10;
-            const result = testAndValidateFormula(formulaInput.value, disciplina);
-            if (result.valid) {
-                alert(`Teste bem-sucedido!\nCom todas as notas máximas (${disciplina.maxGrade}), o resultado da fórmula é ${result.testResult.toFixed(2)}.`);
-            } else {
-                alert(`Falha no teste: ${result.message}`);
-            }
-        });
-
-        document.getElementById('save-formula-btn').addEventListener('click', () => {
-            const snapshot = createSnapshot(turma);
-            disciplina.maxGrade = parseFloat(maxGradeInput.value) || 10;
-            const result = testAndValidateFormula(formulaInput.value, disciplina);
-            
-            formulaInput.classList.remove('shake-error');
-
-            if (result.valid) {
-                disciplina.finalGradeFormula = formulaInput.value;
-                updateGradesTable(turma, disciplina);
-                addAuditLog(`Configurações de avaliação salvas. Fórmula: ${disciplina.finalGradeFormula}, Nota Máx.: ${disciplina.maxGrade}`, snapshot);
-                renderAuditLog(currentTurmaContext, renderTurmaDetailView);
-                alert('Configurações de avaliação salvas com sucesso!');
-            } else {
-                // Em vez de um alerta, aciona a animação de "tremor"
-                void formulaInput.offsetWidth; // Trigger reflow para reiniciar a animação
-                formulaInput.classList.add('shake-error');
-            }
-        });
-    } else {
-        document.getElementById('reopen-turma-btn').addEventListener('click', () => reopenTurmaModal.show());
+        if (selectedAcronym) {
+          const inputsToEnable = document.querySelectorAll(
+            `#grades-table-body .grade-input[data-acronym="${selectedAcronym}"]`,
+          )
+          inputsToEnable.forEach((input) => (input.disabled = false))
+        }
+      })
     }
 
-    const auditPanel = document.getElementById('audit-panel-container');
-    document.getElementById('toggle-audit-panel-btn').addEventListener('click', () => {
-        auditPanel.classList.remove('d-none');
-        auditPanel.scrollIntoView({ behavior: 'smooth' });
-    });
-    document.getElementById('close-audit-panel-btn').addEventListener('click', () => auditPanel.classList.add('d-none'));
+    const addComponentBtn = document.getElementById("add-component-btn")
+    if (addComponentBtn) {
+      addComponentBtn.addEventListener("click", () => {
+        const nameInput = document.getElementById("new-comp-name")
+        const acronymInput = document.getElementById("new-comp-acronym")
+        if (nameInput && acronymInput && nameInput.value && acronymInput.value) {
+          const snapshot = createSnapshot(turma)
+          if (!disciplina.gradeComponents) {
+            disciplina.gradeComponents = []
+          }
+          disciplina.gradeComponents.push({
+            id: Date.now(),
+            name: nameInput.value,
+            acronym: acronymInput.value,
+            description: "",
+          })
+          addAuditLog(`Nova atividade "${nameInput.value}" (${acronymInput.value}) adicionada.`, snapshot)
+          renderTurmaDetailView(turma, disciplina)
+        }
+      })
+    }
+
+    const saveGradesBtn = document.getElementById("save-grades-btn")
+    if (saveGradesBtn) {
+      saveGradesBtn.addEventListener("click", () => {
+        const snapshot = createSnapshot(turma)
+        document.querySelectorAll("#grades-table-body tr").forEach((row) => {
+          const student = turma.students.find((s) => s.id == row.dataset.studentId)
+          if (student) {
+            if (!student.grades) {
+              student.grades = {}
+            }
+            row.querySelectorAll(".grade-input[data-acronym]").forEach((input) => {
+              if (input.dataset.acronym) student.grades[input.dataset.acronym] = Number.parseFloat(input.value) || 0
+            })
+          }
+        })
+        addAuditLog(`Notas salvas para a turma ${turma.name}.`, snapshot)
+        updateGradesTable(turma, disciplina)
+        renderAuditLog(currentTurmaContext, renderTurmaDetailView)
+        alert("Notas salvas com sucesso!")
+      })
+    }
+
+    const addStudentBtn = document.getElementById("add-student-btn")
+    if (addStudentBtn && addStudentModal) {
+      addStudentBtn.addEventListener("click", () => addStudentModal.show())
+    }
+
+    const exportCsvBtn = document.getElementById("export-csv-btn")
+    if (exportCsvBtn) {
+      exportCsvBtn.addEventListener("click", () => {
+        const csvData = exportTurmaToCsv(turma, disciplina)
+        downloadFile(csvData, `turma_${turma.name}.csv`, "text/csv")
+      })
+    }
+
+    const importCsvBtn = document.getElementById("import-csv-btn")
+    if (importCsvBtn) {
+      importCsvBtn.addEventListener("click", () => {
+        const input = document.createElement("input")
+        input.type = "file"
+        input.accept = ".csv"
+        input.onchange = (e) => {
+          const file = e.target.files[0]
+          if (!file) return
+
+          const reader = new FileReader()
+          reader.onload = (event) => {
+            try {
+              const { headers, students } = importStudentsFromCsv(event.target.result)
+              const snapshot = createSnapshot(turma)
+
+              if (!turma.students) {
+                turma.students = []
+              }
+
+              students.forEach((newStudent) => {
+                const existingStudent = turma.students.find((s) => s.id === newStudent.id)
+                if (existingStudent) {
+                  Object.assign(existingStudent, newStudent)
+                } else {
+                  turma.students.push(newStudent)
+                }
+              })
+
+              addAuditLog(`${students.length} alunos importados via CSV.`, snapshot)
+              renderTurmaDetailView(turma, disciplina)
+              alert("Alunos importados com sucesso!")
+            } catch (error) {
+              alert(`Erro ao importar CSV: ${error.message}`)
+            }
+          }
+          reader.readAsText(file)
+        }
+        input.click()
+      })
+    }
+
+    const calculateAvgBtn = document.getElementById("calculate-avg-btn")
+    if (calculateAvgBtn) {
+      calculateAvgBtn.addEventListener("click", () => {
+        updateGradesTable(turma, disciplina)
+        addAuditLog("Médias recalculadas para todos os alunos.")
+        renderAuditLog(currentTurmaContext, renderTurmaDetailView)
+        alert("Médias recalculadas com sucesso!")
+      })
+    }
+
+    const finalizeSemesterBtn = document.getElementById("finalize-semester-btn")
+    if (finalizeSemesterBtn && finalizeSemesterModal) {
+      finalizeSemesterBtn.addEventListener("click", () => finalizeSemesterModal.show())
+    }
+
+    const toggleFormulaBtn = document.getElementById("toggle-formula-btn")
+    const formulaEditor = document.getElementById("formula-editor")
+    if (toggleFormulaBtn && formulaEditor) {
+      toggleFormulaBtn.addEventListener("click", () => formulaEditor.classList.toggle("d-none"))
+    }
+
+    const calcMediaSimplesBtn = document.getElementById("calc-media-simples-btn")
+    if (calcMediaSimplesBtn) {
+      calcMediaSimplesBtn.addEventListener("click", () => {
+        if (disciplina.gradeComponents && disciplina.gradeComponents.length > 0) {
+          const acronyms = disciplina.gradeComponents.map((c) => c.acronym)
+          const formula = `(${acronyms.join(" + ")}) / ${acronyms.length}`
+          const formulaInput = document.getElementById("formula-input")
+          if (formulaInput) {
+            formulaInput.value = formula
+            formulaInput.dispatchEvent(new Event("input", { bubbles: true }))
+            if (formulaEditor) {
+              formulaEditor.classList.remove("d-none")
+            }
+          }
+        } else {
+          alert("Adicione pelo menos uma atividade de avaliação antes de calcular a média.")
+        }
+      })
+    }
+
+    const formulaInput = document.getElementById("formula-input")
+    const formulaFeedback = document.getElementById("formula-feedback")
+    const maxGradeInput = document.getElementById("max-grade-input")
+
+    if (formulaInput && formulaFeedback && maxGradeInput) {
+      formulaInput.addEventListener("input", () => {
+        disciplina.maxGrade = Number.parseFloat(maxGradeInput.value) || 10
+        const result = testAndValidateFormula(formulaInput.value, disciplina)
+        formulaFeedback.textContent = result.message
+        formulaFeedback.className = result.valid ? "form-text text-success" : "form-text text-danger"
+
+        formulaInput.classList.remove("is-valid-formula", "is-invalid-formula")
+        if (formulaInput.value) {
+          formulaInput.classList.add(result.valid ? "is-valid-formula" : "is-invalid-formula")
+        }
+      })
+
+      maxGradeInput.addEventListener("input", () => formulaInput.dispatchEvent(new Event("input")))
+
+      const testFormulaBtn = document.getElementById("test-formula-btn")
+      if (testFormulaBtn) {
+        testFormulaBtn.addEventListener("click", () => {
+          disciplina.maxGrade = Number.parseFloat(maxGradeInput.value) || 10
+          const result = testAndValidateFormula(formulaInput.value, disciplina)
+          if (result.valid) {
+            alert(
+              `Teste bem-sucedido!\nCom todas as notas máximas (${disciplina.maxGrade}), o resultado da fórmula é ${result.testResult.toFixed(2)}.`,
+            )
+          } else {
+            alert(`Falha no teste: ${result.message}`)
+          }
+        })
+      }
+
+      const saveFormulaBtn = document.getElementById("save-formula-btn")
+      if (saveFormulaBtn) {
+        saveFormulaBtn.addEventListener("click", () => {
+          const snapshot = createSnapshot(turma)
+          disciplina.maxGrade = Number.parseFloat(maxGradeInput.value) || 10
+          const result = testAndValidateFormula(formulaInput.value, disciplina)
+
+          formulaInput.classList.remove("shake-error")
+
+          if (result.valid) {
+            disciplina.finalGradeFormula = formulaInput.value
+            updateGradesTable(turma, disciplina)
+            addAuditLog(
+              `Configurações de avaliação salvas. Fórmula: ${disciplina.finalGradeFormula}, Nota Máx.: ${disciplina.maxGrade}`,
+              snapshot,
+            )
+            renderAuditLog(currentTurmaContext, renderTurmaDetailView)
+            alert("Configurações de avaliação salvas com sucesso!")
+          } else {
+            void formulaInput.offsetWidth
+            formulaInput.classList.add("shake-error")
+          }
+        })
+      }
+    }
+  } else {
+    const reopenTurmaBtn = document.getElementById("reopen-turma-btn")
+    if (reopenTurmaBtn && reopenTurmaModal) {
+      reopenTurmaBtn.addEventListener("click", () => reopenTurmaModal.show())
+    }
+  }
+
+  const auditPanel = document.getElementById("audit-panel-container")
+  const toggleAuditPanelBtn = document.getElementById("toggle-audit-panel-btn")
+  const closeAuditPanelBtn = document.getElementById("close-audit-panel-btn")
+
+  if (toggleAuditPanelBtn && auditPanel) {
+    toggleAuditPanelBtn.addEventListener("click", () => {
+      auditPanel.classList.remove("d-none")
+      auditPanel.scrollIntoView({ behavior: "smooth" })
+    })
+  }
+
+  if (closeAuditPanelBtn && auditPanel) {
+    closeAuditPanelBtn.addEventListener("click", () => auditPanel.classList.add("d-none"))
+  }
+
+  console.log("[v0] TurmaDetailView rendered successfully")
 }

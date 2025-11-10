@@ -12,4 +12,6 @@ router.post('/turmas', authMiddleware, (req, res) => TurmaController.createTurma
 
 router.get('/turmas/:id', authMiddleware, (req, res) => TurmaController.getTurmaDetail(req, res));
 
+router.post('/turmas/:id/students', authMiddleware, (req, res) => TurmaController.addStudentToTurma(req, res));
+
 export default router;

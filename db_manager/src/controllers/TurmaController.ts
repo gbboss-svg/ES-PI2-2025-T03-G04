@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import TurmaService from '../services/TurmaService';
+import StudentService from '../services/StudentService';
 import oracledb from 'oracledb';
 
 class TurmaController {
@@ -48,6 +49,18 @@ class TurmaController {
       const { id } = req.params;
       const turma = await TurmaService.getTurmaDetailById(connection, Number(id));
       return res.status(200).json(turma);
+    } catch (error: any) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
+  async addStudentToTurma(req: Request, res: Response) {
+    try {
+      const connection = this.getDbConnection(req);
+      const { id } = req.params;
+      const studentData = req.body;
+      const student = await StudentService.addStudentToTurma(connection, Number(id), studentData);
+      return res.status(201).json(student);
     } catch (error: any) {
       return res.status(500).json({ message: error.message });
     }

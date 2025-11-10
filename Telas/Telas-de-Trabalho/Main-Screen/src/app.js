@@ -325,7 +325,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 modals.addStudentModal.hide();
                 // Recarrega os detalhes da turma para mostrar o novo aluno
                 const turmaDetails = await ApiService.getTurmaDetail(turma.id);
-                renderTurmaDetailView(turmaDetails.turma, turmaDetails.disciplina);
+                currentTurmaContext.turma = turmaDetails.turma;
+                renderTurmaDetailView(currentTurmaContext.turma, currentTurmaContext.disciplina);
                 showToast(`Aluno "${studentName}" adicionado com sucesso!`, 'success');
             } catch (error) {
                 showToast(`Erro ao adicionar aluno: ${error.message}`, 'error');
