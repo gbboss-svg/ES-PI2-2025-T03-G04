@@ -137,7 +137,7 @@ signupForm.addEventListener('submit', async (e) => {
     
     // Se tudo estiver válido, envia para o servidor
     try {
-        const response = await fetch('http://localhost:3333/register', {
+        const response = await fetch('http://localhost:3333/api/auth/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

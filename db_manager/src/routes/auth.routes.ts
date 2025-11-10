@@ -11,4 +11,4 @@ router.post('/verify-email', (req, res) => AuthController.verifyEmail(req, res))
 router.post('/resend-verification', (req, res) => AuthController.resendVerificationEmail(req, res));
 router.post('/cancel-registration', (req, res) => AuthController.cancelRegistration(req, res));
 
-export { router };
+export default router;

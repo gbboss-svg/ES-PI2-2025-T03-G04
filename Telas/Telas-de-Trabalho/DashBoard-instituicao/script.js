@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchUsername() {
         try {
-            const response = await fetch('/professor/me', {
+            const response = await fetch('/api/professor/me', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Funções da Instituição ---
     async function populateInstitutions() {
         try {
-            const response = await fetch('/professor/instituicoes', {
+            const response = await fetch('/api/professor/instituicoes', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -80,14 +80,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addInstitutionToDatalist(institution) {
         const option = document.createElement('option');
-        option.value = institution.nome; // Assumindo que a API retorna objetos com 'nome'
+        option.value = institution.name; // Assumindo que a API retorna objetos com 'name'
         elements.institutionsList.appendChild(option);
     }
 
     // --- Novas Funções de Curso ---
     async function populateCourses() {
         try {
-            const response = await fetch('/professor/cursos', {
+            const response = await fetch('/api/professor/cursos', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addCourseToDatalist(course) {
         const option = document.createElement('option');
-        option.value = course.nome; // Assumindo que a API retorna objetos com 'nome'
+        option.value = course.name; // Assumindo que a API retorna objetos com 'name'
         elements.coursesList.appendChild(option);
     }
 
@@ -129,8 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Obtém os IDs da instituição e curso selecionados
-        const selectedInstitution = state.institutions.find(inst => inst.nome === selectedInstitutionName);
-        const selectedCourseObj = state.courses.find(course => course.nome === selectedCourseName);
+        const selectedInstitution = state.institutions.find(inst => inst.name === selectedInstitutionName);
+        const selectedCourseObj = state.courses.find(course => course.name === selectedCourseName);
 
         if (!selectedInstitution || !selectedCourseObj) {
             alert('Instituição ou curso selecionado inválido.');
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function handleConfirmAssociate(institutionId, courseId) {
         try {
-            const response = await fetch('/professor/associar', {
+            const response = await fetch('/api/professor/associar', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const newInstitutionName = elements.newInstitutionInput.value.trim();
         if (newInstitutionName) {
             try {
-                const response = await fetch('/professor/instituicoes', {
+                const response = await fetch('/api/professor/instituicoes', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    const newInstitution = { id: data.id, nome: newInstitutionName };
+                    const newInstitution = { id: data.id, name: newInstitutionName };
                     state.institutions.push(newInstitution);
                     addInstitutionToDatalist(newInstitution);
                     elements.institutionInput.value = newInstitutionName;
@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const newCourseSigla = document.getElementById('new-course-sigla').value.trim();
         const newCourseSemestres = parseInt(document.getElementById('new-course-semestres').value, 10);
         const selectedInstitutionName = elements.institutionInput.value.trim();
-        const selectedInstitution = state.institutions.find(inst => inst.nome === selectedInstitutionName);
+        const selectedInstitution = state.institutions.find(inst => inst.name === selectedInstitutionName);
 
         if (!newCourseName) {
             alert('Por favor, digite o nome do curso.');
@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         try {
-            const response = await fetch('/professor/cursos', {
+            const response = await fetch('/api/professor/cursos', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const data = await response.json();
             if (response.ok) {
-                const newCourse = { id: data.id, nome: newCourseName };
+                const newCourse = { id: data.id, name: newCourseName };
                 state.courses.push(newCourse);
                 addCourseToDatalist(newCourse);
                 elements.courseInput.value = newCourseName;

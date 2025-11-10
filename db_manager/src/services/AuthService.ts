@@ -293,6 +293,27 @@ class AuthService {
       throw error;
     }
   }
+
+  async verifyPassword(connection: oracledb.Connection, professorId: number, senha: string) {
+    try {
+      const result = await connection.execute(
+        `SELECT Senha FROM professores WHERE Id_Professor = :id`,
+        [professorId],
+        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+
+      const rows = result.rows as any[];
+      if (!rows || rows.length === 0) {
+        throw new Error('Usuário não encontrado.');
+      }
+
+      const user = rows[0];
+      return await bcrypt.compare(senha, user.SENHA);
+    } catch (error: any) {
+      console.error('Erro na verificação de senha:', error);
+      throw error;
+    }
+  }
 }
 
 export default new AuthService();

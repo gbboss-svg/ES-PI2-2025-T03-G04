@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Chegou em Email, CPF ou Telefone válido
         try {
             successMessage.textContent = 'Enviando código de verificação...';
-            const response = await fetch('http://localhost:3333/forgot-password', {
+            const response = await fetch('http://localhost:3333/api/auth/forgot-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ identifier })

@@ -1,4 +1,5 @@
-import { MOCK_DATA } from '../services/DataService.js';
+import * as ApiService from '../services/ApiService.js';
+import { showToast } from '../services/NotificationService.js';
 
 // Callback para ser chamado após a criação bem-sucedida
 let onTurmaCreatedCallback;
@@ -36,18 +37,6 @@ export function renderCreationView(container) {
                         <label for="discipline-select" class="form-label fw-bold">3. Disciplina</label>
                         <select id="discipline-select" class="form-select" disabled></select>
                     </div>
-                    
-                    <div id="new-discipline-fields" class="border p-3 rounded mb-3 bg-light">
-                        <h6 class="text-dark">Criar Nova Disciplina</h6>
-                        <div class="mb-2">
-                            <label for="new-discipline-name" class="form-label text-dark">Nome da Disciplina</label>
-                            <input type="text" id="new-discipline-name" class="form-control">
-                        </div>
-                        <div class="mb-2">
-                            <label for="new-discipline-code" class="form-label text-dark">Código da Disciplina (Ex: ES-PI2)</label>
-                            <input type="text" id="new-discipline-code" class="form-control">
-                        </div>
-                    </div>
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">4. Detalhes da Turma</label>
@@ -81,101 +70,75 @@ export function renderCreationView(container) {
     const instSelect = container.querySelector('#institution-select');
     const courseSelect = container.querySelector('#course-select');
     const discSelect = container.querySelector('#discipline-select');
-    const newDiscFields = container.querySelector('#new-discipline-fields');
 
-    instSelect.innerHTML = MOCK_DATA.institutions.map(inst => `<option value="${inst.id}">${inst.name}</option>`).join('');
-
-    function updateCourseSelect(instId) {
-        const institution = MOCK_DATA.institutions.find(i => i.id == instId);
-        courseSelect.innerHTML = '';
-        discSelect.innerHTML = '';
-        discSelect.disabled = true;
-        
-        if (institution && institution.courses.length > 0) {
-            courseSelect.innerHTML = institution.courses.map(course => `<option value="${course.name}">${course.name}</option>`).join('');
-            courseSelect.disabled = false;
-            updateDisciplineSelect(instId, courseSelect.value);
-        } else {
-            courseSelect.innerHTML = '<option disabled selected>Nenhum curso cadastrado</option>';
-            courseSelect.disabled = true;
+    async function loadInstitutions() {
+        try {
+            const institutions = await ApiService.getInstitutions();
+            instSelect.innerHTML = institutions.map(inst => `<option value="${inst.id}">${inst.name}</option>`).join('');
+            if (institutions.length > 0) {
+                loadCourses(instSelect.value);
+            }
+        } catch (error) {
+            showToast(`Erro ao carregar instituições: ${error.message}`, 'error');
         }
     }
 
-    function updateDisciplineSelect(instId, courseName) {
-        const institution = MOCK_DATA.institutions.find(i => i.id == instId);
-        discSelect.innerHTML = '';
-        newDiscFields.classList.remove('expanded'); // Garante que o campo esteja oculto por padrão
-        if (institution) {
-            const filteredDisciplines = institution.disciplines.filter(d => d.curso === courseName);
+    async function loadCourses(instId) {
+        try {
+            const allCourses = await ApiService.getCourses();
+            const filteredCourses = allCourses.filter(course => course.institutionId == instId);
             
-            if (filteredDisciplines.length > 0) {
-                discSelect.innerHTML = filteredDisciplines.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
-                discSelect.innerHTML += '<option value="new">--- Criar nova disciplina ---</option>';
-                discSelect.value = filteredDisciplines[0].id; // Seleciona a primeira por padrão
-                newDiscFields.classList.remove('expanded');
+            courseSelect.innerHTML = filteredCourses.map(course => `<option value="${course.id}">${course.name}</option>`).join('');
+            courseSelect.disabled = false;
+            
+            if (filteredCourses.length > 0) {
+                loadDisciplines(courseSelect.value);
             } else {
-                // Se não houver disciplinas, força a criação de uma nova
-                discSelect.innerHTML = '<option value="new" selected>--- Criar nova disciplina ---</option>';
-                newDiscFields.classList.add('expanded');
+                discSelect.innerHTML = '<option>Nenhum curso encontrado</option>';
+                discSelect.disabled = true;
             }
+        } catch (error) {
+            showToast(`Erro ao carregar cursos: ${error.message}`, 'error');
+        }
+    }
+
+    async function loadDisciplines(courseId) {
+        try {
+            const disciplines = await ApiService.getDisciplinesByCourse(courseId);
+            discSelect.innerHTML = disciplines.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
             discSelect.disabled = false;
-        } else {
-            discSelect.disabled = true;
+        } catch (error) {
+            showToast(`Erro ao carregar disciplinas: ${error.message}`, 'error');
         }
     }
-    
-    instSelect.addEventListener('change', () => updateCourseSelect(instSelect.value));
-    courseSelect.addEventListener('change', () => updateDisciplineSelect(instSelect.value, courseSelect.value));
-    discSelect.addEventListener('change', () => {
-        if (discSelect.value === 'new') {
-            newDiscFields.classList.add('expanded');
-        } else {
-            newDiscFields.classList.remove('expanded');
-        }
-    });
 
-    creationForm.addEventListener('submit', (e) => {
+    instSelect.addEventListener('change', () => loadCourses(instSelect.value));
+    courseSelect.addEventListener('change', () => loadDisciplines(courseSelect.value));
+
+    creationForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const selectedInstId = instSelect.value;
-        const selectedCourseName = courseSelect.value;
-        const institution = MOCK_DATA.institutions.find(i => i.id == selectedInstId);
-        let discipline;
-
-        if (discSelect.value === 'new') {
-            if (!selectedCourseName) {
-                alert('Por favor, selecione um curso antes de criar uma nova disciplina.'); return;
-            }
-            const newDisciplineName = document.getElementById('new-discipline-name').value;
-            const newDisciplineCode = document.getElementById('new-discipline-code').value;
-            if (!newDisciplineName || !newDisciplineCode) { 
-                alert('Preencha o nome e o código da nova disciplina.'); return; 
-            }
-            discipline = {
-                id: Date.now(), name: newDisciplineName, code: newDisciplineCode, curso: selectedCourseName,
-                period: document.getElementById('new-turma-semestre').value,
-                maxGrade: 10, gradeComponents: [], finalGradeFormula: '', hasAdjustedColumn: false, turmas: []
-            };
-            institution.disciplines.push(discipline);
-        } else {
-            discipline = institution.disciplines.find(d => d.id == discSelect.value);
-        }
-        
-        const newTurmaName = document.getElementById('new-turma-name').value;
-        if(!newTurmaName) { alert('O nome da turma é obrigatório.'); return; }
-        
         const newTurma = {
-             id: Date.now(), name: newTurmaName, code: newTurmaName.replace(/\s/g, '').toUpperCase(), students: [], isFinalized: false
+            nome: document.getElementById('new-turma-name').value,
+            idDisciplina: parseInt(discSelect.value),
+            semestre: document.getElementById('new-turma-semestre').value,
+            periodo: document.getElementById('new-turma-periodo').value,
         };
-        discipline.turmas.push(newTurma);
-        alert(`Turma "${newTurma.name}" criada com sucesso na disciplina "${discipline.name}"!`);
-        
-        // Chama o callback para notificar o app.js que a criação foi concluída
-        if (onTurmaCreatedCallback) {
-            onTurmaCreatedCallback(selectedInstId);
+
+        if (!newTurma.nome || !newTurma.idDisciplina) {
+            showToast('Por favor, preencha todos os campos.', 'error');
+            return;
+        }
+
+        try {
+            await ApiService.addTurma(newTurma);
+            showToast(`Turma "${newTurma.nome}" criada com sucesso!`, 'success');
+            if (onTurmaCreatedCallback) {
+                onTurmaCreatedCallback(instSelect.value);
+            }
+        } catch (error) {
+            showToast(`Erro ao criar turma: ${error.message}`, 'error');
         }
     });
-    
-    if (MOCK_DATA.institutions.length > 0) {
-        updateCourseSelect(instSelect.value);
-    }
+
+    loadInstitutions();
 }

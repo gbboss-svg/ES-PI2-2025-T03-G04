@@ -10,5 +10,6 @@ professorRouter.post('/instituicoes', authMiddleware, (req, res) => ProfessorCon
 professorRouter.post('/cursos', authMiddleware, (req, res) => ProfessorController.createCourse(req, res));
 professorRouter.post('/associar', authMiddleware, (req, res) => ProfessorController.associateProfessorToCourse(req, res));
 professorRouter.get('/me', authMiddleware, (req, res) => ProfessorController.getProfessorInfo(req, res));
+professorRouter.post('/verify-password', authMiddleware, (req, res) => ProfessorController.verifyPassword(req, res));
 
-export { professorRouter };
+export default professorRouter;

@@ -1,4 +1,4 @@
-import { MOCK_DATA } from '../services/DataService.js';
+import * as ApiService from '../services/ApiService.js';
 
 // Callbacks para serem gerenciados pelo app.js
 let switchViewCallback, renderTurmaDetailViewCallback;
@@ -15,63 +15,78 @@ export function initActiveTurmasView(callbacks) {
 /**
  * Renderiza a view de Turmas Ativas.
  * @param {HTMLElement} container - O elemento container onde a view será renderizada.
+ * @param {Array} turmas - A lista de turmas ativas para renderizar.
  */
-export function renderActiveTurmasView(container) {
+export function renderActiveTurmasView(container, turmas) {
+    let contentHTML;
+
+    if (!turmas) {
+        // Estado de carregamento ou inicial
+        contentHTML = `
+            <div class="d-flex justify-content-center mt-4">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+    } else if (turmas.length === 0) {
+        contentHTML = '<div class="alert alert-info mt-4">Você não possui turmas ativas no momento.</div>';
+    } else {
+
+        const turmasByInstitution = turmas.reduce((acc, turma) => {
+            const { institution } = turma;
+            if (!acc[institution.id]) {
+                acc[institution.id] = { name: institution.name, turmas: [] };
+            }
+            acc[institution.id].turmas.push(turma);
+            return acc;
+        }, {});
+
+        contentHTML = Object.values(turmasByInstitution).map(inst => `
+            <div class="mt-4">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-building fs-4 me-2"></i>
+                    <h3 class="mb-0">${inst.name}</h3>
+                </div>
+                <hr class="my-3">
+                <div class="row g-3">
+                    ${inst.turmas.map(turma => `
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title">${turma.discipline.name}</h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">${turma.course.name}</h6>
+                                    <h6 class="card-subtitle mb-2 text-muted">${turma.name}</h6>
+                                    <p class="card-text">Clique para gerenciar a turma.</p>
+                                </div>
+                                <div class="card-footer bg-transparent border-0 pb-3">
+                                     <button class="btn btn-sm btn-primary manage-turma-btn" data-turma-id='${JSON.stringify(turma)}'>Gerenciar Turma</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
     container.innerHTML = `
         <h1>Turmas Ativas</h1>
         <p class="lead text-muted">Acesso rápido a todas as suas turmas que ainda não foram finalizadas.</p>
+        <div id="turmas-container">${contentHTML}</div>
     `;
 
-    let hasActiveTurmas = false;
-
-    MOCK_DATA.institutions.forEach(inst => {
-        const activeTurmas = inst.disciplines.flatMap(disc => 
-            disc.turmas.filter(turma => !turma.isFinalized).map(turma => ({...turma, discipline: disc, instId: inst.id }))
-        );
-
-        if (activeTurmas.length > 0) {
-            hasActiveTurmas = true;
-            let institutionHTML = `
-                <div class="mt-4">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-building fs-4 me-2"></i>
-                        <h3 class="mb-0">${inst.name}</h3>
-                    </div>
-                    <hr class="my-3">
-                    <div class="row g-3">
-                        ${activeTurmas.map(turma => `
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card h-100 shadow-sm">
-                                    <div class="card-body">
-                                        <h5 class="card-title">${turma.discipline.name}</h5>
-                                        <h6 class="card-subtitle mb-2 text-muted">${turma.discipline.curso}</h6>
-                                        <h6 class="card-subtitle mb-2 text-muted">${turma.name}</h6>
-                                        <p class="card-text">${turma.students.length} aluno(s) cadastrado(s).</p>
-                                    </div>
-                                    <div class="card-footer bg-transparent border-0 pb-3">
-                                         <button class="btn btn-sm btn-primary manage-turma-btn" data-inst-id="${turma.instId}" data-disc-id="${turma.discipline.id}" data-turma-id="${turma.id}">Gerenciar Turma</button>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-            container.innerHTML += institutionHTML;
-        }
-    });
-
-    if (!hasActiveTurmas) {
-        container.innerHTML += '<div class="alert alert-info mt-4">Você não possui turmas ativas no momento.</div>';
-    }
-
     container.querySelectorAll('.manage-turma-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-           const inst = MOCK_DATA.institutions.find(i => i.id == btn.dataset.instId);
-           const disc = inst.disciplines.find(d => d.id == btn.dataset.discId);
-           const turma = disc.turmas.find(t => t.id == btn.dataset.turmaId);
-           renderTurmaDetailViewCallback(turma, disc);
-           switchViewCallback('turmaDetail');
+        btn.addEventListener('click', async () => {
+            const turmaData = JSON.parse(btn.dataset.turmaId);
+            try {
+                const turmaDetalhada = await ApiService.getTurmaDetail(turmaData.id);
+                // O callback agora só precisa da turma detalhada. O app.js encontrará a disciplina completa.
+                renderTurmaDetailViewCallback(turmaDetalhada);
+            } catch (error) {
+                console.error('Erro ao buscar detalhes da turma:', error);
+                // Tratar erro...
+            }
         });
     });
 }

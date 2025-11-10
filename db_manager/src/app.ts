@@ -2,8 +2,8 @@ import express, { Request, Response, NextFunction } from 'express';
 import 'express-async-errors';
 import cors from 'cors';
 import path from 'path';
-import { router } from './routes/auth.routes';
-import { professorRouter } from './routes/professor.routes';
+import authRoutes from './routes/auth.routes';
+import professorRoutes from './routes/professor.routes';
 import courseRoutes from './routes/course.routes';
 import disciplineRoutes from './routes/discipline.routes';
 import turmaRoutes from './routes/turma.routes';
@@ -14,11 +14,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(connectionMiddleware); // Use the connection middleware
-app.use(router);
-app.use('/professor', professorRouter);
-app.use(courseRoutes);
-app.use(disciplineRoutes);
-app.use(turmaRoutes);
+
+// --- Configuração de Rotas da API ---
+app.use('/api/auth', authRoutes);
+app.use('/api/professor', professorRoutes);
+app.use('/api', courseRoutes);
+app.use('/api', disciplineRoutes);
+app.use('/api', turmaRoutes);
 
 // --- Configuração de Rotas Estáticas ---
 

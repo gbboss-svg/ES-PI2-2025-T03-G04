@@ -416,6 +416,45 @@
         </div>
     </div>
 
+    <!-- Modal de Adicionar Disciplina -->
+    <div class="modal fade" id="addDisciplineModal" tabindex="-1" aria-labelledby="addDisciplineModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addDisciplineModalLabel">Adicionar Nova Disciplina</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-discipline-form">
+                        <div class="mb-3">
+                            <label for="new-discipline-name" class="form-label">Nome da Disciplina</label>
+                            <input type="text" class="form-control" id="new-discipline-name" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="new-discipline-sigla" class="form-label">Sigla</label>
+                                <input type="text" class="form-control" id="new-discipline-sigla" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="new-discipline-periodo" class="form-label">Período/Semestre</label>
+                                <input type="text" class="form-control" id="new-discipline-periodo" required>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirm-add-discipline-btn">Adicionar Disciplina</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <!-- Toasts will be appended here -->
+    </div>
+
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     

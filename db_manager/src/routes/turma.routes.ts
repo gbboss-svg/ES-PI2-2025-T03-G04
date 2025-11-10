@@ -1,16 +1,15 @@
 import { Router } from 'express';
-import TurmaService from '../services/TurmaService';
+import TurmaController from '../controllers/TurmaController';
 import { authMiddleware } from '../middlewares/auth';
 
 const router = Router();
 
-router.get('/disciplina/:id/turmas', authMiddleware, async (req, res) => {
-  try {
-    const turmas = await TurmaService.getTurmasByDiscipline(Number(req.params.id));
-    res.json(turmas);
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
-  }
-});
+router.get('/turmas/ativas', authMiddleware, (req, res) => TurmaController.getActiveTurmas(req, res));
+
+router.get('/disciplina/:id/turmas', authMiddleware, (req, res) => TurmaController.getTurmasByDiscipline(req, res));
+
+router.post('/turmas', authMiddleware, (req, res) => TurmaController.createTurma(req, res));
+
+router.get('/turmas/:id', authMiddleware, (req, res) => TurmaController.getTurmaDetail(req, res));
 
 export default router;

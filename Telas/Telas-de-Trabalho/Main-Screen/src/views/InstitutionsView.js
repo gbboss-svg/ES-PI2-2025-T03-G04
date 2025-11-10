@@ -1,29 +1,27 @@
-import { MOCK_DATA } from '../services/DataService.js';
+import * as ApiService from '../services/ApiService.js';
+import { showToast } from '../services/NotificationService.js';
 
 // Variáveis de modais e callbacks que serão gerenciadas pelo app.js
-let editTurmaModal, editDisciplineModal, deleteTurmaModal, deleteDisciplineModal;
-let switchViewCallback, renderTurmaDetailViewCallback;
+let modals = {};
+let callbacks = {};
 
 /**
  * Inicializa os modais e callbacks necessários para esta view.
  * @param {object} modals - Objeto com as instâncias dos modais.
- * @param {object} callbacks - Objeto com as funções de callback.
+ * @param {object} callbacksObj - Objeto com as funções de callback.
  */
-export function initInstitutionsView(modals, callbacks) {
-    editTurmaModal = modals.editTurmaModal;
-    editDisciplineModal = modals.editDisciplineModal;
-    deleteTurmaModal = modals.deleteTurmaModal;
-    deleteDisciplineModal = modals.deleteDisciplineModal;
-    switchViewCallback = callbacks.switchView;
-    renderTurmaDetailViewCallback = callbacks.renderTurmaDetailView;
+export function initInstitutionsView(modalsObj, callbacksObj) {
+    modals = modalsObj;
+    callbacks = callbacksObj;
 }
 
 /**
  * Renderiza a view de gerenciamento de Instituições.
  * @param {HTMLElement} container - O elemento container onde a view será renderizada.
+ * @param {Array} institutions - A lista de instituições do estado da aplicação.
  * @param {object} params - Parâmetros adicionais, como o ID da instituição a ser expandida.
  */
-export function renderInstitutionsView(container, params = {}) {
+export function renderInstitutionsView(container, institutions, params = {}) {
     container.innerHTML = `
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
@@ -35,63 +33,66 @@ export function renderInstitutionsView(container, params = {}) {
             </button>
         </div>
         <div class="accordion" id="institutions-accordion-container">
-            ${MOCK_DATA.institutions.map((inst, i) => `
+            ${institutions.map((inst, i) => `
                 <div class="accordion-item">
-                    <h2 class="accordion-header" id="heading-inst-${inst.id}">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-inst-${inst.id}" aria-expanded="false" aria-controls="collapse-inst-${inst.id}">
+                    <h2 class="accordion-header d-flex" id="heading-inst-${inst.id}">
+                        <button class="accordion-button collapsed flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-inst-${inst.id}" aria-expanded="false" aria-controls="collapse-inst-${inst.id}">
                             <i class="bi bi-building me-2"></i> ${inst.name}
                         </button>
+                        <div class="p-2">
+                            <button class="btn btn-sm btn-outline-danger delete-institution-btn" data-inst-id="${inst.id}" data-inst-name="${inst.name}">
+                                <i class="bi bi-trash" title="Excluir Instituição"></i>
+                            </button>
+                        </div>
                     </h2>
                     <div id="collapse-inst-${inst.id}" class="accordion-collapse collapse" aria-labelledby="heading-inst-${inst.id}" data-bs-parent="#institutions-accordion-container">
                         <div class="accordion-body">
-                           ${inst.disciplines.length > 0 ? inst.disciplines.map(disc => `
-                                <div class="card mb-2 shadow-sm">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <a class="text-decoration-none text-body flex-grow-1" data-bs-toggle="collapse" href="#collapse-disc-${disc.id}" role="button" aria-expanded="false" aria-controls="collapse-disc-${disc.id}">
-                                            <div>
-                                                <span class="fw-bold">${disc.name} (${disc.code})</span>
-                                                <br>
-                                                <small class="text-muted">${disc.curso}</small>
+                            <div class="accordion" id="courses-accordion-${inst.id}">
+                                ${inst.courses && inst.courses.length > 0 ? inst.courses.map(course => `
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="heading-course-${course.id}">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-course-${course.id}" aria-expanded="false" aria-controls="collapse-course-${course.id}">
+                                                <i class="bi bi-book me-2"></i> ${course.name}
+                                            </button>
+                                        </h2>
+                                        <div id="collapse-course-${course.id}" class="accordion-collapse collapse" aria-labelledby="heading-course-${course.id}" data-bs-parent="#courses-accordion-${inst.id}">
+                                            <div class="accordion-body">
+                                                ${course.disciplines && course.disciplines.length > 0 ? course.disciplines.map(disc => `
+                                                    <div class="card mb-2 shadow-sm">
+                                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                                            <a class="text-decoration-none text-body flex-grow-1" data-bs-toggle="collapse" href="#collapse-disc-${disc.id}" role="button" aria-expanded="false" aria-controls="collapse-disc-${disc.id}">
+                                                                <div>
+                                                                    <span class="fw-bold">${disc.name} (${disc.sigla})</span>
+                                                                    <br>
+                                                                    <small class="text-muted">Período: ${disc.periodo}</small>
+                                                                </div>
+                                                            </a>
+                                                            <div class="btn-group">
+                                                                <button class="btn btn-sm btn-outline-secondary edit-discipline-btn" data-inst-id="${inst.id}" data-course-id="${course.id}" data-disc-id="${disc.id}">
+                                                                    <i class="bi bi-pencil-square" title="Editar Disciplina"></i>
+                                                                </button>
+                                                                <button class="btn btn-sm btn-outline-danger delete-discipline-btn" data-inst-id="${inst.id}" data-course-id="${course.id}" data-disc-id="${disc.id}" data-disc-name="${disc.name}">
+                                                                    <i class="bi bi-trash" title="Excluir Disciplina"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="collapse" id="collapse-disc-${disc.id}">
+                                                            <ul class="list-group list-group-flush turmas-list-container">
+                                                                <li class="list-group-item text-muted">Clique para carregar as turmas.</li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                `).join('') : '<p>Nenhuma disciplina cadastrada para este curso.</p>'}
                                             </div>
-                                        </a>
-                                        <div class="btn-group">
-                                             <button class="btn btn-sm btn-outline-secondary edit-discipline-btn" data-inst-id="${inst.id}" data-disc-id="${disc.id}">
-                                                <i class="bi bi-pencil-square" title="Editar Disciplina"></i>
-                                             </button>
-                                             <button class="btn btn-sm btn-outline-danger delete-discipline-btn" data-inst-id="${inst.id}" data-disc-id="${disc.id}" data-disc-name="${disc.name}">
-                                                <i class="bi bi-trash" title="Excluir Disciplina"></i>
-                                             </button>
                                         </div>
                                     </div>
-                                    <div class="collapse" id="collapse-disc-${disc.id}">
-                                        <ul class="list-group list-group-flush">
-                                            ${disc.turmas.map(turma => `
-                                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                    <span>
-                                                        ${turma.name}
-                                                        ${turma.isFinalized ? '<span class="badge bg-secondary ms-2">Finalizada</span>' : ''}
-                                                    </span>
-                                                    <div class="btn-group">
-                                                        <button class="btn btn-sm btn-outline-danger delete-turma-btn" data-inst-id="${inst.id}" data-disc-id="${disc.id}" data-turma-id="${turma.id}" data-turma-name="${turma.name}">
-                                                            <i class="bi bi-trash" title="Excluir Turma"></i>
-                                                        </button>
-                                                        <button class="btn btn-sm btn-outline-secondary edit-turma-btn" data-inst-id="${inst.id}" data-disc-id="${disc.id}" data-turma-id="${turma.id}">
-                                                            <i class="bi bi-pencil" title="Editar Turma e Disciplina"></i>
-                                                        </button>
-                                                        <button class="btn btn-sm btn-outline-primary view-turma-btn" data-inst-id="${inst.id}" data-disc-id="${disc.id}" data-turma-id="${turma.id}">
-                                                            Abrir Turma <i class="bi bi-arrow-right-short"></i>
-                                                        </button>
-                                                    </div>
-                                                </li>`).join('')}
-                                            ${disc.turmas.length === 0 ? '<li class="list-group-item text-muted">Nenhuma turma cadastrada.</li>' : ''}
-                                        </ul>
-                                    </div>
-                                </div>
-                           `).join('') : '<p>Nenhuma disciplina cadastrada.</p>'}
+                                `).join('') : '<p>Nenhum curso cadastrado para esta instituição.</p>'}
+                            </div>
                         </div>
                     </div>
                 </div>
             `).join('')}
+        </div>
         </div>
     `;
     
@@ -108,107 +109,98 @@ export function renderInstitutionsView(container, params = {}) {
 
     // Adiciona os event listeners
     container.querySelector('#add-new-from-management-btn').addEventListener('click', () => {
-        switchViewCallback('creation');
+        callbacks.switchView('creation');
+    });
+
+    container.querySelectorAll('.delete-institution-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Impede que o accordion abra/feche
+            const { instId, instName } = btn.dataset;
+            document.getElementById('institution-to-delete-name').textContent = instName;
+            const confirmBtn = document.getElementById('confirm-delete-institution-btn');
+            confirmBtn.dataset.instId = instId;
+            modals.deleteInstitutionModal.show();
+        });
     });
     
-    container.querySelectorAll('.view-turma-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-           const inst = MOCK_DATA.institutions.find(i => i.id == btn.dataset.instId);
-           const disc = inst.disciplines.find(d => d.id == btn.dataset.discId);
-           const turma = disc.turmas.find(t => t.id == btn.dataset.turmaId);
-           renderTurmaDetailViewCallback(turma, disc);
-           switchViewCallback('turmaDetail');
-        });
-    });
+    container.querySelectorAll('.collapse[id^="collapse-disc-"]').forEach(collapseEl => {
+        collapseEl.addEventListener('show.bs.collapse', async event => {
+            const disciplineId = event.target.id.replace('collapse-disc-', '');
+            const turmasListContainer = event.target.querySelector('.turmas-list-container');
 
-    container.querySelectorAll('.edit-turma-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-           const inst = MOCK_DATA.institutions.find(i => i.id == btn.dataset.instId);
-           const disc = inst.disciplines.find(d => d.id == btn.dataset.discId);
-           const turma = disc.turmas.find(t => t.id == btn.dataset.turmaId);
-           
-           document.getElementById('edit-turma-name').value = turma.name;
-           document.getElementById('edit-discipline-period').value = disc.period;
-           document.getElementById('edit-discipline-max-grade').value = disc.maxGrade || 10;
-           
-           const instSelect = document.getElementById('edit-turma-inst-select');
-           const cursoSelect = document.getElementById('edit-discipline-curso-select');
-           instSelect.innerHTML = MOCK_DATA.institutions.map(i => `<option value="${i.id}" ${i.id == inst.id ? 'selected' : ''}>${i.name}</option>`).join('');
+            if (turmasListContainer.dataset.loaded === 'true') {
+                return;
+            }
 
-           const updateCourseDropdownForTurmaEdit = (selectedInstId) => {
-               const selectedInst = MOCK_DATA.institutions.find(i => i.id == selectedInstId);
-               if (selectedInst) {
-                   cursoSelect.innerHTML = selectedInst.courses.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-                   if (selectedInstId == inst.id) {
-                       cursoSelect.value = disc.curso;
-                   }
-               }
-           };
-           instSelect.addEventListener('change', () => updateCourseDropdownForTurmaEdit(instSelect.value));
-           updateCourseDropdownForTurmaEdit(inst.id);
+            turmasListContainer.innerHTML = `<li class="list-group-item text-muted">Carregando...</li>`;
 
-           const confirmBtn = document.getElementById('confirm-edit-turma-btn');
-           confirmBtn.dataset.instId = inst.id;
-           confirmBtn.dataset.discId = disc.id;
-           confirmBtn.dataset.turmaId = turma.id;
-           
-           editTurmaModal.show();
-        });
-    });
+            try {
+                const turmas = await ApiService.getTurmas(disciplineId);
+                turmasListContainer.dataset.loaded = 'true';
 
-    container.querySelectorAll('.edit-discipline-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const { instId, discId } = btn.dataset;
-            const inst = MOCK_DATA.institutions.find(i => i.id == instId);
-            const disc = inst.disciplines.find(d => d.id == discId);
-
-            document.getElementById('edit-discipline-name').value = disc.name;
-            document.getElementById('edit-discipline-code').value = disc.code;
-            
-            const instSelect = document.getElementById('edit-discipline-inst-select');
-            const courseSelect = document.getElementById('edit-discipline-course-select-move');
-            
-            instSelect.innerHTML = MOCK_DATA.institutions.map(i => `<option value="${i.id}" ${i.id == instId ? 'selected' : ''}>${i.name}</option>`).join('');
-            
-            const updateCourseDropdownForDisciplineEdit = (selectedInstId) => {
-                const selectedInst = MOCK_DATA.institutions.find(i => i.id == selectedInstId);
-                courseSelect.innerHTML = selectedInst.courses.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-                if (selectedInstId == instId) {
-                    courseSelect.value = disc.curso;
+                if (turmas.length > 0) {
+                    turmasListContainer.innerHTML = turmas.map(turma => `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                                ${turma.name}
+                                ${turma.isFinalized ? '<span class="badge bg-secondary ms-2">Finalizada</span>' : ''}
+                            </span>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-danger delete-turma-btn" data-turma-id="${turma.id}" data-turma-name="${turma.name}">
+                                    <i class="bi bi-trash" title="Excluir Turma"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary edit-turma-btn" data-turma-id="${turma.id}">
+                                    <i class="bi bi-pencil" title="Editar Turma"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary view-turma-btn" data-turma-id='${JSON.stringify(turma)}'>
+                                    Abrir Turma <i class="bi bi-arrow-right-short"></i>
+                                </button>
+                            </div>
+                        </li>
+                    `).join('');
+                } else {
+                    turmasListContainer.innerHTML = '<li class="list-group-item text-muted">Nenhuma turma cadastrada.</li>';
                 }
-            };
-            
-            instSelect.addEventListener('change', () => updateCourseDropdownForDisciplineEdit(instSelect.value));
-            updateCourseDropdownForDisciplineEdit(instId);
 
-            const confirmBtn = document.getElementById('confirm-edit-discipline-btn');
-            confirmBtn.dataset.originalInstId = instId;
-            confirmBtn.dataset.discId = discId;
-            
-            editDisciplineModal.show();
+                // Reatribuir event listeners para os novos botões
+                turmasListContainer.querySelectorAll('.view-turma-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const turmaData = JSON.parse(btn.dataset.turmaId);
+                        callbacks.renderTurmaDetailView(turmaData, turmaData.discipline);
+                        callbacks.switchView('turmaDetail');
+                    });
+                });
+
+            } catch (error) {
+                showToast(`Erro ao carregar turmas: ${error.message}`, 'error');
+                turmasListContainer.innerHTML = `<li class="list-group-item text-danger">Falha ao carregar turmas.</li>`;
+            }
         });
     });
 
-    container.querySelectorAll('.delete-turma-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const { instId, discId, turmaId, turmaName } = btn.dataset;
-            document.getElementById('turma-to-delete-name').textContent = turmaName;
-            const confirmBtn = document.getElementById('confirm-delete-turma-btn');
-            confirmBtn.dataset.instId = instId;
-            confirmBtn.dataset.discId = discId;
-            confirmBtn.dataset.turmaId = turmaId;
-            deleteTurmaModal.show();
-        });
-    });
+    // Os event listeners para edit e delete de turmas/disciplinas precisam ser refatorados
+    // para buscar os dados via API ou usar o estado global passado por app.js
+    // Por enquanto, vamos focar na exclusão da instituição.
+    // TODO: Refatorar os listeners abaixo para usar a API.
+    // A lógica de edição e exclusão de disciplinas/turmas deve ser movida para app.js
+    // ou usar callbacks que acessem o estado real da aplicação (appState).
+    // Por enquanto, a dependência de MOCK_DATA será removida para evitar inconsistências.
 
-     container.querySelectorAll('.delete-discipline-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const { instId, discId, discName } = btn.dataset;
-            document.getElementById('discipline-to-delete-name').textContent = discName;
-            const confirmBtn = document.getElementById('confirm-delete-discipline-btn');
-            confirmBtn.dataset.instId = instId;
-            confirmBtn.dataset.discId = discId;
-            deleteDisciplineModal.show();
-        });
-    });
+    // container.querySelectorAll('.edit-discipline-btn').forEach(btn => {
+    //     btn.addEventListener('click', () => {
+    //         // Esta lógica precisa ser refatorada para usar appState.institutions
+    //     });
+    // });
+
+    // container.querySelectorAll('.delete-turma-btn').forEach(btn => {
+    //     btn.addEventListener('click', () => {
+    //         // Esta lógica precisa ser refatorada para usar appState.institutions
+    //     });
+    // });
+
+    //  container.querySelectorAll('.delete-discipline-btn').forEach(btn => {
+    //     btn.addEventListener('click', () => {
+    //         // Esta lógica precisa ser refatorada para usar appState.institutions
+    //     });
+    // });
 }
