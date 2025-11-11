@@ -45,7 +45,7 @@ app.use('/verificacao-codigo-registro', express.static(path.join(loginCadastroPa
 
 // Telas de Trabalho
 const trabalhoPath = path.join(basePath, 'Telas-de-Trabalho');
-app.use('/dashboard-instituicao', express.static(path.join(trabalhoPath, 'DashBoard-instituicao')));
+app.use('/dashboard-instituicao', express.static(path.join(trabalhoPath, 'Dashboard-instituição')));
 app.use('/main', express.static(path.join(trabalhoPath, 'Main-Screen')));
 
 
@@ -65,7 +65,7 @@ app.get('/verificar-codigo', (req, res) => res.sendFile(path.join(loginCadastroP
 app.get('/verificacao-codigo-registro', (req, res) => res.sendFile(path.join(loginCadastroPath, 'Tela-Verificação-Código-Para-Registro', 'tela.html')));
 
 // Servir HTML das telas de trabalho
-app.get('/dashboard-instituicao', (req, res) => res.sendFile(path.join(trabalhoPath, 'DashBoard-instituicao', 'tela-dashboard-instituicao.html')));
+app.get('/dashboard-instituicao', (req, res) => res.sendFile(path.join(trabalhoPath, 'Dashboard-instituição', 'tela-dashboard-instituicao.html')));
 app.get('/main', (req, res) => res.sendFile(path.join(trabalhoPath, 'Main-Screen', 'index.html')));
 
 // Middleware global de erros
