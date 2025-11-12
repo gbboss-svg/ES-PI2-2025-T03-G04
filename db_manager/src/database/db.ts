@@ -1,9 +1,11 @@
+
+
 import oracledb from "oracledb";
 
 const dbConfig = {
-  user: "GABRIEL",
-  password: "Gb122100189",
-  connectString: "localhost:1521/XEPDB1"
+  user: "BD040825126",
+  password: "Osmyk3",
+  connectString: "BD-ACD:1521/xe"
 };
 
 async function initialize() {
@@ -18,7 +20,8 @@ async function initialize() {
     console.log('Connection pool started');
   } catch (err) {
     console.error('Error creating connection pool:', err);
-    process.exit(1);
+    // FIX: Cast process to any to access exit method when types are not correctly loaded.
+    (process as any).exit(1);
   }
 }
 

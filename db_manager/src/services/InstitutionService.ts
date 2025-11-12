@@ -1,17 +1,23 @@
+
+
+
+
 import pool from "../database"
-import { auditLog } from "./AuditService"
+// FIX: Import the class, not a non-existent member.
+// FIX: Changed import to correct AuditService for postgresql
+import { AuditService } from "../sms/AuditService"
 
 export class InstitutionService {
   async getAllInstitutions(userId: number) {
     try {
       const result = await pool.query("SELECT * FROM institutions WHERE user_id = $1 ORDER BY name", [userId])
 
-      await auditLog({
+      // FIX: Use AuditService.log and correct property name to actionType.
+      await AuditService.log({
         userId,
-        action: "VIEW",
+        actionType: "VIEW",
         entityType: "Institution",
-        entityId: null,
-        details: { count: result.rows.length },
+        details: JSON.stringify({ count: result.rows.length }),
       })
 
       return result.rows
@@ -26,12 +32,13 @@ export class InstitutionService {
       const result = await pool.query("SELECT * FROM institutions WHERE id = $1 AND user_id = $2", [id, userId])
 
       if (result.rows.length > 0) {
-        await auditLog({
+        // FIX: Use AuditService.log and correct property name to actionType.
+        await AuditService.log({
           userId,
-          action: "VIEW",
+          actionType: "VIEW",
           entityType: "Institution",
           entityId: id,
-          details: result.rows[0],
+          details: JSON.stringify(result.rows[0]),
         })
       }
 
@@ -50,12 +57,13 @@ export class InstitutionService {
         [data.name, data.abbreviation, userId],
       )
 
-      await auditLog({
+      // FIX: Use AuditService.log and correct property name to actionType.
+      await AuditService.log({
         userId,
-        action: "CREATE",
+        actionType: "CREATE",
         entityType: "Institution",
         entityId: result.rows[0].id,
-        details: result.rows[0],
+        details: JSON.stringify(result.rows[0]),
       })
 
       return result.rows[0]
@@ -74,12 +82,13 @@ export class InstitutionService {
         [data.name, data.abbreviation, id, userId],
       )
 
-      await auditLog({
+      // FIX: Use AuditService.log and correct property name to actionType.
+      await AuditService.log({
         userId,
-        action: "UPDATE",
+        actionType: "UPDATE",
         entityType: "Institution",
         entityId: id,
-        details: result.rows[0],
+        details: JSON.stringify(result.rows[0]),
       })
 
       return result.rows[0]
@@ -93,12 +102,13 @@ export class InstitutionService {
     try {
       await pool.query("DELETE FROM institutions WHERE id = $1 AND user_id = $2", [id, userId])
 
-      await auditLog({
+      // FIX: Use AuditService.log and correct property name to actionType.
+      await AuditService.log({
         userId,
-        action: "DELETE",
+        actionType: "DELETE",
         entityType: "Institution",
         entityId: id,
-        details: { deleted: true },
+        details: JSON.stringify({ deleted: true }),
       })
 
       return { success: true }

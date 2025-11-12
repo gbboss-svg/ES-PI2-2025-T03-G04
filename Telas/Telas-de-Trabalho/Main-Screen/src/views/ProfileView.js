@@ -1,129 +1,16 @@
+
+import { renderCourseManagement, renderDisciplineManagement } from './Profile/managementSections.js';
 import * as ApiService from '../services/ApiService.js';
-
-// Estas variáveis serão inicializadas no app.js e passadas para as views.
-let deleteCourseModal;
-let addCourseModal;
-let deleteInstitutionModal;
-let addDisciplineModal;
-let deleteDisciplineModal;
-
-/**
- * Inicializa os modais que são usados nesta view.
- * @param {object} modals - Um objeto contendo as instâncias dos modais.
- */
-export function initProfileViewModals(modals) {
-    deleteCourseModal = modals.deleteCourseModal;
-    addCourseModal = modals.addCourseModal;
-    deleteInstitutionModal = modals.deleteInstitutionModal;
-    addDisciplineModal = modals.addDisciplineModal;
-    deleteDisciplineModal = modals.deleteDisciplineModal;
-}
-
-/**
- * Renderiza a seção de gerenciamento de cursos para uma instituição específica.
- * @param {number} instId - O ID da instituição.
- * @param {Array} institutions - A lista completa de instituições.
- */
-function renderCourseManagement(instId, institutions) {
-    const inst = institutions.find(i => i.id == instId);
-    const container = document.getElementById('course-management-section');
-    if (!inst || !container) return;
-
-    container.innerHTML = `
-        <ul class="list-group mt-3">
-            ${inst.courses.map(course => `
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    ${course.name}
-                    <button class="btn btn-sm btn-outline-danger delete-course-btn" data-inst-id="${inst.id}" data-course-name="${course.name}">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </li>
-            `).join('')}
-            ${inst.courses.length === 0 ? '<li class="list-group-item text-muted">Nenhum curso cadastrado para esta instituição.</li>' : ''}
-        </ul>
-        <div class="mt-2">
-            <a class="text-decoration-none small add-course-link" href="#" data-inst-id="${inst.id}">
-                <i class="bi bi-plus-circle me-1"></i> Adicionar novo curso a ${inst.name}
-            </a>
-        </div>
-    `;
-
-    container.querySelectorAll('.delete-course-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const { instId, courseName } = e.currentTarget.dataset;
-            document.getElementById('course-to-delete-name').textContent = `${courseName} (da instituição ${inst.name})`;
-            const confirmBtn = document.getElementById('confirm-delete-course-btn');
-            confirmBtn.dataset.instId = instId;
-            confirmBtn.dataset.courseName = courseName;
-            deleteCourseModal.show();
-        });
-    });
-
-    container.querySelector('.add-course-link').addEventListener('click', (e) => {
-        e.preventDefault();
-        const { instId } = e.currentTarget.dataset;
-        const instName = institutions.find(i => i.id == instId).name;
-        document.getElementById('addCourseModalLabel').textContent = `Adicionar Novo Curso a ${instName}`;
-        document.getElementById('confirm-add-course-btn').dataset.instId = instId;
-        addCourseModal.show();
-    });
-}
-
-async function renderDisciplineManagement(courseId, courseName) {
-    const container = document.getElementById('discipline-management-section');
-    if (!container) return;
-
-    const disciplines = await ApiService.getDisciplinesByCourse(courseId);
-
-    container.innerHTML = `
-        <ul class="list-group mt-3">
-            ${disciplines.map(discipline => `
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    ${discipline.name}
-                    <button class="btn btn-sm btn-outline-danger delete-discipline-btn" data-discipline-id="${discipline.id}" data-discipline-name="${discipline.name}">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </li>
-            `).join('')}
-            ${disciplines.length === 0 ? '<li class="list-group-item text-muted">Nenhuma disciplina cadastrada para este curso.</li>' : ''}
-        </ul>
-        <div class="mt-2">
-            <a class="text-decoration-none small add-discipline-link" href="#" data-course-id="${courseId}">
-                <i class="bi bi-plus-circle me-1"></i> Adicionar nova disciplina a ${courseName}
-            </a>
-        </div>
-    `;
-
-    container.querySelectorAll('.add-discipline-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const { courseId } = e.currentTarget.dataset;
-            document.getElementById('addDisciplineModalLabel').textContent = `Adicionar Nova Disciplina`;
-            document.getElementById('confirm-add-discipline-btn').dataset.courseId = courseId;
-            addDisciplineModal.show();
-        });
-    });
-
-    container.querySelectorAll('.delete-discipline-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const { disciplineId, disciplineName } = e.currentTarget.dataset;
-            document.getElementById('discipline-to-delete-name').textContent = disciplineName;
-            const confirmBtn = document.getElementById('confirm-delete-discipline-btn');
-            confirmBtn.dataset.disciplineId = disciplineId;
-            deleteDisciplineModal.show();
-        });
-    });
-}
+import { showToast } from '../services/NotificationService.js';
 
 /**
  * Renderiza o conteúdo da view de Perfil.
  * @param {HTMLElement} container - O elemento container onde a view será renderizada.
  * @param {object} user - O objeto do usuário com os dados do perfil.
  * @param {Array} institutions - A lista de instituições do usuário.
- * @param {number|null} previouslySelectedInstId - O ID da instituição previamente selecionada (para manter o estado).
+ * @param {object} modals - Um objeto contendo as instâncias dos modais.
  */
-export function renderProfileView(container, user, institutions, previouslySelectedInstId = null) {
-    // Adiciona uma verificação mais robusta para garantir que os dados do usuário foram carregados
+export function renderProfileView(container, user, institutions, modals) {
     if (!user || !user.name || !institutions) {
         container.innerHTML = `<p class="text-center">Carregando dados do perfil...</p>`;
         return;
@@ -160,10 +47,11 @@ export function renderProfileView(container, user, institutions, previouslySelec
         <div class="card mt-4">
             <div class="card-body">
                 <h5 class="card-title">Gerenciar Instituições</h5>
-                <label for="institution-select-profile" class="form-label">Selecione uma instituição para remover</label>
+                <label for="institution-select-profile" class="form-label">Selecione uma instituição para gerenciar</label>
                 <div class="input-group">
-                    <select id="institution-select-profile" class="form-select"></select>
-                    <button class="btn btn-outline-danger" type="button" id="delete-institution-btn"><i class="bi bi-trash"></i> Remover Selecionada</button>
+                    <select id="institution-select-profile" class="form-select">${institutions.map(inst => `<option value="${inst.id}">${inst.name}</option>`).join('')}</select>
+                    <button class="btn btn-outline-secondary" type="button" id="edit-institution-btn"><i class="bi bi-pencil-square"></i> Editar</button>
+                    <button class="btn btn-outline-danger" type="button" id="delete-institution-btn"><i class="bi bi-trash"></i> Remover</button>
                 </div>
                 <div class="mt-2">
                     <a class="text-decoration-none small" href="#" data-bs-toggle="modal" data-bs-target="#addInstitutionModal">
@@ -178,11 +66,9 @@ export function renderProfileView(container, user, institutions, previouslySelec
                 <h5 class="card-title">Gerenciar Cursos por Instituição</h5>
                 <div class="mb-3">
                     <label for="institution-course-mgmt-select" class="form-label">Selecione uma instituição para ver seus cursos</label>
-                    <select id="institution-course-mgmt-select" class="form-select"></select>
+                    <select id="institution-course-mgmt-select" class="form-select">${institutions.map(inst => `<option value="${inst.id}">${inst.name}</option>`).join('')}</select>
                 </div>
-                <div id="course-management-section">
-                    <!-- A lista de cursos e ferramentas de gerenciamento serão renderizadas aqui -->
-                </div>
+                <div id="course-management-section"></div>
             </div>
         </div>
 
@@ -193,82 +79,180 @@ export function renderProfileView(container, user, institutions, previouslySelec
                     <label for="course-discipline-mgmt-select" class="form-label">Selecione um curso para ver suas disciplinas</label>
                     <select id="course-discipline-mgmt-select" class="form-select"></select>
                 </div>
-                <div id="discipline-management-section">
-                    <!-- A lista de disciplinas e ferramentas de gerenciamento serão renderizadas aqui -->
-                </div>
+                <div id="discipline-management-section"></div>
             </div>
         </div>
     `;
     
-    const instProfileSelect = container.querySelector('#institution-select-profile');
-    instProfileSelect.innerHTML = institutions.map(inst => `<option value="${inst.id}">${inst.name}</option>`).join('');
-
+    // --- Get DOM Elements ---
     const instCourseSelect = container.querySelector('#institution-course-mgmt-select');
-    instCourseSelect.innerHTML = institutions.map(inst => `<option value="${inst.id}">${inst.name}</option>`).join('');
-    
-    instCourseSelect.addEventListener('change', (e) => {
-        renderCourseManagement(e.target.value, institutions);
-    });
-    
-    container.querySelector('#delete-institution-btn').addEventListener('click', () => {
-        const selectedId = instProfileSelect.value;
-        const inst = institutions.find(i => i.id == selectedId);
-        if (!inst) {
-            alert('Por favor, selecione uma instituição válida para excluir.');
-            return;
-        }
-        document.getElementById('institution-to-delete-name').textContent = inst.name;
-        document.getElementById('confirm-delete-institution-btn').dataset.id = inst.id;
-        deleteInstitutionModal.show();
-    });
-
-    if (previouslySelectedInstId) {
-        instCourseSelect.value = previouslySelectedInstId;
-    }
-
-    if (institutions.length > 0) {
-        renderCourseManagement(instCourseSelect.value, institutions);
-    }
-
+    const courseMgmtContainer = container.querySelector('#course-management-section');
     const courseDisciplineSelect = container.querySelector('#course-discipline-mgmt-select');
-    const allCourses = institutions.flatMap(inst => inst.courses);
-    courseDisciplineSelect.innerHTML = allCourses.map(course => `<option value="${course.id}">${course.name}</option>`).join('');
-
-    courseDisciplineSelect.addEventListener('change', (e) => {
-        const selectedOption = e.target.options[e.target.selectedIndex];
-        renderDisciplineManagement(e.target.value, selectedOption.text);
-    });
-
-    if (allCourses.length > 0) {
-        const selectedOption = courseDisciplineSelect.options[courseDisciplineSelect.selectedIndex];
-        renderDisciplineManagement(courseDisciplineSelect.value, selectedOption.text);
-    } else {
-        const disciplineContainer = container.querySelector('#discipline-management-section');
-        if (disciplineContainer) {
-            disciplineContainer.innerHTML = `<p class="text-muted mt-3">Você precisa criar um curso antes de poder adicionar disciplinas.</p>`;
-        }
-    }
-
-    // Lógica para o upload da foto de perfil
+    const disciplineMgmtContainer = container.querySelector('#discipline-management-section');
     const photoContainer = container.querySelector('.profile-photo-container');
     const photoUploadInput = container.querySelector('#photo-upload-input');
+    const instProfileSelect = container.querySelector('#institution-select-profile');
+    const editInstitutionBtn = container.querySelector('#edit-institution-btn');
+    const deleteInstitutionBtn = container.querySelector('#delete-institution-btn');
+    const confirmAddInstBtn = document.getElementById('confirm-add-institution-btn');
+    const confirmAddCourseBtn = document.getElementById('confirm-add-course-btn');
+    const confirmAddDisciplineBtn = document.getElementById('confirm-add-discipline-btn');
 
-    photoContainer.addEventListener('click', () => {
-        photoUploadInput.click();
-    });
 
-    photoUploadInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file && file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const base64Image = e.target.result;
-                // Salva a imagem no localStorage usando o CPF como parte da chave
-                localStorage.setItem(`profile_photo_${user.cpf}`, base64Image);
-                // Atualiza a imagem na tela
-                document.getElementById('profile-photo-img').src = base64Image;
-            };
-            reader.readAsDataURL(file);
+    // --- Attach Event Listeners ---
+
+    // Photo Upload
+    if (photoContainer && photoUploadInput) {
+        photoContainer.addEventListener('click', () => photoUploadInput.click());
+        photoUploadInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    localStorage.setItem(`profile_photo_${user.cpf}`, e.target.result);
+                    document.getElementById('profile-photo-img').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // Edit Institution
+    if (editInstitutionBtn && instProfileSelect) {
+        editInstitutionBtn.addEventListener('click', () => {
+            const selectedId = instProfileSelect.value;
+            const inst = institutions.find(i => i.id == selectedId);
+            if (!inst) return;
+            document.getElementById('edit-institution-name').value = inst.name;
+            document.getElementById('confirm-edit-institution-btn').dataset.instId = inst.id;
+            modals.editInstitutionModal.show();
+        });
+    }
+
+    // Delete Institution
+    if (deleteInstitutionBtn && instProfileSelect) {
+        deleteInstitutionBtn.addEventListener('click', () => {
+            const selectedId = instProfileSelect.value;
+            const inst = institutions.find(i => i.id == selectedId);
+            if (!inst) return;
+            document.getElementById('institution-to-delete-name').textContent = inst.name;
+            document.getElementById('confirm-delete-institution-btn').dataset.instId = inst.id;
+            modals.deleteInstitutionModal.show();
+        });
+    }
+
+    // Add Institution Modal Logic
+    if (confirmAddInstBtn) {
+        confirmAddInstBtn.addEventListener('click', async () => {
+            const name = document.getElementById('new-institution-name').value;
+            const password = document.getElementById('current-password-inst').value;
+            if (!name || !password) {
+                showToast('Preencha o nome da instituição e sua senha.', 'error');
+                return;
+            }
+            try {
+                await ApiService.addInstitution({ nome: name, password: password });
+                showToast(`Instituição "${name}" criada com sucesso! Atualizando...`, 'success');
+                modals.addInstitutionModal.hide();
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                showToast(`Erro: ${error.message}`, 'error');
+            }
+        });
+    }
+
+    // Add Course Modal Logic
+    if (confirmAddCourseBtn) {
+        confirmAddCourseBtn.addEventListener('click', async () => {
+            const instId = confirmAddCourseBtn.dataset.instId;
+            const name = document.getElementById('new-course-name').value;
+            const sigla = document.getElementById('new-course-sigla-main').value;
+            const semestres = document.getElementById('new-course-semestres-main').value;
+            const password = document.getElementById('current-password-course').value;
+
+            if (!name || !sigla || !semestres || !password) {
+                showToast('Preencha todos os campos e a senha.', 'error');
+                return;
+            }
+
+            try {
+                await ApiService.addCourse({ 
+                    nome: name, 
+                    sigla: sigla,
+                    semestres: parseInt(semestres),
+                    idInstituicao: parseInt(instId), 
+                    password: password 
+                });
+                showToast(`Curso "${name}" criado com sucesso! Atualizando...`, 'success');
+                modals.addCourseModal.hide();
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                showToast(`Erro: ${error.message}`, 'error');
+            }
+        });
+    }
+    
+    // Add Discipline Modal Logic
+    if (confirmAddDisciplineBtn) {
+        confirmAddDisciplineBtn.addEventListener('click', async () => {
+            const courseId = confirmAddDisciplineBtn.dataset.courseId;
+            const name = document.getElementById('new-discipline-name').value;
+            const sigla = document.getElementById('new-discipline-sigla').value;
+            const periodo = document.getElementById('new-discipline-periodo').value;
+            const password = document.getElementById('current-password-disc').value;
+
+            if (!name || !sigla || !periodo || !password) {
+                showToast('Preencha todos os campos e a senha.', 'error');
+                return;
+            }
+
+            try {
+                await ApiService.addDiscipline({
+                    nome: name,
+                    sigla: sigla,
+                    periodo: periodo,
+                    idCurso: parseInt(courseId),
+                    password: password
+                });
+                showToast(`Disciplina "${name}" criada com sucesso! Atualizando...`, 'success');
+                modals.addDisciplineModal.hide();
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                showToast(`Erro: ${error.message}`, 'error');
+            }
+        });
+    }
+
+    const allCourses = institutions.flatMap(inst => inst.courses || []);
+
+    // Course Management
+    function updateCourseDisciplineSelect() {
+        courseDisciplineSelect.innerHTML = allCourses.map(course => `<option value="${course.id}">${course.name}</option>`).join('');
+        if (allCourses.length > 0) {
+            const selectedOption = courseDisciplineSelect.options[courseDisciplineSelect.selectedIndex];
+            renderDisciplineManagement(courseDisciplineSelect.value, selectedOption.text, disciplineMgmtContainer, modals, allCourses);
+        } else {
+            disciplineMgmtContainer.innerHTML = `<p class="text-muted mt-3">Nenhum curso disponível.</p>`;
         }
-    });
+    }
+
+    if (instCourseSelect) {
+        instCourseSelect.addEventListener('change', (e) => {
+            renderCourseManagement(e.target.value, institutions, courseMgmtContainer, modals);
+        });
+    }
+
+    // Discipline Management
+    if (courseDisciplineSelect) {
+        courseDisciplineSelect.addEventListener('change', (e) => {
+            const selectedOption = e.target.options[e.target.selectedIndex];
+            renderDisciplineManagement(e.target.value, selectedOption.text, disciplineMgmtContainer, modals, allCourses);
+        });
+    }
+    
+    // --- Initial Render ---
+    if (institutions.length > 0 && instCourseSelect.value) {
+        renderCourseManagement(instCourseSelect.value, institutions, courseMgmtContainer, modals);
+    }
+    updateCourseDisciplineSelect();
 }

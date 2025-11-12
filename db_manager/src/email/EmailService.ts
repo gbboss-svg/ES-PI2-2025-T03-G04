@@ -1,4 +1,8 @@
-import sgMail = require('@sendgrid/mail');
+
+
+
+// FIX: Changed require to import for ES Module compatibility.
+import sgMail from '@sendgrid/mail';
 
 class EmailService {
   constructor() {

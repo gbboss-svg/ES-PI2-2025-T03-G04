@@ -1,17 +1,23 @@
-import { Router } from "express"
-import pool from "../database"
-import { AuditService } from "../services/AuditService"
 
-const router = Router()
+
+
+
+
+
+import express, { Request, Response } from "express"
+import pool from "../database"
+import { AuditService } from "../sms/AuditService"
+
+const router = express.Router()
 
 // GET all disciplines
-router.get("/", async (req, res) => {
+router.get("/", async (req: Request, res: Response) => {
   try {
     const userId = req.headers["x-user-id"] as string
     const result = await pool.query("SELECT * FROM disciplines ORDER BY name")
 
     if (userId) {
-      await AuditService.log(Number.parseInt(userId), "VIEW", "disciplines", null, "Visualizou lista de disciplinas")
+      await AuditService.log({ userId: Number.parseInt(userId), actionType: "VIEW", entityType: "disciplines", details: "Visualizou lista de disciplinas" })
     }
 
     res.json(result.rows)
@@ -22,7 +28,7 @@ router.get("/", async (req, res) => {
 })
 
 // GET discipline by ID
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const userId = req.headers["x-user-id"] as string
@@ -34,13 +40,13 @@ router.get("/:id", async (req, res) => {
     }
 
     if (userId) {
-      await AuditService.log(
-        Number.parseInt(userId),
-        "VIEW",
-        "disciplines",
-        Number.parseInt(id),
-        `Visualizou disciplina: ${result.rows[0].name}`,
-      )
+      await AuditService.log({
+        userId: Number.parseInt(userId),
+        actionType: "VIEW",
+        entityType: "disciplines",
+        entityId: Number.parseInt(id),
+        details: `Visualizou disciplina: ${result.rows[0].name}`,
+      })
     }
 
     res.json(result.rows[0])
@@ -51,7 +57,7 @@ router.get("/:id", async (req, res) => {
 })
 
 // GET disciplines by turma
-router.get("/turma/:turmaId", async (req, res) => {
+router.get("/turma/:turmaId", async (req: Request, res: Response) => {
   try {
     const { turmaId } = req.params
     const userId = req.headers["x-user-id"] as string
@@ -68,13 +74,12 @@ router.get("/turma/:turmaId", async (req, res) => {
     )
 
     if (userId) {
-      await AuditService.log(
-        Number.parseInt(userId),
-        "VIEW",
-        "disciplines",
-        null,
-        `Visualizou disciplinas da turma ${turmaId}`,
-      )
+      await AuditService.log({
+        userId: Number.parseInt(userId),
+        actionType: "VIEW",
+        entityType: "disciplines",
+        details: `Visualizou disciplinas da turma ${turmaId}`,
+      })
     }
 
     res.json(result.rows)
@@ -85,7 +90,7 @@ router.get("/turma/:turmaId", async (req, res) => {
 })
 
 // POST create discipline
-router.post("/", async (req, res) => {
+router.post("/", async (req: Request, res: Response) => {
   try {
     const { name, code } = req.body
     const userId = req.headers["x-user-id"] as string
@@ -93,13 +98,13 @@ router.post("/", async (req, res) => {
     const result = await pool.query("INSERT INTO disciplines (name, code) VALUES ($1, $2) RETURNING *", [name, code])
 
     if (userId) {
-      await AuditService.log(
-        Number.parseInt(userId),
-        "CREATE",
-        "disciplines",
-        result.rows[0].id,
-        `Criou disciplina: ${name}`,
-      )
+      await AuditService.log({
+        userId: Number.parseInt(userId),
+        actionType: "CREATE",
+        entityType: "disciplines",
+        entityId: result.rows[0].id,
+        details: `Criou disciplina: ${name}`,
+      })
     }
 
     res.status(201).json(result.rows[0])
@@ -110,7 +115,7 @@ router.post("/", async (req, res) => {
 })
 
 // PUT update discipline
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const { name, code } = req.body
@@ -127,13 +132,13 @@ router.put("/:id", async (req, res) => {
     }
 
     if (userId) {
-      await AuditService.log(
-        Number.parseInt(userId),
-        "UPDATE",
-        "disciplines",
-        Number.parseInt(id),
-        `Atualizou disciplina: ${name}`,
-      )
+      await AuditService.log({
+        userId: Number.parseInt(userId),
+        actionType: "UPDATE",
+        entityType: "disciplines",
+        entityId: Number.parseInt(id),
+        details: `Atualizou disciplina: ${name}`,
+      })
     }
 
     res.json(result.rows[0])
@@ -144,7 +149,7 @@ router.put("/:id", async (req, res) => {
 })
 
 // DELETE discipline
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const userId = req.headers["x-user-id"] as string
@@ -157,13 +162,13 @@ router.delete("/:id", async (req, res) => {
     }
 
     if (userId && discipline.rows.length > 0) {
-      await AuditService.log(
-        Number.parseInt(userId),
-        "DELETE",
-        "disciplines",
-        Number.parseInt(id),
-        `Deletou disciplina: ${discipline.rows[0].name}`,
-      )
+      await AuditService.log({
+        userId: Number.parseInt(userId),
+        actionType: "DELETE",
+        entityType: "disciplines",
+        entityId: Number.parseInt(id),
+        details: `Deletou disciplina: ${discipline.rows[0].name}`,
+      })
     }
 
     res.json({ message: "Discipline deleted successfully" })

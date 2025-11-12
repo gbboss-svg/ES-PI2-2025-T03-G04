@@ -1,4 +1,8 @@
-const twilio = require('twilio');
+
+
+
+// FIX: Changed require to import for ES Module compatibility.
+import twilio from 'twilio';
 
 class SmsService {
   private client;

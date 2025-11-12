@@ -1,3 +1,9 @@
+
+
+
+
+
+
 import { Request, Response, NextFunction } from 'express';
 import { getConnection } from '../database/db';
 import oracledb from 'oracledb';
@@ -7,6 +13,7 @@ declare global {
   namespace Express {
     export interface Request {
       dbConnection?: oracledb.Connection;
+      user?: { id: number; iat: number; exp: number };
     }
   }
 }

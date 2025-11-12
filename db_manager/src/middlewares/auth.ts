@@ -1,3 +1,9 @@
+
+
+
+
+
+
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
@@ -29,7 +35,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
       return res.status(401).json({ message: 'Token inválido' });
     }
 
-    (req as any).user = decoded;
+    req.user = decoded as any;
     return next();
   });
 }

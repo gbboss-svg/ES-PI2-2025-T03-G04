@@ -1,7 +1,14 @@
+
+
+
+
+
+
 import { Request, Response } from 'express';
 import AuthService from '../services/AuthService';
 import ProfessorService from '../services/ProfessorService';
 import oracledb from 'oracledb';
+import { Buffer } from 'buffer';
 
 class AuthController {
   private getDbConnection(req: Request): oracledb.Connection {

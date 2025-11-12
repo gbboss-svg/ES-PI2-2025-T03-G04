@@ -1,3 +1,4 @@
+
 import oracledb from 'oracledb';
 
 export default class ProfessorService {
@@ -22,31 +23,46 @@ export default class ProfessorService {
 
   static async getInstituicoes(connection: oracledb.Connection, professorId: number) {
     try {
-      console.log(`[getInstituicoes] Buscando instituições para o professor ID: ${professorId}`);
-      
       const result = await connection.execute(
-        `SELECT Id_Instituicao, Nome
-         FROM Instituicao
-         WHERE Id_Professor = :id`,
-        [professorId],
+        `SELECT
+            i.Id_Instituicao,
+            i.Nome,
+            MAX(pc.ULTIMO_ACESSO) as LastAccess
+        FROM Instituicao i
+        LEFT JOIN Curso c ON i.Id_Instituicao = c.Id_Instituicao
+        LEFT JOIN Professor_Curso pc ON c.Id_Curso = pc.Id_Curso AND pc.Id_Professor = :id
+        WHERE
+            i.Id_Professor = :id OR
+            i.Id_Instituicao IN (
+                -- Instituições via associação com Curso
+                SELECT c_sub.Id_Instituicao
+                FROM Curso c_sub
+                JOIN Professor_Curso pc_sub ON c_sub.Id_Curso = pc_sub.Id_Curso
+                WHERE pc_sub.Id_Professor = :id
+                UNION
+                -- Instituições via associação com Disciplina
+                SELECT c2.Id_Instituicao
+                FROM Disciplina d
+                JOIN Professor_Disciplina pd ON d.Id_Disciplina = pd.Id_Disciplina
+                JOIN Curso c2 ON d.Id_Curso = c2.Id_Curso
+                WHERE pd.Id_Professor = :id
+            )
+        GROUP BY i.Id_Instituicao, i.Nome
+        ORDER BY LastAccess DESC NULLS LAST`,
+        { id: professorId },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
 
-      console.log('[getInstituicoes] Resultado bruto da consulta:', result.rows);
-
       if (!result.rows) {
-        console.log('[getInstituicoes] Nenhuma instituição encontrada.');
         return [];
       }
 
-      // Mapeia as chaves para camelCase para padronizar com o frontend
       const mappedResult = (result.rows as any[]).map(row => ({
         id: row.ID_INSTITUICAO,
         name: row.NOME,
-        courses: [] // Adiciona um array vazio para cursos, esperado pela view
+        courses: [] 
       }));
 
-      console.log('[getInstituicoes] Resultado mapeado:', mappedResult);
       return mappedResult;
       
     } catch (error: any) {
@@ -57,33 +73,45 @@ export default class ProfessorService {
 
   static async getCursos(connection: oracledb.Connection, professorId: number) {
     try {
-      console.log(`[getCursos] Buscando cursos para o professor ID: ${professorId}`);
-
       const result = await connection.execute(
-        `SELECT c.Id_Curso, c.Nome AS NomeCurso, i.Id_Instituicao, i.Nome AS NomeInstituicao
-         FROM Curso c
-         JOIN Instituicao i ON c.Id_Instituicao = i.Id_Instituicao
-         WHERE i.Id_Professor = :id`,
-        [professorId],
+        `SELECT
+            c.Id_Curso, c.Nome AS NomeCurso, c.Sigla, c.Semestres,
+            i.Id_Instituicao, i.Nome AS NomeInstituicao,
+            pc.ULTIMO_ACESSO
+        FROM Curso c
+        JOIN Instituicao i ON c.Id_Instituicao = i.Id_Instituicao
+        LEFT JOIN Professor_Curso pc ON c.Id_Curso = pc.Id_Curso AND pc.Id_Professor = :id
+        WHERE
+            i.Id_Professor = :id
+            OR c.Id_Curso IN (
+                -- Cursos via associação direta
+                SELECT Id_Curso FROM Professor_Curso WHERE Id_Professor = :id
+                UNION
+                -- Cursos via associação com Disciplina
+                SELECT d.Id_Curso 
+                FROM Disciplina d
+                JOIN Professor_Disciplina pd ON d.Id_Disciplina = pd.Id_Disciplina
+                WHERE pd.Id_Professor = :id
+            )
+        GROUP BY c.Id_Curso, c.Nome, c.Sigla, c.Semestres, i.Id_Instituicao, i.Nome, pc.ULTIMO_ACESSO
+        ORDER BY pc.ULTIMO_ACESSO DESC NULLS LAST`,
+        { id: professorId },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
 
-      console.log('[getCursos] Resultado bruto da consulta:', result.rows);
-
       if (!result.rows) {
-        console.log('[getCursos] Nenhum curso encontrado.');
         return [];
       }
 
-      // Mapeia as chaves para camelCase para padronizar com o frontend
       const mappedResult = (result.rows as any[]).map(row => ({
         id: row.ID_CURSO,
         name: row.NOMECURSO,
+        sigla: row.SIGLA,
+        semestres: row.SEMESTRES,
         institutionId: row.ID_INSTITUICAO,
         institutionName: row.NOMEINSTITUICAO
       }));
 
-      console.log('[getCursos] Resultado mapeado:', mappedResult);
       return mappedResult;
       
     } catch (error: any) {
@@ -93,7 +121,6 @@ export default class ProfessorService {
   }
 
   static async createInstitution(connection: oracledb.Connection, nome: string, professorId: number): Promise<number> {
-    console.log(`[ProfessorService] Tentando criar instituição com nome: ${nome}, professorId: ${professorId}`);
     try {
       const result = await connection.execute<{ id: number }>(
         `INSERT INTO Instituicao (Nome, Id_Professor) VALUES (:nome, :professorId) RETURNING Id_Instituicao INTO :id`,
@@ -101,7 +128,6 @@ export default class ProfessorService {
         { autoCommit: true }
       );
       const institutionId = (result.outBinds as any).id[0];
-      console.log(`[ProfessorService] Instituição criada com sucesso. ID: ${institutionId}`);
       return institutionId;
     } catch (error: any) {
       console.error('[ProfessorService] Erro detalhado ao criar instituição:', error);
@@ -109,19 +135,30 @@ export default class ProfessorService {
     }
   }
 
-  static async createCourse(connection: oracledb.Connection, nome: string, sigla: string, semestres: number, idInstituicao: number): Promise<number> {
+  static async createCourse(connection: oracledb.Connection, courseData: { nome: string, sigla: string, semestres: number, idInstituicao: number }, professorId: number): Promise<number> {
+    const { nome, sigla, semestres, idInstituicao } = courseData;
     try {
-      const result = await connection.execute<{ id: number }>(
-        `INSERT INTO Curso (Nome, Sigla, Semestres, Id_Instituicao) VALUES (:nome, :sigla, :semestres, :idInstituicao) RETURNING Id_Curso INTO :id`,
-        { nome, sigla, semestres, idInstituicao, id: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT } },
-        { autoCommit: true }
-      );
-      return (result.outBinds as any).id[0];
+        const result = await connection.execute<{ id: number[] }>(
+            `INSERT INTO Curso (Nome, Sigla, Semestres, Id_Instituicao) VALUES (:nome, :sigla, :semestres, :idInstituicao) RETURNING Id_Curso INTO :id`,
+            { nome, sigla, semestres, idInstituicao, id: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT } }
+        );
+
+        const courseId = result.outBinds!.id[0];
+
+        await connection.execute(
+            `INSERT INTO Professor_Curso (Id_Professor, Id_Curso, ULTIMO_ACESSO) VALUES (:professorId, :courseId, SYSTIMESTAMP)`,
+            { professorId, courseId }
+        );
+
+        await connection.commit();
+        return courseId;
     } catch (error: any) {
-      console.error('Erro ao criar curso:', error);
-      throw new Error('Erro ao criar curso.');
+        await connection.rollback();
+        console.error('Erro ao criar curso e associar professor:', error);
+        throw new Error('Erro ao criar curso.');
     }
   }
+
 
   static async associateProfessorToCourse(connection: oracledb.Connection, professorId: number, courseId: number): Promise<void> {
     try {
@@ -131,7 +168,6 @@ export default class ProfessorService {
         { autoCommit: true }
       );
     } catch (error: any) {
-      // Ignora o erro de chave única duplicada (caso a associação já exista)
       if (error.errorNum === 1) {
         console.log(`Associação entre Professor ID ${professorId} e Curso ID ${courseId} já existe.`);
         return;
@@ -144,13 +180,7 @@ export default class ProfessorService {
   static async getProfessorById(connection: oracledb.Connection, professorId: number): Promise<any | null> {
     try {
       const result = await connection.execute(
-        `SELECT 
-            Nome, 
-            Cpf, 
-            Email, 
-            Celular
-         FROM professores 
-         WHERE Id_Professor = :id`,
+        `SELECT Nome, Cpf, Email, Celular FROM professores WHERE Id_Professor = :id`,
         [professorId],
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
@@ -161,7 +191,6 @@ export default class ProfessorService {
   
       const professorData: any = result.rows[0];
       
-      // Transforma as chaves do objeto para minúsculas
       const professor = {
         name: professorData.NOME,
         cpf: professorData.CPF,
@@ -175,5 +204,91 @@ export default class ProfessorService {
       console.error('Erro ao buscar dados do professor:', error);
       throw new Error('Erro ao buscar dados do professor.');
     }
+  }
+
+  static async updateCourseAccessTimestamp(connection: oracledb.Connection, professorId: number, courseId: number): Promise<void> {
+    try {
+      await connection.execute(
+        `MERGE INTO Professor_Curso pc
+         USING (SELECT :professorId AS Id_Professor, :courseId AS Id_Curso FROM dual) src
+         ON (pc.Id_Professor = src.Id_Professor AND pc.Id_Curso = src.Id_Curso)
+         WHEN MATCHED THEN
+           UPDATE SET pc.ULTIMO_ACESSO = SYSTIMESTAMP
+         WHEN NOT MATCHED THEN
+           INSERT (Id_Professor, Id_Curso, ULTIMO_ACESSO)
+           VALUES (src.Id_Professor, src.Id_Curso, SYSTIMESTAMP)`,
+        { professorId, courseId },
+        { autoCommit: true }
+      );
+    } catch (error: any) {
+      console.error('Erro ao atualizar o timestamp de acesso ao curso:', error);
+      throw new Error('Erro ao registrar acesso ao curso.');
+    }
+  }
+
+  static async updateInstitution(connection: oracledb.Connection, institutionId: number, nome: string, professorId: number) {
+    try {
+        const result = await connection.execute(
+            `UPDATE Instituicao SET Nome = :nome WHERE Id_Instituicao = :id AND Id_Professor = :professorId`,
+            { nome, id: institutionId, professorId },
+            { autoCommit: true }
+        );
+        if (result.rowsAffected === 0) {
+            throw new Error("Instituição não encontrada ou permissão negada.");
+        }
+    } catch (error: any) {
+        console.error('Erro ao atualizar instituição:', error);
+        throw new Error('Erro ao atualizar instituição.');
+    }
+  }
+
+  static async deleteInstitution(connection: oracledb.Connection, institutionId: number, professorId: number) {
+      try {
+          const result = await connection.execute(
+              `DELETE FROM Instituicao WHERE Id_Instituicao = :id AND Id_Professor = :professorId`,
+              { id: institutionId, professorId },
+              { autoCommit: true }
+          );
+          if (result.rowsAffected === 0) {
+              throw new Error("Instituição não encontrada ou permissão negada.");
+          }
+      } catch (error: any) {
+          console.error('Erro ao excluir instituição:', error);
+          throw new Error('Erro ao excluir instituição.');
+      }
+  }
+
+  static async updateCourse(connection: oracledb.Connection, courseId: number, data: { nome: string, sigla: string, semestres: number }, professorId: number) {
+    try {
+        const { nome, sigla, semestres } = data;
+        const result = await connection.execute(
+            `UPDATE Curso SET Nome = :nome, Sigla = :sigla, Semestres = :semestres 
+             WHERE Id_Curso = :id AND Id_Instituicao IN (SELECT Id_Instituicao FROM Instituicao WHERE Id_Professor = :professorId)`,
+            { nome, sigla, semestres, id: courseId, professorId },
+            { autoCommit: true }
+        );
+        if (result.rowsAffected === 0) {
+            throw new Error("Curso não encontrado ou permissão negada.");
+        }
+    } catch (error: any) {
+        console.error('Erro ao atualizar curso:', error);
+        throw new Error('Erro ao atualizar curso.');
+    }
+  }
+
+  static async deleteCourse(connection: oracledb.Connection, courseId: number, professorId: number) {
+      try {
+          const result = await connection.execute(
+              `DELETE FROM Curso WHERE Id_Curso = :id AND Id_Instituicao IN (SELECT Id_Instituicao FROM Instituicao WHERE Id_Professor = :professorId)`,
+              { id: courseId, professorId },
+              { autoCommit: true }
+          );
+          if (result.rowsAffected === 0) {
+              throw new Error("Curso não encontrado ou permissão negada.");
+          }
+      } catch (error: any) {
+          console.error('Erro ao excluir curso:', error);
+          throw new Error('Erro ao excluir curso.');
+      }
   }
 }

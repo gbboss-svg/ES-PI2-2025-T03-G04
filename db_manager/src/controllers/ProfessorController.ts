@@ -1,3 +1,9 @@
+
+
+
+
+
+
 import { Request, Response } from 'express';
 import ProfessorService from '../services/ProfessorService';
 import AuthService from '../services/AuthService';
@@ -14,7 +20,7 @@ class ProfessorController {
   async getInstituicoes(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
-      const professorId = (req as any).user.id;
+      const professorId = req.user!.id;
       const instituicoes = await ProfessorService.getInstituicoes(connection, professorId);
       return res.status(200).json(instituicoes);
     } catch (error: any) {
@@ -25,7 +31,7 @@ class ProfessorController {
   async getCursos(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
-      const professorId = (req as any).user.id;
+      const professorId = req.user!.id;
       const cursos = await ProfessorService.getCursos(connection, professorId);
       return res.status(200).json(cursos);
     } catch (error: any) {
@@ -34,24 +40,18 @@ class ProfessorController {
   }
 
   async createInstitution(req: Request, res: Response) {
-    console.log('[ProfessorController] Recebida requisição para criar instituição.');
     try {
       const connection = this.getDbConnection(req);
       const { nome } = req.body;
-      const professorId = (req as any).user.id;
-
-      console.log(`[ProfessorController] Dados recebidos: nome=${nome}, professorId=${professorId}`);
+      const professorId = req.user!.id;
 
       if (!nome || !professorId) {
-        console.error('[ProfessorController] Erro: Nome ou ID do professor ausente.');
         return res.status(400).json({ message: 'Nome da instituição e ID do professor são obrigatórios.' });
       }
 
       const institutionId = await ProfessorService.createInstitution(connection, nome, professorId);
-      console.log(`[ProfessorController] Instituição criada com sucesso. ID: ${institutionId}`);
       return res.status(201).json({ id: institutionId, message: 'Instituição criada com sucesso!' });
     } catch (error: any) {
-      console.error('[ProfessorController] Erro ao criar instituição:', error.message);
       return res.status(500).json({ message: error.message });
     }
   }
@@ -60,7 +60,9 @@ class ProfessorController {
     try {
       const connection = this.getDbConnection(req);
       const { nome, sigla, semestres, idInstituicao } = req.body;
-      const courseId = await ProfessorService.createCourse(connection, nome, sigla, semestres, idInstituicao);
+      const professorId = req.user!.id;
+
+      const courseId = await ProfessorService.createCourse(connection, { nome, sigla, semestres, idInstituicao }, professorId);
       return res.status(201).json({ id: courseId, message: 'Curso criado com sucesso!' });
     } catch (error: any) {
       return res.status(500).json({ message: error.message });
@@ -70,8 +72,8 @@ class ProfessorController {
   async associateProfessorToCourse(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
-      const professorId = (req as any).user.id;
-      const { courseId } = req.body; // O frontend enviará courseId
+      const professorId = req.user!.id;
+      const { courseId } = req.body; 
       await ProfessorService.associateProfessorToCourse(connection, professorId, courseId);
       return res.status(200).json({ message: 'Professor associado ao curso com sucesso!' });
     } catch (error: any) {
@@ -82,7 +84,7 @@ class ProfessorController {
   async getProfessorInfo(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
-      const professorId = (req as any).user.id;
+      const professorId = req.user!.id;
       const professor = await ProfessorService.getProfessorById(connection, professorId);
       if (!professor) {
         return res.status(404).json({ message: 'Professor não encontrado.' });
@@ -96,7 +98,7 @@ class ProfessorController {
   async verifyPassword(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
-      const professorId = (req as any).user.id;
+      const professorId = req.user!.id;
       const { password } = req.body;
       const isValid = await (AuthService as any).verifyPassword(connection, professorId, password);
       if (!isValid) {
@@ -106,6 +108,88 @@ class ProfessorController {
     } catch (error: any) {
       return res.status(500).json({ message: error.message });
     }
+  }
+
+  async updateCourseAccess(req: Request, res: Response) {
+    try {
+      const connection = this.getDbConnection(req);
+      const professorId = req.user!.id;
+      const courseId = parseInt(req.params.id, 10);
+      await ProfessorService.updateCourseAccessTimestamp(connection, professorId, courseId);
+      return res.status(204).send();
+    } catch (error: any) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
+  async updateInstitution(req: Request, res: Response) {
+    try {
+        const connection = this.getDbConnection(req);
+        const professorId = req.user!.id;
+        const institutionId = parseInt(req.params.id, 10);
+        const { nome, password } = req.body;
+
+        if (!password) {
+            return res.status(400).json({ message: 'A senha é obrigatória para esta ação.' });
+        }
+        const isPasswordValid = await AuthService.verifyPassword(connection, professorId, password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Senha incorreta.' });
+        }
+
+        await ProfessorService.updateInstitution(connection, institutionId, nome, professorId);
+        return res.status(200).json({ message: 'Instituição atualizada com sucesso!' });
+    } catch (error: any) {
+        return res.status(500).json({ message: error.message });
+    }
+  }
+
+  async deleteInstitution(req: Request, res: Response) {
+      try {
+          const connection = this.getDbConnection(req);
+          const professorId = req.user!.id;
+          const institutionId = parseInt(req.params.id, 10);
+          
+          await ProfessorService.deleteInstitution(connection, institutionId, professorId);
+          return res.status(200).json({ message: 'Instituição excluída com sucesso!' });
+      } catch (error: any) {
+          return res.status(500).json({ message: error.message });
+      }
+  }
+
+  async updateCourse(req: Request, res: Response) {
+    try {
+        const connection = this.getDbConnection(req);
+        const professorId = req.user!.id;
+        const courseId = parseInt(req.params.id, 10);
+        const { nome, sigla, semestres, password } = req.body;
+
+        if (!password) {
+            return res.status(400).json({ message: 'A senha é obrigatória para esta ação.' });
+        }
+        const isPasswordValid = await AuthService.verifyPassword(connection, professorId, password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Senha incorreta.' });
+        }
+
+        await ProfessorService.updateCourse(connection, courseId, { nome, sigla, semestres }, professorId);
+        return res.status(200).json({ message: 'Curso atualizado com sucesso!' });
+    } catch (error: any) {
+        return res.status(500).json({ message: error.message });
+    }
+  }
+
+  async deleteCourse(req: Request, res: Response) {
+      try {
+          const connection = this.getDbConnection(req);
+          const professorId = req.user!.id;
+          const courseId = parseInt(req.params.id, 10);
+          
+          await ProfessorService.deleteCourse(connection, courseId, professorId);
+          return res.status(200).json({ message: 'Curso excluído com sucesso!' });
+      } catch (error: any) {
+          return res.status(500).json({ message: error.message });
+      }
   }
 }
 

@@ -156,6 +156,34 @@
         </div>
     </div>
 
+    <div class="modal fade" id="editInstitutionModal" tabindex="-1" aria-labelledby="editInstitutionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editInstitutionModalLabel">Editar Instituição</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-institution-form">
+                        <div class="mb-3">
+                            <label for="edit-institution-name" class="form-label">Novo Nome da Instituição</label>
+                            <input type="text" class="form-control" id="edit-institution-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="current-password-edit-inst" class="form-label">Confirme sua senha atual</label>
+                            <input type="password" class="form-control" id="current-password-edit-inst" required>
+                             <div class="form-text">Sua senha é necessária para confirmar a alteração.</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirm-edit-institution-btn">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -168,6 +196,14 @@
                         <div class="mb-3">
                             <label for="new-course-name" class="form-label">Nome do Curso</label>
                             <input type="text" class="form-control" id="new-course-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new-course-sigla-main" class="form-label">Sigla do Curso</label>
+                            <input type="text" class="form-control" id="new-course-sigla-main" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new-course-semestres-main" class="form-label">Quantidade de Semestres</label>
+                            <input type="number" class="form-control" id="new-course-semestres-main" required min="1">
                         </div>
                         <div class="mb-3">
                             <label for="current-password-course" class="form-label">Confirme sua senha atual</label>
@@ -184,6 +220,42 @@
         </div>
     </div>
 
+    <div class="modal fade" id="editCourseModal" tabindex="-1" aria-labelledby="editCourseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editCourseModalLabel">Editar Curso</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-course-form">
+                        <div class="mb-3">
+                            <label for="edit-course-name" class="form-label">Nome do Curso</label>
+                            <input type="text" class="form-control" id="edit-course-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-course-sigla" class="form-label">Sigla do Curso</label>
+                            <input type="text" class="form-control" id="edit-course-sigla" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-course-semestres" class="form-label">Quantidade de Semestres</label>
+                            <input type="number" class="form-control" id="edit-course-semestres" required min="1">
+                        </div>
+                        <div class="mb-3">
+                            <label for="current-password-edit-course" class="form-label">Confirme sua senha atual</label>
+                            <input type="password" class="form-control" id="current-password-edit-course" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirm-edit-course-btn">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <div class="modal fade" id="editTurmaModal" tabindex="-1" aria-labelledby="editTurmaModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -193,32 +265,21 @@
                 </div>
                 <div class="modal-body">
                     <form id="edit-turma-form">
-                        <div class="mb-3">
+                         <div class="mb-3">
                             <label for="edit-turma-name" class="form-label">Nome da Turma</label>
                             <input type="text" class="form-control" id="edit-turma-name" required>
                         </div>
-                        <hr>
-                        <h6 class="text-muted">Mover/Editar Disciplina</h6>
                         <div class="mb-3">
-                            <label for="edit-turma-inst-select" class="form-label">Instituição</label>
-                            <select class="form-select" id="edit-turma-inst-select" required></select>
+                            <label for="edit-turma-semestre" class="form-label">Semestre</label>
+                            <input type="text" class="form-control" id="edit-turma-semestre">
                         </div>
                         <div class="mb-3">
-                            <label for="edit-discipline-curso-select" class="form-label">Curso</label>
-                            <select class="form-select" id="edit-discipline-curso-select" required></select>
-                        </div>
-                         <div class="mb-3">
-                            <label for="edit-discipline-period" class="form-label">Período/Semestre</label>
-                            <input type="text" class="form-control" id="edit-discipline-period" required>
+                            <label for="edit-turma-periodo" class="form-label">Período</label>
+                            <input type="text" class="form-control" id="edit-turma-periodo">
                         </div>
                         <div class="mb-3">
-                            <label for="edit-discipline-max-grade" class="form-label">Nota Máxima da Disciplina</label>
-                            <input type="number" class="form-control" id="edit-discipline-max-grade" required min="0" value="10">
-                        </div>
-                        <hr>
-                        <div class="mb-3">
-                            <label for="current-password-edit" class="form-label">Confirme sua senha atual para salvar</label>
-                            <input type="password" class="form-control" id="current-password-edit" required>
+                            <label for="current-password-edit-turma" class="form-label">Confirme sua senha atual para salvar</label>
+                            <input type="password" class="form-control" id="current-password-edit-turma" required>
                              <div class="form-text">Por segurança, precisamos confirmar sua identidade.</div>
                         </div>
                     </form>
@@ -245,17 +306,15 @@
                             <input type="text" class="form-control" id="edit-discipline-name" required>
                         </div>
                         <div class="mb-3">
-                            <label for="edit-discipline-code" class="form-label">Código da Disciplina</label>
-                            <input type="text" class="form-control" id="edit-discipline-code" required>
-                        </div>
-                        <hr>
-                        <h6 class="text-muted">Mover Disciplina</h6>
-                        <div class="mb-3">
-                            <label for="edit-discipline-inst-select" class="form-label">Instituição de Destino</label>
-                            <select class="form-select" id="edit-discipline-inst-select" required></select>
+                            <label for="edit-discipline-sigla" class="form-label">Sigla da Disciplina</label>
+                            <input type="text" class="form-control" id="edit-discipline-sigla" required>
                         </div>
                         <div class="mb-3">
-                            <label for="edit-discipline-course-select-move" class="form-label">Curso de Destino</label>
+                            <label for="edit-discipline-period" class="form-label">Período</label>
+                            <input type="text" class="form-control" id="edit-discipline-period" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-discipline-course-select-move" class="form-label">Curso</label>
                             <select class="form-select" id="edit-discipline-course-select-move" required></select>
                         </div>
                         <hr>
@@ -295,6 +354,24 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary" id="confirm-add-student-btn">Adicionar Aluno</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteStudentModal" tabindex="-1" aria-labelledby="deleteStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteStudentModalLabel">Confirmar Remoção</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Você tem certeza que deseja remover o aluno <strong id="student-to-delete-name"></strong> desta turma?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete-student-btn">Confirmar Remoção</button>
                 </div>
             </div>
         </div>
@@ -440,11 +517,41 @@
                                 <input type="text" class="form-control" id="new-discipline-periodo" required>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label for="current-password-disc" class="form-label">Confirme sua senha atual</label>
+                            <input type="password" class="form-control" id="current-password-disc" required>
+                            <div class="form-text">Por segurança, precisamos confirmar sua identidade.</div>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary" id="confirm-add-discipline-btn">Adicionar Disciplina</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOVO: Modal para Conflitos de Importação CSV -->
+    <div class="modal fade" id="csvConflictModal" tabindex="-1" aria-labelledby="csvConflictModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="csvConflictModalLabel">Conflito de Importação</h5>
+                </div>
+                <div class="modal-body">
+                    <p id="csv-conflict-message">Mensagem de conflito aqui.</p>
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" value="" id="csv-apply-all">
+                        <label class="form-check-label" for="csv-apply-all">
+                            Aplicar esta decisão a todos os outros conflitos.
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="csv-cancel-import-btn">Cancelar Importação</button>
+                    <button type="button" class="btn btn-secondary" id="csv-ignore-btn">Ignorar</button>
+                    <button type="button" class="btn btn-primary" id="csv-substitute-btn">Substituir</button>
                 </div>
             </div>
         </div>

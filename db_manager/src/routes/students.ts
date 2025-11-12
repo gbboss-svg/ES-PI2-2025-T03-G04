@@ -1,11 +1,17 @@
-import { Router } from "express"
-import pool from "../database"
-import { AuditService } from "../services/AuditService"
 
-const router = Router()
+
+
+
+
+
+import express, { Request, Response } from "express"
+import pool from "../database"
+import { AuditService } from "../sms/AuditService"
+
+const router = express.Router()
 
 // GET students by turma
-router.get("/turma/:turmaId", async (req, res) => {
+router.get("/turma/:turmaId", async (req: Request, res: Response) => {
   try {
     const { turmaId } = req.params
     const userId = req.headers["x-user-id"] as string
@@ -22,7 +28,7 @@ router.get("/turma/:turmaId", async (req, res) => {
     )
 
     if (userId) {
-      await AuditService.log(Number.parseInt(userId), "VIEW", "students", null, `Visualizou alunos da turma ${turmaId}`)
+      await AuditService.log({ userId: Number.parseInt(userId), actionType: "VIEW", entityType: "students", details: `Visualizou alunos da turma ${turmaId}` })
     }
 
     res.json(result.rows)
@@ -33,7 +39,7 @@ router.get("/turma/:turmaId", async (req, res) => {
 })
 
 // GET student grades
-router.get("/:studentId/grades/:turmaId", async (req, res) => {
+router.get("/:studentId/grades/:turmaId", async (req: Request, res: Response) => {
   try {
     const { studentId, turmaId } = req.params
     const userId = req.headers["x-user-id"] as string
@@ -50,13 +56,12 @@ router.get("/:studentId/grades/:turmaId", async (req, res) => {
     )
 
     if (userId) {
-      await AuditService.log(
-        Number.parseInt(userId),
-        "VIEW",
-        "grades",
-        null,
-        `Visualizou notas do aluno ${studentId} na turma ${turmaId}`,
-      )
+      await AuditService.log({
+        userId: Number.parseInt(userId),
+        actionType: "VIEW",
+        entityType: "grades",
+        details: `Visualizou notas do aluno ${studentId} na turma ${turmaId}`,
+      })
     }
 
     res.json(result.rows)
@@ -67,7 +72,7 @@ router.get("/:studentId/grades/:turmaId", async (req, res) => {
 })
 
 // POST create student
-router.post("/", async (req, res) => {
+router.post("/", async (req: Request, res: Response) => {
   try {
     const { name, registration_number, email } = req.body
     const userId = req.headers["x-user-id"] as string
@@ -78,7 +83,7 @@ router.post("/", async (req, res) => {
     )
 
     if (userId) {
-      await AuditService.log(Number.parseInt(userId), "CREATE", "students", result.rows[0].id, `Criou aluno: ${name}`)
+      await AuditService.log({ userId: Number.parseInt(userId), actionType: "CREATE", entityType: "students", entityId: result.rows[0].id, details: `Criou aluno: ${name}` })
     }
 
     res.status(201).json(result.rows[0])
@@ -89,7 +94,7 @@ router.post("/", async (req, res) => {
 })
 
 // PUT update student
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const { name, registration_number, email } = req.body
@@ -105,13 +110,13 @@ router.put("/:id", async (req, res) => {
     }
 
     if (userId) {
-      await AuditService.log(
-        Number.parseInt(userId),
-        "UPDATE",
-        "students",
-        Number.parseInt(id),
-        `Atualizou aluno: ${name}`,
-      )
+      await AuditService.log({
+        userId: Number.parseInt(userId),
+        actionType: "UPDATE",
+        entityType: "students",
+        entityId: Number.parseInt(id),
+        details: `Atualizou aluno: ${name}`,
+      })
     }
 
     res.json(result.rows[0])
@@ -122,7 +127,7 @@ router.put("/:id", async (req, res) => {
 })
 
 // POST save grades
-router.post("/grades", async (req, res) => {
+router.post("/grades", async (req: Request, res: Response) => {
   try {
     const { student_id, turma_id, discipline_id, grade_data } = req.body
     const userId = req.headers["x-user-id"] as string
@@ -139,13 +144,13 @@ router.post("/grades", async (req, res) => {
     )
 
     if (userId) {
-      await AuditService.log(
-        Number.parseInt(userId),
-        "UPDATE",
-        "grades",
-        result.rows[0].id,
-        `Salvou notas do aluno ${student_id} em disciplina ${discipline_id}`,
-      )
+      await AuditService.log({
+        userId: Number.parseInt(userId),
+        actionType: "UPDATE",
+        entityType: "grades",
+        entityId: result.rows[0].id,
+        details: `Salvou notas do aluno ${student_id} em disciplina ${discipline_id}`,
+      })
     }
 
     res.json(result.rows[0])

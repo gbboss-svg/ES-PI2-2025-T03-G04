@@ -1,3 +1,5 @@
+import * as ApiService from '../services/ApiService.js';
+
 /**
  * Renderiza o conteúdo da view do Painel Principal.
  * @param {HTMLElement} container - O elemento container onde a view será renderizada.
@@ -17,7 +19,7 @@ export function renderDashboardView(container, user, institutions, switchViewCal
     }
 
     let contentHTML = `
-        <h1>Bem-vindo(a), ${user.nome?.split(' ')[0] ?? 'Usuário'}!</h1>
+        <h1>Bem-vindo(a), ${user.name?.split(' ')[0] ?? 'Usuário'}!</h1>
         <p class="lead text-muted">Acesso rápido às suas disciplinas e turmas.</p>
     `;
 
@@ -36,13 +38,13 @@ export function renderDashboardView(container, user, institutions, switchViewCal
                         ${inst.courses.map(course => `
                             <div class="col-md-6 col-lg-4">
                                 <div class="card h-100 shadow-sm">
-                                    <div class="card-.body">
+                                    <div class="card-body">
                                         <h5 class="card-title">${course.name}</h5>
                                         <h6 class="card-subtitle mb-2 text-muted">${inst.name}</h6>
                                         <p class="card-text">${course.disciplines ? course.disciplines.length : 0} disciplina(s) cadastrada(s).</p>
                                     </div>
                                     <div class="card-footer bg-transparent border-0 pb-3">
-                                         <button class="btn btn-sm btn-primary view-discipline-btn" data-inst-id="${inst.id}">Ver Cursos</button>
+                                         <button class="btn btn-sm btn-primary view-discipline-btn" data-inst-id="${inst.id}" data-course-id="${course.id}">Ver Cursos</button>
                                     </div>
                                 </div>
                             </div>
@@ -58,8 +60,16 @@ export function renderDashboardView(container, user, institutions, switchViewCal
 
     // Adiciona os event listeners após o conteúdo ser inserido no DOM
     container.querySelectorAll('.view-discipline-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-           const instId = btn.dataset.instId;
+        btn.addEventListener('click', async () => {
+           const { instId, courseId } = btn.dataset;
+           if (courseId) {
+               try {
+                   await ApiService.touchCourse(courseId);
+               } catch (error) {
+                   console.error('Failed to update course access timestamp:', error);
+                   // Continue execution even if this fails
+               }
+           }
            // Chama o callback para mudar a view e expandir o accordion correto
            switchViewCallback('institutions', { expandInstId: instId });
         });

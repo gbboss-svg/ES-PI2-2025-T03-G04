@@ -6,8 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const loadingOverlay = document.getElementById("loading-overlay")
 
   // Links de navegação
-  const forgotPasswordLink = document.querySelector('a[href="../Tela-Esqueci-Minha-Senha/tela.html"]')
-  const signUpLink = document.querySelector('a[href="../Tela-Novo-Cadastro/tela-registro.html"]')
+  const forgotPasswordLink = document.querySelector('a[href="/esqueci-senha"]')
+  const signUpLink = document.querySelector('a[href="/novo-cadastro"]')
 
   // Função para mostrar o loading e redirecionar
   function showLoadingAndRedirect(url) {

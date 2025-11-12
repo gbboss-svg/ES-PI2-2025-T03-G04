@@ -4,20 +4,6 @@ import 'dotenv/config';
 import { app } from './app';
 import { initialize, close } from './database/db';
 import { setupDatabase } from './database/setup';
-import crypto from 'crypto';
-
-// Verifica se o JWT_SECRET está definido; se não, gera um temporário.
-if (!process.env.JWT_SECRET) {
-  console.warn(
-    '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n' +
-    '!!! ATENÇÃO: JWT_SECRET não definido no arquivo .env.          !!!\n' +
-    '!!! Gerando uma chave secreta temporária para esta sessão.     !!!\n' +
-    '!!! Para produção, defina uma chave segura no seu arquivo .env.!!!\n' +
-    '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-  );
-  process.env.JWT_SECRET = crypto.randomBytes(64).toString('hex');
-}
-
 
 const port = process.env.PORT || 3333;
 

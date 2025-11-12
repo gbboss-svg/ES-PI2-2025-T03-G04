@@ -10,17 +10,8 @@ export default class CourseService {
         [institutionId],
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
-      
-      if (!result.rows) {
-          return [];
-      }
 
-      // Mapeia as chaves para camelCase para padronizar com o frontend
-      return (result.rows as any[]).map(row => ({
-          id: row.ID_CURSO,
-          name: row.NOME
-      }));
-
+      return result.rows || [];
     } catch (error: any) {
       console.error('Erro ao listar cursos:', error);
       throw new Error('Erro ao buscar cursos da instituição.');

@@ -1,12 +1,18 @@
-import { Router } from 'express';
+
+
+
+
+
+
+import express, { Request, Response } from 'express';
 import CourseService from '../services/CourseService';
 import { authMiddleware } from '../middlewares/auth';
 
-const router = Router();
+const router = express.Router();
 
-router.get('/instituicao/:id/cursos', authMiddleware, async (req: any, res: any) => {
+router.get('/instituicao/:id/cursos', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const courses = await CourseService.getCoursesByInstitution(req.dbConnection, Number(req.params.id));
+    const courses = await CourseService.getCoursesByInstitution(req.dbConnection!, Number(req.params.id));
     res.json(courses);
   } catch (error: any) {
     res.status(500).json({ message: error.message });

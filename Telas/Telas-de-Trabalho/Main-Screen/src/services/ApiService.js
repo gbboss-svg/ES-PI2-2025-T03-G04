@@ -1,3 +1,4 @@
+// ES-PI2-2025-T03-G04-main/Telas/Telas-de-Trabalho/Main-Screen/src/services/ApiService.js
 const BASE_URL = 'http://localhost:3333/api'; // O backend roda na porta 3333
 
 /**
@@ -25,8 +26,16 @@ async function request(endpoint, options = {}) {
     try {
         const response = await fetch(`${BASE_URL}${endpoint}`, config);
         if (!response.ok) {
+            // For 204 No Content, we don't expect a JSON body
+            if (response.status === 204) {
+                return; 
+            }
             const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
             throw new Error(errorData.message || `Erro na requisição: ${response.statusText}`);
+        }
+        // Handle cases where there might not be a JSON body (like 204 No Content)
+        if (response.status === 204) {
+            return;
         }
         return response.json();
     } catch (error) {
@@ -44,21 +53,22 @@ export const verifyPassword = (password) => request('/professor/verify-password'
 // Funções para Instituições
 export const getInstitutions = () => request('/professor/instituicoes');
 export const addInstitution = (data) => request('/professor/instituicoes', { method: 'POST', body: JSON.stringify(data) });
-export const updateInstitution = (id, data) => request(`/professor/institutions/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-export const deleteInstitution = (id) => request(`/professor/institutions/${id}`, { method: 'DELETE' });
+export const updateInstitution = (id, data) => request(`/professor/instituicoes/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+export const deleteInstitution = (id) => request(`/professor/instituicoes/${id}`, { method: 'DELETE' });
 
 // Funções para Cursos
 export const getCourses = () => request('/professor/cursos');
 export const addCourse = (data) => request('/professor/cursos', { method: 'POST', body: JSON.stringify(data) });
-export const updateCourse = (instId, courseId, data) => request(`/institutions/${instId}/courses/${courseId}`, { method: 'PUT', body: JSON.stringify(data) });
-export const deleteCourse = (instId, courseId) => request(`/institutions/${instId}/courses/${courseId}`, { method: 'DELETE' });
+export const updateCourse = (id, data) => request(`/professor/cursos/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+export const deleteCourse = (id) => request(`/professor/cursos/${id}`, { method: 'DELETE' });
+export const touchCourse = (courseId) => request(`/professor/cursos/${courseId}/access`, { method: 'POST' });
 
 // Funções para Disciplinas
 export const getProfessorDisciplines = () => request('/professor/disciplinas');
 export const getDisciplinesByCourse = (courseId) => request(`/curso/${courseId}/disciplinas`);
 export const addDiscipline = (data) => request('/disciplinas', { method: 'POST', body: JSON.stringify(data) });
-export const updateDiscipline = (id, data) => request(`/disciplines/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-export const deleteDiscipline = (id) => request(`/disciplines/${id}`, { method: 'DELETE' });
+export const updateDiscipline = (id, data) => request(`/disciplinas/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+export const deleteDiscipline = (id) => request(`/disciplinas/${id}`, { method: 'DELETE' });
 
 // Funções para Turmas
 export const getActiveTurmas = () => request('/turmas/ativas');
@@ -72,5 +82,10 @@ export const reopenTurma = (id, password) => request(`/turmas/${id}/reopen`, { m
 
 // Funções para Alunos
 export const addStudent = (turmaId, data) => request(`/turmas/${turmaId}/students`, { method: 'POST', body: JSON.stringify(data) });
+export const batchAddStudents = (turmaId, students) => request(`/turmas/${turmaId}/students/batch`, { method: 'POST', body: JSON.stringify({ students }) });
 export const updateStudentGrades = (turmaId, studentId, grades) => request(`/turmas/${turmaId}/students/${studentId}/grades`, { method: 'PUT', body: JSON.stringify({ grades }) });
 export const removeStudent = (turmaId, studentId) => request(`/turmas/${turmaId}/students/${studentId}`, { method: 'DELETE' });
+
+// Funções para Auditoria
+export const addAuditLog = (data) => request('/audit', { method: 'POST', body: JSON.stringify(data) });
+export const getAuditLogs = (turmaId) => request(`/audit/${turmaId}`);

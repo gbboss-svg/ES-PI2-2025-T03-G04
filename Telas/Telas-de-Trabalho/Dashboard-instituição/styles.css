@@ -62,22 +62,35 @@ body {
 
 /* --- Grupo de Seleção --- */
 .selection-group {
+    position: relative;
     margin-bottom: 2rem;
 }
 
-/* ESTILO ATUALIZADO PARA O INPUT */
-.institution-input {
+.institution-select {
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.75rem 2.5rem 0.75rem 0.75rem; /* Padding ajustado para a seta */
     border: 1px solid #cccccc;
     border-radius: 8px;
     font-family: 'Poppins', sans-serif;
     font-size: 0.875rem;
     background-color: #fff;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22%236c757d%22%3E%3Cpath%20d%3D%22M7.247%2011.14L2.451%205.658C1.885%205.013%202.345%204%203.204%204h9.592a1%201%200%200%201%20.753%201.659l-4.796%205.48a1%201%200%200%201-1.506%200z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 1em;
 }
 
-.institution-input:focus {
+.institution-select:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+
+.institution-select:focus {
     outline: none;
     border-color: #007bff; /* Cor de destaque ao focar */
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);

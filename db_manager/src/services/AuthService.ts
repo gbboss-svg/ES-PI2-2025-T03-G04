@@ -24,37 +24,38 @@ class AuthService {
         throw new Error('A senha deve ter pelo menos 6 caracteres.');
       }
 
-      // Verificar unicidade de E-mail
-      let result = await connection.execute(
-        `SELECT Id_Professor FROM professores WHERE Email = :email`,
-        { email },
+      // Verificação unificada para credenciais existentes
+      const existingUserResult = await connection.execute(
+        `SELECT Id_Professor, Is_Verified, Email, Cpf, Celular 
+         FROM professores 
+         WHERE Email = :email OR Cpf = :cpf OR Celular = :celular`,
+        { email, cpf, celular },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
 
-      if (result.rows && result.rows.length > 0) {
-        throw new Error('E-mail já cadastrado.');
-      }
+      if (existingUserResult.rows && existingUserResult.rows.length > 0) {
+        const existingUser = (existingUserResult.rows as any)[0];
 
-      // Verificar unicidade de CPF
-      result = await connection.execute(
-        `SELECT Id_Professor FROM professores WHERE Cpf = :cpf`,
-        { cpf },
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }
-      );
-
-      if (result.rows && result.rows.length > 0) {
-        throw new Error('CPF já cadastrado.');
-      }
-
-      // Verificar unicidade de Celular
-      result = await connection.execute(
-        `SELECT Id_Professor FROM professores WHERE Celular = :celular`,
-        { celular },
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }
-      );
-
-      if (result.rows && result.rows.length > 0) {
-        throw new Error('Celular já cadastrado.');
+        // Se o usuário já estiver verificado, bloqueia um novo cadastro
+        if (existingUser.IS_VERIFIED === 1) {
+          if (existingUser.EMAIL === email) {
+            throw new Error('E-mail já cadastrado.');
+          }
+          if (existingUser.CPF === cpf) {
+            throw new Error('CPF já cadastrado.');
+          }
+          if (existingUser.CELULAR === celular) {
+            throw new Error('Celular já cadastrado.');
+          }
+        } else {
+          // Se o usuário não for verificado, é um cadastro antigo/incompleto.
+          // Removemos para permitir que o usuário tente se cadastrar novamente.
+          await connection.execute(
+            `DELETE FROM professores WHERE Id_Professor = :id`,
+            { id: existingUser.ID_PROFESSOR },
+            { autoCommit: true }
+          );
+        }
       }
 
       const hashedPassword = await bcrypt.hash(senha, 10);

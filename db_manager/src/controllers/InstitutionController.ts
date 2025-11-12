@@ -1,4 +1,10 @@
-import type { Request, Response } from "express"
+
+
+
+
+
+
+import { Request, Response } from "express"
 import { InstitutionService } from "../services/InstitutionService"
 
 const institutionService = new InstitutionService()
@@ -6,7 +12,7 @@ const institutionService = new InstitutionService()
 export class InstitutionController {
   async getAll(req: Request, res: Response) {
     try {
-      const userId = (req as any).userId || 1 // TODO: Get from auth middleware
+      const userId = req.user!.id 
       const institutions = await institutionService.getAllInstitutions(userId)
       res.json(institutions)
     } catch (error) {
@@ -16,7 +22,7 @@ export class InstitutionController {
 
   async getById(req: Request, res: Response) {
     try {
-      const userId = (req as any).userId || 1
+      const userId = req.user!.id
       const { id } = req.params
       const institution = await institutionService.getInstitutionById(Number.parseInt(id), userId)
 
@@ -32,7 +38,7 @@ export class InstitutionController {
 
   async create(req: Request, res: Response) {
     try {
-      const userId = (req as any).userId || 1
+      const userId = req.user!.id
       const institution = await institutionService.createInstitution(req.body, userId)
       res.status(201).json(institution)
     } catch (error) {
@@ -42,7 +48,7 @@ export class InstitutionController {
 
   async update(req: Request, res: Response) {
     try {
-      const userId = (req as any).userId || 1
+      const userId = req.user!.id
       const { id } = req.params
       const institution = await institutionService.updateInstitution(Number.parseInt(id), req.body, userId)
 
@@ -58,7 +64,7 @@ export class InstitutionController {
 
   async delete(req: Request, res: Response) {
     try {
-      const userId = (req as any).userId || 1
+      const userId = req.user!.id
       const { id } = req.params
       await institutionService.deleteInstitution(Number.parseInt(id), userId)
       res.json({ success: true })

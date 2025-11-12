@@ -1,17 +1,23 @@
-import { Router } from "express"
-import pool from "../database"
-import { AuditService } from "../services/AuditService"
 
-const router = Router()
+
+
+
+
+
+import express, { Request, Response } from "express"
+import pool from "../database"
+import { AuditService } from "../sms/AuditService"
+
+const router = express.Router()
 
 // GET all institutions
-router.get("/", async (req, res) => {
+router.get("/", async (req: Request, res: Response) => {
   try {
     const userId = req.headers["x-user-id"] as string
     const result = await pool.query("SELECT * FROM institutions ORDER BY name")
 
     if (userId) {
-      await AuditService.log(Number.parseInt(userId), "VIEW", "institutions", null, "Visualizou lista de instituições")
+      await AuditService.log({ userId: Number.parseInt(userId), actionType: "VIEW", entityType: "institutions", details: "Visualizou lista de instituições" })
     }
 
     res.json(result.rows)
@@ -22,7 +28,7 @@ router.get("/", async (req, res) => {
 })
 
 // GET institution by ID
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const userId = req.headers["x-user-id"] as string
@@ -34,13 +40,13 @@ router.get("/:id", async (req, res) => {
     }
 
     if (userId) {
-      await AuditService.log(
-        Number.parseInt(userId),
-        "VIEW",
-        "institutions",
-        Number.parseInt(id),
-        `Visualizou instituição: ${result.rows[0].name}`,
-      )
+      await AuditService.log({
+        userId: Number.parseInt(userId),
+        actionType: "VIEW",
+        entityType: "institutions",
+        entityId: Number.parseInt(id),
+        details: `Visualizou instituição: ${result.rows[0].name}`,
+      })
     }
 
     res.json(result.rows[0])
@@ -51,7 +57,7 @@ router.get("/:id", async (req, res) => {
 })
 
 // POST create institution
-router.post("/", async (req, res) => {
+router.post("/", async (req: Request, res: Response) => {
   try {
     const { name, type } = req.body
     const userId = req.headers["x-user-id"] as string
@@ -59,13 +65,13 @@ router.post("/", async (req, res) => {
     const result = await pool.query("INSERT INTO institutions (name, type) VALUES ($1, $2) RETURNING *", [name, type])
 
     if (userId) {
-      await AuditService.log(
-        Number.parseInt(userId),
-        "CREATE",
-        "institutions",
-        result.rows[0].id,
-        `Criou instituição: ${name}`,
-      )
+      await AuditService.log({
+        userId: Number.parseInt(userId),
+        actionType: "CREATE",
+        entityType: "institutions",
+        entityId: result.rows[0].id,
+        details: `Criou instituição: ${name}`,
+      })
     }
 
     res.status(201).json(result.rows[0])
@@ -76,7 +82,7 @@ router.post("/", async (req, res) => {
 })
 
 // PUT update institution
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const { name, type } = req.body
@@ -93,13 +99,13 @@ router.put("/:id", async (req, res) => {
     }
 
     if (userId) {
-      await AuditService.log(
-        Number.parseInt(userId),
-        "UPDATE",
-        "institutions",
-        Number.parseInt(id),
-        `Atualizou instituição: ${name}`,
-      )
+      await AuditService.log({
+        userId: Number.parseInt(userId),
+        actionType: "UPDATE",
+        entityType: "institutions",
+        entityId: Number.parseInt(id),
+        details: `Atualizou instituição: ${name}`,
+      })
     }
 
     res.json(result.rows[0])
@@ -110,7 +116,7 @@ router.put("/:id", async (req, res) => {
 })
 
 // DELETE institution
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const userId = req.headers["x-user-id"] as string
@@ -123,13 +129,13 @@ router.delete("/:id", async (req, res) => {
     }
 
     if (userId && institution.rows.length > 0) {
-      await AuditService.log(
-        Number.parseInt(userId),
-        "DELETE",
-        "institutions",
-        Number.parseInt(id),
-        `Deletou instituição: ${institution.rows[0].name}`,
-      )
+      await AuditService.log({
+        userId: Number.parseInt(userId),
+        actionType: "DELETE",
+        entityType: "institutions",
+        entityId: Number.parseInt(id),
+        details: `Deletou instituição: ${institution.rows[0].name}`,
+      })
     }
 
     res.json({ message: "Institution deleted successfully" })

@@ -6,18 +6,14 @@ document.addEventListener('DOMContentLoaded', () => {
         dashboardButton: document.getElementById('dashboard-button'),
         logoutButton: document.getElementById('logout-button'),
 
-        // Elementos da Instituição
-        institutionInput: document.getElementById('institution-input'),
-        institutionsList: document.getElementById('institutions-list'),
+        institutionSelect: document.getElementById('institution-select'),
         addInstitutionLink: document.getElementById('add-institution-link'),
         institutionModal: document.getElementById('add-institution-modal'),
         newInstitutionInput: document.getElementById('new-institution-input'),
         confirmAddInstitutionButton: document.getElementById('confirm-add-institution-button'),
         cancelAddInstitutionButton: document.getElementById('cancel-add-institution-button'),
 
-        // Novos Elementos de Curso
-        courseInput: document.getElementById('course-input'),
-        coursesList: document.getElementById('courses-list'),
+        courseSelect: document.getElementById('course-select'),
         addCourseLink: document.getElementById('add-course-link'),
         courseModal: document.getElementById('add-course-modal'),
         newCourseInput: document.getElementById('new-course-input'),
@@ -27,9 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Estado da Aplicação ---
     const state = {
-        username: "", // Será preenchido pelo backend
-        institutions: [], // Será preenchido pelo backend
-        courses: []       // Será preenchido pelo backend
+        username: "",
+        institutions: [],
+        courses: []
     };
 
     // --- Funções ---
@@ -37,40 +33,37 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchUsername() {
         try {
             const response = await fetch('/api/professor/me', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
-            if (!response.ok) {
-                throw new Error('Falha ao buscar dados do usuário.');
-            }
+            if (!response.ok) throw new Error('Falha ao buscar dados do usuário.');
+            
             const data = await response.json();
-            state.username = data.NOME; // A API retorna a coluna NOME
+            state.username = data.name || data.NOME; 
             if (elements.usernameDisplay) {
                 elements.usernameDisplay.textContent = `${state.username}!`;
             }
         } catch (error) {
             console.error('Erro ao buscar nome do usuário:', error);
-            if (elements.usernameDisplay) {
-                elements.usernameDisplay.textContent = 'Usuário!'; // Fallback
-            }
+            if (elements.usernameDisplay) elements.usernameDisplay.textContent = 'Usuário!';
         }
     }
 
-    // --- Funções da Instituição ---
     async function populateInstitutions() {
         try {
             const response = await fetch('/api/professor/instituicoes', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
             const data = await response.json();
             state.institutions = data;
-            if (!elements.institutionsList) return;
-            elements.institutionsList.innerHTML = '';
+            
+            if (!elements.institutionSelect) return;
+            
+            elements.institutionSelect.innerHTML = '<option value="" disabled selected>Selecione sua instituição</option>';
             state.institutions.forEach(institution => {
-                addInstitutionToDatalist(institution);
+                const option = document.createElement('option');
+                option.value = institution.id;
+                option.textContent = institution.name;
+                elements.institutionSelect.appendChild(option);
             });
         } catch (error) {
             console.error('Erro ao buscar instituições:', error);
@@ -78,99 +71,82 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function addInstitutionToDatalist(institution) {
-        const option = document.createElement('option');
-        option.value = institution.name; // Assumindo que a API retorna objetos com 'name'
-        elements.institutionsList.appendChild(option);
-    }
+    async function fetchAndPopulateCoursesForInstitution(institutionId) {
+        elements.courseSelect.innerHTML = '<option value="" disabled selected>Carregando cursos...</option>';
+        elements.courseSelect.disabled = true;
 
-    // --- Novas Funções de Curso ---
-    async function populateCourses() {
         try {
-            const response = await fetch('/api/professor/cursos', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
+            const courses = await fetch(`/api/instituicao/${institutionId}/cursos`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            }).then(res => {
+                if (!res.ok) throw new Error('Falha ao buscar cursos');
+                return res.json();
             });
-            const data = await response.json();
-            state.courses = data;
-            if (!elements.coursesList) return;
-            elements.coursesList.innerHTML = '';
-            state.courses.forEach(course => {
-                addCourseToDatalist(course);
+
+            state.courses = courses;
+            elements.courseSelect.innerHTML = '<option value="" disabled selected>Selecione um curso</option>';
+            
+            if(courses.length === 0) {
+                 elements.courseSelect.innerHTML = '<option value="" disabled selected>Nenhum curso encontrado</option>';
+            }
+
+            courses.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.id;
+                option.textContent = course.name;
+                elements.courseSelect.appendChild(option);
             });
+
+            elements.courseSelect.disabled = false;
         } catch (error) {
-            console.error('Erro ao buscar cursos:', error);
-            alert('Não foi possível carregar os cursos.');
+            console.error('Erro ao buscar cursos da instituição:', error);
+            elements.courseSelect.innerHTML = '<option value="" disabled selected>Erro ao carregar cursos</option>';
+            elements.courseSelect.disabled = false; 
         }
     }
 
-    function addCourseToDatalist(course) {
-        const option = document.createElement('option');
-        option.value = course.name; // Assumindo que a API retorna objetos com 'name'
-        elements.coursesList.appendChild(option);
-    }
+    async function handleDashboardAccess() {
+        const selectedInstitutionId = elements.institutionSelect.value;
+        const selectedCourseId = elements.courseSelect.value;
 
-    // --- Função de Acesso Principal ATUALIZADA ---
-    function handleDashboardAccess() {
-        const selectedInstitutionName = elements.institutionInput.value.trim();
-        const selectedCourseName = elements.courseInput.value.trim();
-
-        if (!selectedInstitutionName) {
-            alert('Por favor, digite ou selecione uma instituição de ensino para continuar.');
-            elements.institutionInput.focus();
+        if (!selectedInstitutionId) {
+            alert('Por favor, selecione uma instituição de ensino para continuar.');
+            elements.institutionSelect.focus();
             return;
         }
 
-        if (!selectedCourseName) {
-            alert('Por favor, digite ou selecione um curso para continuar.');
-            elements.courseInput.focus();
+        if (!selectedCourseId) {
+            alert('Por favor, selecione um curso para continuar.');
+            elements.courseSelect.focus();
             return;
         }
 
-        // Obtém os IDs da instituição e curso selecionados
-        const selectedInstitution = state.institutions.find(inst => inst.name === selectedInstitutionName);
-        const selectedCourseObj = state.courses.find(course => course.name === selectedCourseName);
-
-        if (!selectedInstitution || !selectedCourseObj) {
-            alert('Instituição ou curso selecionado inválido.');
-            return;
-        }
-
-        handleConfirmAssociate(selectedInstitution.id, selectedCourseObj.id);
+        await handleConfirmAssociate(selectedInstitutionId, selectedCourseId);
     }
 
     async function handleConfirmAssociate(institutionId, courseId) {
         try {
-            const response = await fetch('/api/professor/associar', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ courseId }) // Envia apenas o courseId
+            await fetch('/api/professor/cursos/' + courseId + '/access', {
+                 method: 'POST',
+                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
+            
+            alert('Associação realizada com sucesso! Redirecionando para a tela principal.');
+            window.location.href = `/main`;
 
-            if (response.ok) {
-                alert('Associação realizada com sucesso! Redirecionando para a tela principal.');
-                // Passa os IDs da instituição e curso como parâmetros na URL
-                window.location.href = `/main?instId=${institutionId}&cursoId=${courseId}`;
-            } else {
-                const data = await response.json();
-                alert(`Erro ao associar: ${data.message}`);
-            }
         } catch (error) {
-            console.error('Erro ao associar:', error);
-            alert('Erro ao associar.');
+            console.error('Erro no processo de associação:', error);
+            alert(`Erro: ${error.message}`);
         }
     }
+    
 
     function handleLogout() {
+        localStorage.removeItem('token');
         alert('Você foi desconectado. Até a próxima!');
         window.location.href = '/login';
     }
 
-    // --- Funções do Modal da Instituição ---
     function openInstitutionModal() {
         elements.institutionModal.classList.add('visible');
         elements.newInstitutionInput.focus();
@@ -187,18 +163,22 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const response = await fetch('/api/professor/instituicoes', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ nome: newInstitutionName }) // Envia apenas o nome
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                    body: JSON.stringify({ nome: newInstitutionName })
                 });
                 const data = await response.json();
                 if (response.ok) {
                     const newInstitution = { id: data.id, name: newInstitutionName };
                     state.institutions.push(newInstitution);
-                    addInstitutionToDatalist(newInstitution);
-                    elements.institutionInput.value = newInstitutionName;
+                    
+                    const option = document.createElement('option');
+                    option.value = newInstitution.id;
+                    option.textContent = newInstitution.name;
+                    elements.institutionSelect.appendChild(option);
+                    elements.institutionSelect.value = newInstitution.id;
+                    
+                    elements.institutionSelect.dispatchEvent(new Event('change'));
+
                     alert(`Instituição "${newInstitutionName}" adicionada com sucesso!`);
                     closeInstitutionModal();
                 } else {
@@ -214,8 +194,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Novas Funções do Modal de Curso ---
     function openCourseModal() {
+        const selectedInstitutionId = elements.institutionSelect.value;
+        if (!selectedInstitutionId) {
+            alert('Por favor, selecione uma instituição antes de adicionar um curso.');
+            return;
+        }
         elements.courseModal.classList.add('visible');
         elements.newCourseInput.focus();
     }
@@ -223,55 +207,37 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeCourseModal() {
         elements.courseModal.classList.remove('visible');
         elements.newCourseInput.value = '';
+        document.getElementById('new-course-sigla').value = '';
+        document.getElementById('new-course-semestres').value = '';
     }
 
     async function handleConfirmAddCourse() {
         const newCourseName = elements.newCourseInput.value.trim();
         const newCourseSigla = document.getElementById('new-course-sigla').value.trim();
         const newCourseSemestres = parseInt(document.getElementById('new-course-semestres').value, 10);
-        const selectedInstitutionName = elements.institutionInput.value.trim();
-        const selectedInstitution = state.institutions.find(inst => inst.name === selectedInstitutionName);
+        const selectedInstitutionId = elements.institutionSelect.value;
+        
+        if (!newCourseName || !newCourseSigla || !newCourseSemestres || isNaN(newCourseSemestres) || newCourseSemestres < 1) {
+            alert('Por favor, preencha todos os campos do curso corretamente.');
+            return;
+        }
 
-        if (!newCourseName) {
-            alert('Por favor, digite o nome do curso.');
-            elements.newCourseInput.focus();
-            return;
-        }
-        if (!newCourseSigla) {
-            alert('Por favor, digite a sigla do curso.');
-            document.getElementById('new-course-sigla').focus();
-            return;
-        }
-        if (!newCourseSemestres || isNaN(newCourseSemestres) || newCourseSemestres < 1) {
-            alert('Por favor, informe a quantidade de semestres.');
-            document.getElementById('new-course-semestres').focus();
-            return;
-        }
-        if (!selectedInstitution) {
-            alert('Por favor, selecione uma instituição válida antes de criar o curso.');
-            elements.institutionInput.focus();
-            return;
-        }
         try {
             const response = await fetch('/api/professor/cursos', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
                 body: JSON.stringify({
                     nome: newCourseName,
                     sigla: newCourseSigla,
                     semestres: newCourseSemestres,
-                    idInstituicao: selectedInstitution.id
+                    idInstituicao: selectedInstitutionId
                 })
             });
             const data = await response.json();
             if (response.ok) {
-                const newCourse = { id: data.id, name: newCourseName };
-                state.courses.push(newCourse);
-                addCourseToDatalist(newCourse);
-                elements.courseInput.value = newCourseName;
+                await fetchAndPopulateCoursesForInstitution(selectedInstitutionId);
+                elements.courseSelect.value = data.id;
+                
                 alert(`Curso "${newCourseName}" adicionado com sucesso!`);
                 closeCourseModal();
             } else {
@@ -283,41 +249,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Inicialização e Event Listeners ---
     function init() {
         fetchUsername();
         populateInstitutions();
-        populateCourses(); // Adicionado
 
-        // Event Listeners principais
+        elements.institutionSelect.addEventListener('change', (e) => {
+            const selectedInstitutionId = e.target.value;
+            if (selectedInstitutionId) {
+                fetchAndPopulateCoursesForInstitution(selectedInstitutionId);
+            }
+        });
+
         elements.dashboardButton.addEventListener('click', handleDashboardAccess);
         elements.logoutButton.addEventListener('click', handleLogout);
         
-        // Event Listeners do Modal da Instituição
-        elements.addInstitutionLink.addEventListener('click', (e) => {
-            e.preventDefault(); 
-            openInstitutionModal();
-        });
+        elements.addInstitutionLink.addEventListener('click', (e) => { e.preventDefault(); openInstitutionModal(); });
         elements.cancelAddInstitutionButton.addEventListener('click', closeInstitutionModal);
         elements.confirmAddInstitutionButton.addEventListener('click', handleConfirmAddInstitution);
-        elements.institutionModal.addEventListener('click', (e) => {
-            if (e.target === elements.institutionModal) {
-                closeInstitutionModal();
-            }
-        });
+        elements.institutionModal.addEventListener('click', (e) => { if (e.target === elements.institutionModal) closeInstitutionModal(); });
 
-        // Novos Event Listeners do Modal de Curso
-        elements.addCourseLink.addEventListener('click', (e) => {
-            e.preventDefault(); 
-            openCourseModal();
-        });
+        elements.addCourseLink.addEventListener('click', (e) => { e.preventDefault(); openCourseModal(); });
         elements.cancelAddCourseButton.addEventListener('click', closeCourseModal);
         elements.confirmAddCourseButton.addEventListener('click', handleConfirmAddCourse);
-        elements.courseModal.addEventListener('click', (e) => {
-            if (e.target === elements.courseModal) {
-                closeCourseModal();
-            }
-        });
+        elements.courseModal.addEventListener('click', (e) => { if (e.target === elements.courseModal) closeCourseModal(); });
     }
 
     init();

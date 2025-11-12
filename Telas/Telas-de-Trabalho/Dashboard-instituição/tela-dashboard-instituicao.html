@@ -22,20 +22,20 @@
 
             <!-- Seleção de Instituição -->
             <div class="selection-group">
-                <input type="text" id="institution-input" class="institution-input" list="institutions-list" placeholder="DIGITE OU SELECIONE SUA INSTITUIÇÃO">
-                <datalist id="institutions-list">
+                <select id="institution-select" class="institution-select">
+                    <option value="" disabled selected>Selecione sua instituição</option>
                     <!-- Opções serão adicionadas via JavaScript -->
-                </datalist>
-                <a class="link-help" id="add-institution-link">SUA INSTITUIÇÃO NÃO ESTÁ NA LISTA?</a>
+                </select>
+                <a class="link-help" id="add-institution-link">Não encontrou? Adicione aqui.</a>
             </div>
 
             <!-- Nova Seleção de Curso -->
             <div class="selection-group">
-                <input type="text" id="course-input" class="institution-input" list="courses-list" placeholder="DIGITE OU SELECIONE SEU CURSO">
-                <datalist id="courses-list">
+                <select id="course-select" class="institution-select" disabled>
+                    <option value="" disabled selected>Primeiro, selecione uma instituição</option>
                     <!-- Opções serão adicionadas via JavaScript -->
-                </datalist>
-                <a class="link-help" id="add-course-link">SEU CURSO NÃO ESTÁ NA LISTA?</a>
+                </select>
+                <a class="link-help" id="add-course-link">Não encontrou? Adicione aqui.</a>
             </div>
 
             <div class="button-group">
