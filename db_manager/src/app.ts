@@ -33,19 +33,8 @@ app.use('/api', auditRoutes); // Adiciona a nova rota de auditoria
 
 // --- Configuração de Rotas Estáticas ---
 
-<<<<<<< HEAD
-const basePath = path.join(__dirname, '..', '..', 'Telas');
-<<<<<<< HEAD
-=======
-=======
 const basePath = path.resolve(__dirname, '..', '..', 'Telas');
->>>>>>> 7cc219b (ye)
 
-<<<<<<< HEAD
->>>>>>> 063de9e (todas as telas interconectadas - telas de registro/login)
-// Área de Login e Cadastro
-=======
->>>>>>> b120156 (Projeto Integrador - Funcional finalizado)
 const loginCadastroPath = path.join(basePath, 'Telas-Area-de-Login-Cadastro');
 app.use('/login', express.static(path.join(loginCadastroPath, 'Tela-Login')));
 app.use('/esqueci-senha', express.static(path.join(loginCadastroPath, 'Tela-Esqueci-Minha-Senha')));
