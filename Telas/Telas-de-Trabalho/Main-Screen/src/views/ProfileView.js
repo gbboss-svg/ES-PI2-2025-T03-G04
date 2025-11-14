@@ -151,7 +151,11 @@ export function renderProfileView(container, user, institutions, modals) {
                 return;
             }
             try {
-                await ApiService.addInstitution({ nome: name, password: password });
+                // Primeiro, verifique a senha
+                await ApiService.verifyPassword(password);
+                
+                // Se a senha estiver correta, prossiga com a criação
+                await ApiService.addInstitution({ nome: name });
                 showToast(`Instituição "${name}" criada com sucesso! Atualizando...`, 'success');
                 modals.addInstitutionModal.hide();
                 setTimeout(() => window.location.reload(), 1500);
@@ -176,12 +180,15 @@ export function renderProfileView(container, user, institutions, modals) {
             }
 
             try {
+                // Primeiro, verifique a senha
+                await ApiService.verifyPassword(password);
+
+                // Se a senha estiver correta, prossiga com a criação
                 await ApiService.addCourse({ 
                     nome: name, 
                     sigla: sigla,
                     semestres: parseInt(semestres),
-                    idInstituicao: parseInt(instId), 
-                    password: password 
+                    idInstituicao: parseInt(instId)
                 });
                 showToast(`Curso "${name}" criado com sucesso! Atualizando...`, 'success');
                 modals.addCourseModal.hide();
@@ -207,12 +214,15 @@ export function renderProfileView(container, user, institutions, modals) {
             }
 
             try {
+                // Primeiro, verifique a senha
+                await ApiService.verifyPassword(password);
+
+                // Se a senha estiver correta, prossiga com a criação
                 await ApiService.addDiscipline({
                     nome: name,
                     sigla: sigla,
                     periodo: periodo,
-                    idCurso: parseInt(courseId),
-                    password: password
+                    idCurso: parseInt(courseId)
                 });
                 showToast(`Disciplina "${name}" criada com sucesso! Atualizando...`, 'success');
                 modals.addDisciplineModal.hide();

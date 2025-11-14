@@ -21,16 +21,7 @@ class DisciplineController {
     try {
       const connection = this.getDbConnection(req);
       const professorId = req.user!.id;
-      const { password, ...disciplineData } = req.body;
-
-      if (!password) {
-        return res.status(400).json({ message: 'A senha é obrigatória para esta ação.' });
-      }
-
-      const isPasswordValid = await AuthService.verifyPassword(connection, professorId, password);
-      if (!isPasswordValid) {
-          return res.status(401).json({ message: 'Senha incorreta.' });
-      }
+      const disciplineData = req.body;
 
       const disciplineId = await DisciplineService.createDiscipline(connection, disciplineData, professorId);
       return res.status(201).json({ id: disciplineId, message: 'Disciplina criada com sucesso!' });
