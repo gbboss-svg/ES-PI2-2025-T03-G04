@@ -60,7 +60,7 @@ export const deleteInstitution = (id) => request(`/professor/instituicoes/${id}`
 export const getCourses = () => request('/professor/cursos');
 export const addCourse = (data) => request('/professor/cursos', { method: 'POST', body: JSON.stringify(data) });
 export const updateCourse = (id, data) => request(`/professor/cursos/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-export const deleteCourse = (id) => request(`/professor/cursos/${id}`, { method: 'DELETE' });
+export const deleteCourse = (id) => request(`/cursos/${id}`, { method: 'DELETE' });
 export const touchCourse = (courseId) => request(`/professor/cursos/${courseId}/access`, { method: 'POST' });
 
 // Funções para Disciplinas

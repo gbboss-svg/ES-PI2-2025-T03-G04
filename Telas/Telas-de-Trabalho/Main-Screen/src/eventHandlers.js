@@ -29,26 +29,6 @@ export function setupGlobalEventListeners() {
         document.body.innerHTML = `<div class="vh-100 d-flex justify-content-center align-items-center"><h1>Você saiu do sistema.</h1></div>`;
     });
 
-    document.getElementById('confirm-add-institution-btn').addEventListener('click', async () => {
-        const newInstNameInput = document.getElementById('new-institution-name');
-        const passwordInput = document.getElementById('current-password-inst');
-        const instName = newInstNameInput.value.trim();
-        
-        if (instName && passwordInput.value) {
-            try {
-                await ApiService.addInstitution({ nome: instName, password: passwordInput.value });
-                document.getElementById('add-institution-form').reset();
-                modals.addInstitutionModal.hide();
-                await loadInitialData(); // Recarrega os dados para refletir a adição
-                showToast(`Instituição "${instName}" adicionada com sucesso!`, 'success');
-            } catch (error) {
-                showToast(`Erro ao adicionar instituição: ${error.message}`, 'error');
-            }
-        } else {
-            showToast('Por favor, preencha todos os campos.', 'error');
-        }
-    });
-
     document.getElementById('confirm-add-course-btn').addEventListener('click', async (e) => {
         const newCourseNameInput = document.getElementById('new-course-name');
         const passwordInput = document.getElementById('current-password-course');

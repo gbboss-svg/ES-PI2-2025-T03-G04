@@ -209,6 +209,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Initialization ---
     async function init() {
+        // --- Modal Delete Confirmations ---
+        document.getElementById('confirm-delete-institution-btn').addEventListener('click', async (e) => {
+            const id = e.currentTarget.dataset.instId;
+            try {
+                await ApiService.deleteInstitution(id);
+                showToast('Instituição excluída com sucesso! Atualizando...', 'success');
+                modals.deleteInstitutionModal.hide();
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                showToast(`Erro ao excluir instituição: ${error.message}`, 'error');
+            }
+        });
+
+        document.getElementById('confirm-delete-course-btn').addEventListener('click', async (e) => {
+            const id = e.currentTarget.dataset.courseId;
+            try {
+                await ApiService.deleteCourse(id);
+                showToast('Curso excluído com sucesso! Atualizando...', 'success');
+                modals.deleteCourseModal.hide();
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                showToast(`Erro ao excluir curso: ${error.message}`, 'error');
+            }
+        });
+
+        document.getElementById('confirm-delete-discipline-btn').addEventListener('click', async (e) => {
+            const id = e.currentTarget.dataset.disciplineId;
+            try {
+                await ApiService.deleteDiscipline(id);
+                showToast('Disciplina excluída com sucesso! Atualizando...', 'success');
+                modals.deleteDisciplineModal.hide();
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                showToast(`Erro ao excluir disciplina: ${error.message}`, 'error');
+            }
+        });
+
+        document.getElementById('confirm-delete-turma-btn').addEventListener('click', async (e) => {
+            const id = e.currentTarget.dataset.turmaId;
+            try {
+                await ApiService.deleteTurma(id);
+                showToast('Turma excluída com sucesso! Atualizando...', 'success');
+                modals.deleteTurmaModal.hide();
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                showToast(`Erro ao excluir turma: ${error.message}`, 'error');
+            }
+        });
+        
         // Sidebar Toggler
         sidebarToggler.addEventListener('click', () => {
             document.body.classList.toggle('sidebar-collapsed');

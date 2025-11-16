@@ -128,7 +128,7 @@ export function attachInstitutionsViewListeners(container, modals, callbacks) {
             const { discId, discName } = btn.dataset;
             document.getElementById('discipline-to-delete-name').textContent = discName;
             const confirmBtn = document.getElementById('confirm-delete-discipline-btn');
-            confirmBtn.dataset.discId = discId;
+            confirmBtn.dataset.disciplineId = discId;
             modals.deleteDisciplineModal.show();
         });
     });

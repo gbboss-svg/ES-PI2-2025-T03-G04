@@ -26,7 +26,7 @@ app.use(connectionMiddleware);
 // --- Configuração de Rotas da API ---
 app.use('/api/auth', authRoutes);
 app.use('/api/professor', professorRoutes);
-app.use('/api', courseRoutes);
+app.use('/api/cursos', courseRoutes);
 app.use('/api', disciplineRoutes);
 app.use('/api', turmaRoutes);
 app.use('/api', auditRoutes); // Adiciona a nova rota de auditoria

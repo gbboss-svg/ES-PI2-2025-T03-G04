@@ -1,12 +1,7 @@
-
-
-
-
-
-
 import express, { Request, Response } from 'express';
 import CourseService from '../services/CourseService';
 import { authMiddleware } from '../middlewares/auth';
+import CourseController from '../controllers/CourseController';
 
 const router = express.Router();
 
@@ -18,5 +13,7 @@ router.get('/instituicao/:id/cursos', authMiddleware, async (req: Request, res: 
     res.status(500).json({ message: error.message });
   }
 });
+
+router.delete('/:id', authMiddleware, CourseController.deleteCourse);
 
 export default router;
