@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import { Request, Response } from 'express';
 import AuthService from '../services/AuthService';
 import ProfessorService from '../services/ProfessorService';
@@ -11,6 +5,7 @@ import oracledb from 'oracledb';
 import { Buffer } from 'buffer';
 
 class AuthController {
+  
   private getDbConnection(req: Request): oracledb.Connection {
     if (!req.dbConnection) {
       throw new Error('Database connection not found in request. Ensure connectionMiddleware is applied.');
@@ -18,6 +13,7 @@ class AuthController {
     return req.dbConnection;
   }
 
+  
   async register(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
@@ -30,6 +26,7 @@ class AuthController {
     }
   }
 
+  
   async login(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
@@ -62,6 +59,7 @@ class AuthController {
     }
   }
 
+  
   async forgotPassword(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
@@ -73,6 +71,7 @@ class AuthController {
     }
   }
 
+  
   async resetPassword(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
@@ -84,6 +83,7 @@ class AuthController {
     }
   }
 
+  
   async verifyEmail(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
@@ -95,6 +95,7 @@ class AuthController {
     }
   }
 
+  
   async resendVerificationEmail(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
@@ -106,6 +107,7 @@ class AuthController {
     }
   }
 
+  
   async cancelRegistration(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);

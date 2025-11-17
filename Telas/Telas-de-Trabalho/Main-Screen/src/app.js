@@ -1,8 +1,5 @@
-// Import services
 import * as ApiService from './services/ApiService.js';
 import { showToast } from './services/NotificationService.js';
-
-// Import views
 import { renderDashboardView } from './views/DashboardView.js';
 import { renderProfileView } from './views/ProfileView.js';
 import { renderInstitutionsView } from './views/InstitutionsView.js';
@@ -12,7 +9,6 @@ import { initSettingsView, renderSettingsView } from './views/SettingsView.js';
 import { renderTurmaDetailView } from './views/TurmaDetailView.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- State Management ---
     const state = {
         user: null,
         institutions: [],
@@ -22,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentView: 'profile',
     };
 
-    // --- DOM Element References ---
     const views = {
         profile: document.getElementById('profile-view'),
         dashboard: document.getElementById('dashboard-view'),
@@ -38,34 +33,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmLogoutBtn = document.getElementById('confirm-logout-btn');
     const institutionsFlyoutList = document.getElementById('institutions-flyout-list');
 
-    // --- Modal Instances ---
-    const modals = {
-        logoutModal: new bootstrap.Modal(document.getElementById('logoutModal')),
-        addInstitutionModal: new bootstrap.Modal(document.getElementById('addInstitutionModal')),
-        addCourseModal: new bootstrap.Modal(document.getElementById('addCourseModal')),
-        addDisciplineModal: new bootstrap.Modal(document.getElementById('addDisciplineModal')),
-        deleteInstitutionModal: new bootstrap.Modal(document.getElementById('deleteInstitutionModal')),
-        deleteCourseModal: new bootstrap.Modal(document.getElementById('deleteCourseModal')),
-        deleteDisciplineModal: new bootstrap.Modal(document.getElementById('deleteDisciplineModal')),
-        deleteTurmaModal: new bootstrap.Modal(document.getElementById('deleteTurmaModal')),
-        editTurmaModal: new bootstrap.Modal(document.getElementById('editTurmaModal')),
-        editDisciplineModal: new bootstrap.Modal(document.getElementById('editDisciplineModal')),
-        addStudentModal: new bootstrap.Modal(document.getElementById('addStudentModal')),
-        deleteStudentModal: new bootstrap.Modal(document.getElementById('deleteStudentModal')),
-        finalizeSemesterModal: new bootstrap.Modal(document.getElementById('finalizeSemesterModal')),
-        reopenTurmaModal: new bootstrap.Modal(document.getElementById('reopenTurmaModal')),
-        csvConflictModal: new bootstrap.Modal(document.getElementById('csvConflictModal')),
-    };
+    const modals = {};
+    const modalIds = [
+        'logoutModal', 'addInstitutionModal', 'addCourseModal', 'addDisciplineModal',
+        'deleteInstitutionModal', 'deleteCourseModal', 'deleteDisciplineModal', 'deleteTurmaModal',
+        'editTurmaModal', 'editDisciplineModal', 'addStudentModal', 'deleteStudentModal',
+        'finalizeSemesterModal', 'reopenTurmaModal', 'csvConflictModal'
+    ];
 
-    // --- Event Handlers ---
+    modalIds.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            modals[id] = new bootstrap.Modal(element);
+        } else {
+            console.warn(`Modal element with ID '${id}' not found in the DOM. Its functionality might be impaired.`);
+            modals[id] = undefined;
+        }
+    });
+
     function handleLogout() {
         localStorage.removeItem('token');
         window.location.href = '/login';
     }
 
-    // --- Data Fetching and State Update ---
     async function fetchData() {
-        // Use Promise.allSettled for robust parallel fetching
         const results = await Promise.allSettled([
             ApiService.getProfessorProfile(),
             ApiService.getInstitutions(),
@@ -76,43 +67,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const [userResult, institutionsResult, coursesResult, disciplinesResult, activeTurmasResult] = results;
 
-        // User profile is critical. If it fails, log out.
         if (userResult.status === 'rejected') {
             showToast(`Erro ao carregar seu perfil: ${userResult.reason.message}. Você será desconectado.`, 'error');
             setTimeout(handleLogout, 3000);
-            return; // Stop further execution
+            return;
         }
         state.user = userResult.value;
 
-        // Handle institutions
         const institutions = institutionsResult.status === 'fulfilled' ? institutionsResult.value : [];
         if (institutionsResult.status === 'rejected') {
             showToast(`Não foi possível carregar as instituições: ${institutionsResult.reason.message}`, 'error');
         }
 
-        // Handle courses
         const courses = coursesResult.status === 'fulfilled' ? coursesResult.value : [];
         if (coursesResult.status === 'rejected') {
             showToast(`Não foi possível carregar os cursos: ${coursesResult.reason.message}`, 'error');
         }
 
-        // Handle disciplines
         const disciplines = disciplinesResult.status === 'fulfilled' ? disciplinesResult.value : [];
         if (disciplinesResult.status === 'rejected') {
             showToast(`Não foi possível carregar as disciplinas: ${disciplinesResult.reason.message}`, 'error');
         }
         
-        // Handle active turmas
         state.activeTurmas = activeTurmasResult.status === 'fulfilled' ? activeTurmasResult.value : [];
         if (activeTurmasResult.status === 'rejected') {
             showToast(`Não foi possível carregar as turmas ativas: ${activeTurmasResult.reason.message}`, 'error');
         }
 
-        // Assign to state for other parts of the app
         state.courses = courses;
         state.disciplines = disciplines;
 
-        // Structure institutions with courses and disciplines
         state.institutions = institutions.map(inst => ({
             ...inst,
             courses: courses.filter(c => c.institutionId === inst.id).map(course => ({
@@ -123,8 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         updateInstitutionsFlyout();
     }
-
-    // --- UI Rendering ---
     
     function updateInstitutionsFlyout() {
         if (!institutionsFlyoutList) return;
@@ -143,7 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // --- View Switching ---
     function switchView(viewName, params = {}) {
         state.currentView = viewName;
         Object.values(views).forEach(view => view.classList.add('d-none'));
@@ -154,7 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
             renderView(viewName, params);
         }
 
-        // Update active nav link
         navLinks.forEach(link => {
             if (link.dataset.view === viewName) {
                 link.classList.add('active');
@@ -179,37 +159,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderCreationView(views.creation);
                 break;
             case 'activeTurmas':
-                renderActiveTurmasView(views.activeTurmas, state.activeTurmas);
+                renderActiveTurmasView(views.activeTurmas);
                 break;
             case 'settings':
                 renderSettingsView(views.settings);
                 break;
             case 'turmaDetail':
-                // This case is handled by customRenderTurmaDetailView to ensure data is passed
                 break;
         }
     }
     
-    // Custom renderer to handle view switching
     function customRenderTurmaDetailView(turmaDetalhada) {
         const disciplina = state.disciplines.find(d => d.id === turmaDetalhada.discipline.id);
         if (disciplina) {
-             // Attach the full course and institution objects
-            const course = state.courses.find(c => c.id === disciplina.courseId);
-            turmaDetalhada.course = course || turmaDetalhada.course;
-            turmaDetalhada.institution = state.institutions.find(i => i.id === (course ? course.institutionId : null)) || turmaDetalhada.institution;
+            const courseFromState = state.courses.find(c => c.id === disciplina.courseId);
+            turmaDetalhada.course = { ...(courseFromState || turmaDetalhada.course || {}), name: (courseFromState?.name || turmaDetalhada.course?.name || 'Curso') };
+            turmaDetalhada.institution = state.institutions.find(i => i.id === (turmaDetalhada.course.institutionId || null)) || turmaDetalhada.institution;
 
             switchView('turmaDetail');
-            renderTurmaDetailView(turmaDetalhada, { ...disciplina, course: turmaDetalhada.course }, modals);
+            const disciplineForRender = {
+                ...turmaDetalhada.discipline,
+                name: turmaDetalhada.discipline?.name ?? '',
+                course: turmaDetalhada.course
+            };
+            renderTurmaDetailView(turmaDetalhada, disciplineForRender, modals);
         } else {
             showToast('Erro: disciplina da turma não encontrada.', 'error');
         }
     }
 
-
-    // --- Initialization ---
     async function init() {
-        // --- Modal Delete Confirmations ---
         document.getElementById('confirm-delete-institution-btn').addEventListener('click', async (e) => {
             const id = e.currentTarget.dataset.instId;
             try {
@@ -258,7 +237,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // Sidebar Toggler
         sidebarToggler.addEventListener('click', () => {
             document.body.classList.toggle('sidebar-collapsed');
             const icon = sidebarToggler.querySelector('i');
@@ -266,7 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
             icon.classList.toggle('bi-chevron-right');
         });
 
-        // Navigation
         navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -277,10 +254,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Logout
         confirmLogoutBtn.addEventListener('click', handleLogout);
 
-        // Init view modules that require callbacks
         initSettingsView({ logoutModal: modals.logoutModal });
         initActiveTurmasView({ switchView, renderTurmaDetailView: customRenderTurmaDetailView });
         initCreationView(async (institutionId) => {
@@ -288,7 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
             switchView('institutions', { expandInstId: institutionId });
         });
         
-        // Fetch initial data and render
         await fetchData();
         switchView(state.currentView);
     }

@@ -1,14 +1,9 @@
-
 import { renderCourseManagement, renderDisciplineManagement } from './Profile/managementSections.js';
 import * as ApiService from '../services/ApiService.js';
 import { showToast } from '../services/NotificationService.js';
 
 /**
  * Renderiza o conteúdo da view de Perfil.
- * @param {HTMLElement} container - O elemento container onde a view será renderizada.
- * @param {object} user - O objeto do usuário com os dados do perfil.
- * @param {Array} institutions - A lista de instituições do usuário.
- * @param {object} modals - Um objeto contendo as instâncias dos modais.
  */
 export function renderProfileView(container, user, institutions, modals) {
     if (!user || !user.name || !institutions) {
@@ -84,7 +79,6 @@ export function renderProfileView(container, user, institutions, modals) {
         </div>
     `;
     
-    // --- Get DOM Elements ---
     const instCourseSelect = container.querySelector('#institution-course-mgmt-select');
     const courseMgmtContainer = container.querySelector('#course-management-section');
     const courseDisciplineSelect = container.querySelector('#course-discipline-mgmt-select');
@@ -98,10 +92,6 @@ export function renderProfileView(container, user, institutions, modals) {
     const confirmAddCourseBtn = document.getElementById('confirm-add-course-btn');
     const confirmAddDisciplineBtn = document.getElementById('confirm-add-discipline-btn');
 
-
-    // --- Attach Event Listeners ---
-
-    // Photo Upload
     if (photoContainer && photoUploadInput) {
         photoContainer.addEventListener('click', () => photoUploadInput.click());
         photoUploadInput.addEventListener('change', (event) => {
@@ -117,7 +107,6 @@ export function renderProfileView(container, user, institutions, modals) {
         });
     }
 
-    // Edit Institution
     if (editInstitutionBtn && instProfileSelect) {
         editInstitutionBtn.addEventListener('click', () => {
             const selectedId = instProfileSelect.value;
@@ -129,7 +118,6 @@ export function renderProfileView(container, user, institutions, modals) {
         });
     }
 
-    // Delete Institution
     if (deleteInstitutionBtn && instProfileSelect) {
         deleteInstitutionBtn.addEventListener('click', () => {
             const selectedId = instProfileSelect.value;
@@ -141,7 +129,6 @@ export function renderProfileView(container, user, institutions, modals) {
         });
     }
 
-    // Add Institution Modal Logic
     if (confirmAddInstBtn) {
         confirmAddInstBtn.addEventListener('click', async () => {
             const name = document.getElementById('new-institution-name').value;
@@ -151,10 +138,7 @@ export function renderProfileView(container, user, institutions, modals) {
                 return;
             }
             try {
-                // Primeiro, verifique a senha
                 await ApiService.verifyPassword(password);
-                
-                // Se a senha estiver correta, prossiga com a criação
                 await ApiService.addInstitution({ nome: name });
                 showToast(`Instituição "${name}" criada com sucesso! Atualizando...`, 'success');
                 modals.addInstitutionModal.hide();
@@ -165,7 +149,6 @@ export function renderProfileView(container, user, institutions, modals) {
         });
     }
 
-    // Add Course Modal Logic
     if (confirmAddCourseBtn) {
         confirmAddCourseBtn.addEventListener('click', async () => {
             const instId = confirmAddCourseBtn.dataset.instId;
@@ -180,10 +163,7 @@ export function renderProfileView(container, user, institutions, modals) {
             }
 
             try {
-                // Primeiro, verifique a senha
                 await ApiService.verifyPassword(password);
-
-                // Se a senha estiver correta, prossiga com a criação
                 await ApiService.addCourse({ 
                     nome: name, 
                     sigla: sigla,
@@ -199,7 +179,6 @@ export function renderProfileView(container, user, institutions, modals) {
         });
     }
     
-    // Add Discipline Modal Logic
     if (confirmAddDisciplineBtn) {
         confirmAddDisciplineBtn.addEventListener('click', async () => {
             const courseId = confirmAddDisciplineBtn.dataset.courseId;
@@ -214,10 +193,7 @@ export function renderProfileView(container, user, institutions, modals) {
             }
 
             try {
-                // Primeiro, verifique a senha
                 await ApiService.verifyPassword(password);
-
-                // Se a senha estiver correta, prossiga com a criação
                 await ApiService.addDiscipline({
                     nome: name,
                     sigla: sigla,
@@ -235,7 +211,6 @@ export function renderProfileView(container, user, institutions, modals) {
 
     const allCourses = institutions.flatMap(inst => inst.courses || []);
 
-    // Course Management
     function updateCourseDisciplineSelect() {
         courseDisciplineSelect.innerHTML = allCourses.map(course => `<option value="${course.id}">${course.name}</option>`).join('');
         if (allCourses.length > 0) {
@@ -252,7 +227,6 @@ export function renderProfileView(container, user, institutions, modals) {
         });
     }
 
-    // Discipline Management
     if (courseDisciplineSelect) {
         courseDisciplineSelect.addEventListener('change', (e) => {
             const selectedOption = e.target.options[e.target.selectedIndex];
@@ -260,7 +234,6 @@ export function renderProfileView(container, user, institutions, modals) {
         });
     }
     
-    // --- Initial Render ---
     if (institutions.length > 0 && instCourseSelect.value) {
         renderCourseManagement(instCourseSelect.value, institutions, courseMgmtContainer, modals);
     }

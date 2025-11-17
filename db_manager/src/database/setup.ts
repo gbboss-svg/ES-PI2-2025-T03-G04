@@ -1,6 +1,9 @@
 import { getConnection } from './db';
 import oracledb from 'oracledb';
 
+/**
+ * Verifica se uma tabela existe no banco de dados e, se não existir, a cria.
+ */
 async function checkAndCreateTable(connection: oracledb.Connection, tableName: string, createSql: string) {
   try {
     const result = await connection.execute(
@@ -9,7 +12,6 @@ async function checkAndCreateTable(connection: oracledb.Connection, tableName: s
     );
     if (result.rows && result.rows.length === 0) {
       console.log(`Tabela ${tableName} não encontrada, criando...`);
-      // Oracle DDL statements have implicit commit, but we'll commit just in case
       await connection.execute(createSql);
       console.log(`Tabela ${tableName} criada com sucesso.`);
     }
@@ -19,14 +21,15 @@ async function checkAndCreateTable(connection: oracledb.Connection, tableName: s
   }
 }
 
-
+/**
+ * Executa o processo de configuração do schema do banco de dados.
+ */
 export async function setupDatabase() {
   let connection;
   try {
     connection = await getConnection();
     console.log('Iniciando verificação e configuração do schema do banco de dados...');
 
-    // A ordem é importante para respeitar as chaves estrangeiras (foreign keys)
     await checkAndCreateTable(connection, 'PROFESSORES', `
       CREATE TABLE PROFESSORES (
           Id_Professor NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

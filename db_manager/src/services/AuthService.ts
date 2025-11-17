@@ -5,9 +5,11 @@ import EmailService from '../email/EmailService';
 import oracledb from 'oracledb';
 
 class AuthService {
+  /**
+   * Realiza o registro de um novo professor.
+   */
   async register(connection: oracledb.Connection, nome: string, email: string, cpf: string, celular: string, senha: string) {
     try {
-      // Validação de entrada
       if (!nome || nome.trim().length === 0) {
         throw new Error('O nome é obrigatório.');
       }
@@ -17,14 +19,13 @@ class AuthService {
       if (!cpf || cpf.replace(/\D/g, '').length !== 11) {
         throw new Error('O CPF é inválido.');
       }
-      if (!celular || celular.replace(/\D/g, '').length < 10) { // Assuming minimum 10 digits for phone
+      if (!celular || celular.replace(/\D/g, '').length < 10) { 
         throw new Error('O número de celular é inválido.');
       }
       if (!senha || senha.length < 6) {
         throw new Error('A senha deve ter pelo menos 6 caracteres.');
       }
 
-      // Verificação unificada para credenciais existentes
       const existingUserResult = await connection.execute(
         `SELECT Id_Professor, Is_Verified, Email, Cpf, Celular 
          FROM professores 
@@ -36,20 +37,11 @@ class AuthService {
       if (existingUserResult.rows && existingUserResult.rows.length > 0) {
         const existingUser = (existingUserResult.rows as any)[0];
 
-        // Se o usuário já estiver verificado, bloqueia um novo cadastro
         if (existingUser.IS_VERIFIED === 1) {
-          if (existingUser.EMAIL === email) {
-            throw new Error('E-mail já cadastrado.');
-          }
-          if (existingUser.CPF === cpf) {
-            throw new Error('CPF já cadastrado.');
-          }
-          if (existingUser.CELULAR === celular) {
-            throw new Error('Celular já cadastrado.');
-          }
+          if (existingUser.EMAIL === email) throw new Error('E-mail já cadastrado.');
+          if (existingUser.CPF === cpf) throw new Error('CPF já cadastrado.');
+          if (existingUser.CELULAR === celular) throw new Error('Celular já cadastrado.');
         } else {
-          // Se o usuário não for verificado, é um cadastro antigo/incompleto.
-          // Removemos para permitir que o usuário tente se cadastrar novamente.
           await connection.execute(
             `DELETE FROM professores WHERE Id_Professor = :id`,
             { id: existingUser.ID_PROFESSOR },
@@ -76,6 +68,9 @@ class AuthService {
     }
   }
 
+  /**
+   * Verifica o código enviado por e-mail.
+   */
   async verifyEmail(connection: oracledb.Connection, email: string, code: string) {
     try {
       const result = await connection.execute(
@@ -103,8 +98,7 @@ class AuthService {
       const newAttempts = user.VERIFICATION_ATTEMPTS + 1;
 
       if (newAttempts >= 3) {
-        const userIsVerified = user.IS_VERIFIED === 1;
-        if (!userIsVerified) {
+        if (user.IS_VERIFIED !== 1) {
             await connection.execute(`DELETE FROM professores WHERE Email = :email`, { email }, { autoCommit: true });
         }
         throw new Error('MAX_ATTEMPTS_REACHED');
@@ -122,6 +116,9 @@ class AuthService {
     }
   }
 
+  /**
+   * Reenvia um novo código de verificação para o e-mail do usuário.
+   */
   async resendVerificationEmail(connection: oracledb.Connection, email: string) {
     try {
         const result = await connection.execute(
@@ -131,13 +128,11 @@ class AuthService {
         );
 
         const rows = result.rows as any[];
-        if (!rows || rows.length === 0) {
-            return;
-        }
+        if (!rows || rows.length === 0) return;
 
         const user = rows[0];
 
-        if (user.RESEND_ATTEMPTS >= 3) { // Changed from 2 to 3 to match frontend
+        if (user.RESEND_ATTEMPTS >= 3) { 
             await connection.execute(`DELETE FROM professores WHERE Email = :email`, { email }, { autoCommit: true });
             throw new Error('MAX_ATTEMPTS_REACHED');
         }
@@ -156,6 +151,9 @@ class AuthService {
     }
   }
 
+  /**
+   * Remove um registro de professor que ainda não foi verificado.
+   */
   async cancelRegistration(connection: oracledb.Connection, email: string) {
     try {
       await connection.execute(
@@ -169,47 +167,33 @@ class AuthService {
     }
   }
 
+  /**
+   * Autentica um usuário com base em um identificador (e-mail, CPF ou celular) e senha.
+   */
   async login(connection: oracledb.Connection, identifier: string, senha: string) {
     try {
       const isEmail = identifier.includes('@');
       let result;
 
       if (isEmail) {
-        result = await connection.execute(
-          `SELECT * FROM professores WHERE Email = :identifier`,
-          { identifier },
-          { outFormat: oracledb.OUT_FORMAT_OBJECT }
-        );
+        result = await connection.execute(`SELECT * FROM professores WHERE Email = :identifier`, { identifier }, { outFormat: oracledb.OUT_FORMAT_OBJECT });
       } else {
         const cleanedIdentifier = identifier.replace(/\D/g, '');
-        result = await connection.execute(
-          `SELECT * FROM professores WHERE REGEXP_REPLACE(Cpf, '[^0-9]', '') = :cleanedIdentifier OR REGEXP_REPLACE(Celular, '[^0-9]', '') = :cleanedIdentifier`,
-          { cleanedIdentifier },
-          { outFormat: oracledb.OUT_FORMAT_OBJECT }
-        );
+        result = await connection.execute(`SELECT * FROM professores WHERE REGEXP_REPLACE(Cpf, '[^0-9]', '') = :cleanedIdentifier OR REGEXP_REPLACE(Celular, '[^0-9]', '') = :cleanedIdentifier`, { cleanedIdentifier }, { outFormat: oracledb.OUT_FORMAT_OBJECT });
       }
 
       const rows = result.rows as any[];
-
-      if (!rows || rows.length === 0) {
-        throw new Error('Credenciais inválidas');
-      }
-
+      if (!rows || rows.length === 0) throw new Error('Credenciais inválidas');
+      
       const user = rows[0];
-      if (user.IS_VERIFIED !== 1) {
-        throw new Error('Por favor, verifique seu e-mail antes de fazer login.');
-      }
+      if (user.IS_VERIFIED !== 1) throw new Error('Por favor, verifique seu e-mail antes de fazer login.');
       
       const isPasswordValid = await bcrypt.compare(senha, user.SENHA);
-
-      if (!isPasswordValid) {
-        throw new Error('Credenciais inválidas');
-      }
+      if (!isPasswordValid) throw new Error('Credenciais inválidas');
 
       const jwtSecret = process.env.JWT_SECRET;
-      if (!jwtSecret) {
-        throw new Error('JWT_SECRET não está definido nas variáveis de ambiente.');
-      }
+      if (!jwtSecret) throw new Error('JWT_SECRET não está definido nas variáveis de ambiente.');
+      
       return jwt.sign({ id: user.ID_PROFESSOR }, jwtSecret, { expiresIn: '1h' });
     } catch (error: any) {
       console.error('Erro no login:', error);
@@ -217,6 +201,9 @@ class AuthService {
     }
   }
 
+  /**
+   * Inicia o processo de recuperação de senha.
+   */
   async forgotPassword(connection: oracledb.Connection, identifier: string) {
     try {
       const result = await connection.execute(
@@ -226,7 +213,6 @@ class AuthService {
       );
 
       const rows = result.rows as any[];
-
       if (!rows || rows.length === 0) {
         console.log(`Password reset attempt for non-existent user: ${identifier}`);
         return;
@@ -236,13 +222,8 @@ class AuthService {
       const userEmail = user.EMAIL;
 
       const verificationCode = EmailService.generateVerificationCode();
-
       await connection.execute(
-        `UPDATE professores
-         SET Verification_Code = :verificationCode,
-             Verification_Attempts = 0,
-             Resend_Attempts = 0
-         WHERE Id_Professor = :id`,
+        `UPDATE professores SET Verification_Code = :verificationCode, Verification_Attempts = 0, Resend_Attempts = 0 WHERE Id_Professor = :id`,
         { verificationCode, id: user.ID_PROFESSOR },
         { autoCommit: true }
       );
@@ -256,36 +237,24 @@ class AuthService {
     }
   }
 
+  /**
+   * Redefine a senha do usuário após a verificação do código.
+   */
   async resetPassword(connection: oracledb.Connection, email: string, novaSenha: string) {
     try {
-      const result = await connection.execute(
-        `SELECT Senha FROM professores WHERE Email = :email`,
-        { email },
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }
-      );
-
+      const result = await connection.execute(`SELECT Senha FROM professores WHERE Email = :email`, { email }, { outFormat: oracledb.OUT_FORMAT_OBJECT });
+      
       const rows = result.rows as any[];
-      if (!rows || rows.length === 0) {
-        throw new Error('Usuário não encontrado.');
-      }
+      if (!rows || rows.length === 0) throw new Error('Usuário não encontrado.');
+      
       const user = rows[0];
-
-      const isSamePassword = await bcrypt.compare(novaSenha, user.SENHA);
-      if (isSamePassword) {
-        throw new Error('A nova senha não pode ser igual à senha anterior.');
-      }
-
-      if (novaSenha.length < 6) {
-        throw new Error('A senha deve ter pelo menos 6 caracteres.');
-      }
+      if (await bcrypt.compare(novaSenha, user.SENHA)) throw new Error('A nova senha não pode ser igual à senha anterior.');
+      if (novaSenha.length < 6) throw new Error('A senha deve ter pelo menos 6 caracteres.');
 
       const hashedPassword = await bcrypt.hash(novaSenha, 10);
 
       await connection.execute(
-        `UPDATE professores
-         SET Senha = :hashedPassword,
-             Verification_Code = NULL
-         WHERE Email = :email`,
+        `UPDATE professores SET Senha = :hashedPassword, Verification_Code = NULL WHERE Email = :email`,
         { hashedPassword, email },
         { autoCommit: true }
       );
@@ -295,6 +264,9 @@ class AuthService {
     }
   }
 
+  /**
+   * Verifica se a senha fornecida corresponde à senha do professor no banco de dados.
+   */
   async verifyPassword(connection: oracledb.Connection, professorId: number, senha: string) {
     try {
       const result = await connection.execute(
@@ -304,9 +276,7 @@ class AuthService {
       );
 
       const rows = result.rows as any[];
-      if (!rows || rows.length === 0) {
-        throw new Error('Usuário não encontrado.');
-      }
+      if (!rows || rows.length === 0) throw new Error('Usuário não encontrado.');
 
       const user = rows[0];
       return await bcrypt.compare(senha, user.SENHA);

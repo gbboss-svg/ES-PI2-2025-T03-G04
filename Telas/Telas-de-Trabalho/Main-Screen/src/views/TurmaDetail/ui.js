@@ -18,7 +18,7 @@ export function renderMainHTML(turma, disciplina) {
         }
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
             <div>
-                <h2>${disciplina.course.name || "Curso"}</h2>
+                <h2>${(disciplina.course && disciplina.course.name) ? disciplina.course.name : "Curso"}</h2>
                 <h3 class="text-muted fw-normal">${disciplina.name} - ${turma.name}</h3>
                 <p class="text-muted mb-0">Gerenciamento de notas e alunos.</p>
             </div>
@@ -141,28 +141,28 @@ export function renderGradesTable(turma, disciplina) {
 
     const maxGrade = disciplina.maxGrade || 10;
 
-    if (!disciplina.gradeComponents || disciplina.gradeComponents.length === 0) {
-        tableHead.innerHTML = '<tr><th scope="col" colspan="3">Configure as atividades de avaliação para começar</th></tr>';
-        tableBody.innerHTML = '';
-        return;
-    }
+    let headers = ['Matrícula', 'Nome'];
+    const hasGradeComponents = disciplina.gradeComponents && disciplina.gradeComponents.length > 0;
 
-    let headers = ['Matrícula', 'Nome', ...disciplina.gradeComponents.map(c => `${c.name} (${c.acronym})`), 'Nota Final'];
-    if (disciplina.hasAdjustedColumn) headers.push('Final Ajustada');
+    if (hasGradeComponents) {
+        headers = [...headers, ...disciplina.gradeComponents.map(c => `${c.name} (${c.acronym})`), 'Nota Final'];
+        if (disciplina.hasAdjustedColumn) headers.push('Final Ajustada');
+    }
     headers.push('Ações');
     tableHead.innerHTML = `<tr>${headers.map(h => `<th scope="col">${h}</th>`).join('')}</tr>`;
     
     tableBody.innerHTML = (!turma.students || turma.students.length === 0)
         ? '<tr><td colspan="100%" class="text-center text-muted fst-italic py-4">Nenhum aluno cadastrado</td></tr>'
         : turma.students.map(student => {
-            const finalGrade = calculateFinalGrade(student.grades, disciplina.finalGradeFormula, disciplina.gradeComponents);
-            const gradeCells = disciplina.gradeComponents.map(comp => `
-                <td><input type="number" class="grade-input" data-acronym="${comp.acronym}" data-student-name="${student.name}" data-component-name="${comp.name}" value="${student.grades[comp.acronym] ?? ""}" min="0" max="${maxGrade}" step="0.01" disabled></td>
-            `).join('');
-            const finalAdjustedCell = disciplina.hasAdjustedColumn ? `<td><input type="number" class="grade-input" value="${isNaN(finalGrade) ? "" : adjustGrade(finalGrade).toFixed(1)}" min="0" max="${maxGrade}" step="0.5" disabled></td>` : '';
+            const finalGrade = hasGradeComponents ? calculateFinalGrade(student.grades, disciplina.finalGradeFormula, disciplina.gradeComponents) : NaN;
+            const gradeCells = hasGradeComponents ? disciplina.gradeComponents.map(comp => `
+                <td><input type="text" class="grade-input" data-acronym="${comp.acronym}" data-student-name="${student.name}" data-component-name="${comp.name}" value="${student.grades[comp.acronym] ?? ""}" ${isFinalized ? "disabled" : ""} disabled oninput="this.value = this.value.replace(/[^0-9.]/g, ''); if (this.value.split('.').length > 2) this.value = this.value.substring(0, this.value.lastIndexOf('.')); let val = parseFloat(this.value); if (val < 0) this.value = '0'; if (val > 10) this.value = '10';"></td>
+            `).join('') : '';
+            const finalGradeCell = hasGradeComponents ? `<td>${isNaN(finalGrade) ? "Erro" : finalGrade.toFixed(2)}</td>` : '';
+            const finalAdjustedCell = hasGradeComponents && disciplina.hasAdjustedColumn ? `<td><input type="number" class="grade-input" value="${isNaN(finalGrade) ? "" : adjustGrade(finalGrade).toFixed(1)}" min="0" max="${maxGrade}" step="0.5" ${isFinalized ? "disabled" : ""}></td>` : '';
             const actionsCell = `
                 <td>
-                    <button class="btn btn-sm btn-outline-danger remove-student-btn" data-student-id="${student.id}" data-student-name="${student.name}" title="Remover Aluno" ${isFinalized ? 'disabled' : ''}>
+                    <button class="btn btn-sm btn-outline-danger remove-student-btn" data-student-id="${student.id}" data-student-name="${student.name || ''}" title="Remover Aluno" ${isFinalized ? 'disabled' : ''}>
                         <i class="bi bi-trash"></i>
                     </button>
                 </td>
@@ -171,7 +171,7 @@ export function renderGradesTable(turma, disciplina) {
                         <td>${student.id}</td>
                         <td>${student.name}</td>
                         ${gradeCells}
-                        <td>${isNaN(finalGrade) ? "Erro" : finalGrade.toFixed(2)}</td>
+                        ${finalGradeCell}
                         ${finalAdjustedCell}
                         ${actionsCell}
                     </tr>`;

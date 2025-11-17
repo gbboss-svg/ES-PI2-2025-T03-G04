@@ -1,14 +1,9 @@
-
-
-
-
-
-
 import { Request, Response } from 'express';
 import AuditService from '../services/AuditService';
 import oracledb from 'oracledb';
 
 class AuditController {
+    
     private getDbConnection(req: Request): oracledb.Connection {
         if (!req.dbConnection) {
             throw new Error('Database connection not found in request.');
@@ -16,6 +11,7 @@ class AuditController {
         return req.dbConnection;
     }
 
+    
     async create(req: Request, res: Response) {
         try {
             const connection = this.getDbConnection(req);
@@ -27,6 +23,7 @@ class AuditController {
         }
     }
 
+    
     async getByTurma(req: Request, res: Response) {
         try {
             const connection = this.getDbConnection(req);

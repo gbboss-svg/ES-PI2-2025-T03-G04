@@ -1,7 +1,5 @@
 /**
  * Exibe uma notificação toast.
- * @param {string} message - A mensagem a ser exibida.
- * @param {string} type - O tipo de toast ('success', 'error', 'info').
  */
 export function showToast(message, type = 'info') {
     const toastContainer = document.querySelector('.toast-container');
@@ -30,12 +28,11 @@ export function showToast(message, type = 'info') {
 
     const toastElement = document.getElementById(toastId);
     const toast = new bootstrap.Toast(toastElement, {
-        delay: 5000 // 5 segundos
+        delay: 5000
     });
 
     toast.show();
 
-    // Remove o elemento do DOM após o toast ser ocultado
     toastElement.addEventListener('hidden.bs.toast', () => {
         toastElement.remove();
     });

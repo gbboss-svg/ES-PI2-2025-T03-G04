@@ -2,9 +2,6 @@ import * as ApiService from './ApiService.js';
 
 /**
  * Adiciona uma nova entrada ao log de auditoria via API.
- * @param {number} turmaId - O ID da turma relacionada ao log.
- * @param {string} message - A mensagem a ser registrada.
- * @param {object|null} snapshot - Um snapshot do estado dos dados antes da alteração.
  */
 export async function addAuditLog(turmaId, message, snapshot = null) {
     try {
@@ -15,14 +12,11 @@ export async function addAuditLog(turmaId, message, snapshot = null) {
         });
     } catch (error) {
         console.error("Falha ao salvar log de auditoria:", error);
-        // Não exibe um toast para não sobrecarregar o usuário com notificações a cada ação.
     }
 }
 
 /**
- * Renderiza o painel de auditoria na tela, buscando os dados da API.
- * @param {object} currentTurmaContext - O contexto da turma atual.
- * @param {function} renderTurmaDetailViewCallback - Callback para re-renderizar a view da turma (atualmente não usado para reverter).
+ * Renderiza o painel de auditoria na tela.
  */
 export async function renderAuditLog(currentTurmaContext, renderTurmaDetailViewCallback) {
     const logList = document.getElementById('audit-log-list');

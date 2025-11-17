@@ -43,10 +43,18 @@ function attachFormulaEditorListeners(turma, disciplina, renderTurmaDetailView, 
         if (disciplina.gradeComponents && disciplina.gradeComponents.length > 0) {
             const acronyms = disciplina.gradeComponents.map(c => c.acronym);
             const formula = `(${acronyms.join(' + ')}) / ${acronyms.length}`;
+            
+            // Atualiza o estado da disciplina e o campo de input
+            disciplina.finalGradeFormula = formula;
             const formulaInput = document.getElementById('formula-input');
             formulaInput.value = formula;
-            formulaInput.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // Força a re-renderização para recalcular e exibir as médias
+            renderTurmaDetailView(turma, disciplina);
+            
+            // Garante que o editor de fórmula esteja visível
             document.getElementById('formula-editor').classList.remove('d-none');
+            showToast('Fórmula de média simples aplicada. As notas finais foram recalculadas.', 'success');
         } else {
             showToast('Adicione pelo menos uma atividade de avaliação antes de calcular a média.', 'info');
         }
@@ -110,15 +118,32 @@ function attachFormulaEditorListeners(turma, disciplina, renderTurmaDetailView, 
 }
 
 function attachActionButtonsListeners(turma, disciplina, modals, renderTurmaDetailView, currentTurmaContext) {
-    document.getElementById('add-component-btn')?.addEventListener('click', () => {
+    document.getElementById('add-component-btn')?.addEventListener('click', async () => {
         const nameInput = document.getElementById('new-comp-name');
         const acronymInput = document.getElementById('new-comp-acronym');
         if (nameInput.value && acronymInput.value) {
-            disciplina.gradeComponents.push({ id: `new_${Date.now()}`, name: nameInput.value, acronym: acronymInput.value, description: '' });
-            renderTurmaDetailView(turma, disciplina);
-            showToast(`Atividade "${nameInput.value}" adicionada. Clique em 'Salvar Configurações' para persistir.`, 'info');
-            nameInput.value = '';
-            acronymInput.value = '';
+            const newComponent = {
+                id: `new_${Date.now()}`,
+                name: nameInput.value,
+                acronym: acronymInput.value,
+                description: ''
+            };
+            
+            const updatedComponents = [...disciplina.gradeComponents, newComponent];
+
+            try {
+                await ApiService.updateDiscipline(disciplina.id, {
+                    gradeComponents: updatedComponents,
+                });
+
+                disciplina.gradeComponents.push(newComponent);
+                renderTurmaDetailView(turma, disciplina);
+                showToast(`Atividade "${nameInput.value}" adicionada com sucesso.`, 'success');
+                nameInput.value = '';
+                acronymInput.value = '';
+            } catch (error) {
+                showToast(`Erro ao adicionar atividade: ${error.message}`, 'error');
+            }
         }
     });
 
@@ -157,7 +182,7 @@ function attachActionButtonsListeners(turma, disciplina, modals, renderTurmaDeta
 
                 if (studentHasChanges) {
                     studentsToUpdate.push({ student, updatedGrades: newGradesPayload });
-                    updatePromises.push(ApiService.updateStudentGrades(turma.id, student.id, newGradesPayload));
+                    updatePromises.push(ApiService.updateGrades(turma.id, student.id, newGradesPayload));
                 }
             }
         });
@@ -179,7 +204,14 @@ function attachActionButtonsListeners(turma, disciplina, modals, renderTurmaDeta
         }
     });
 
-    document.getElementById('add-student-btn')?.addEventListener('click', () => modals.addStudentModal.show());
+    document.getElementById('add-student-btn')?.addEventListener('click', () => {
+        if (modals.addStudentModal) {
+            modals.addStudentModal.show();
+        } else {
+            console.error("addStudentModal is undefined. Cannot show modal.");
+            showToast('Erro: Modal de adicionar aluno não encontrado.', 'error');
+        }
+    });
 
     document.getElementById('confirm-add-student-btn')?.addEventListener('click', async () => {
         const studentId = document.getElementById('new-student-id').value;
@@ -190,12 +222,14 @@ function attachActionButtonsListeners(turma, disciplina, modals, renderTurmaDeta
         }
         try {
             await ApiService.addStudent(turma.id, { id: studentId, name: studentName });
-            modals.addStudentModal.hide();
+            if (modals.addStudentModal) {
+                modals.addStudentModal.hide();
+            }
             showToast('Aluno adicionado com sucesso! Atualizando...', 'success');
             
             const updatedTurma = await ApiService.getTurmaDetail(turma.id);
             const updatedDiscipline = updatedTurma.discipline;
-            renderTurmaDetailView(updatedTurma, { ...disciplina, ...updatedDiscipline });
+            renderTurmaDetailView(updatedTurma, { ...disciplina, ...updatedDiscipline }, modals);
 
         } catch (error) {
             showToast(`Erro ao adicionar aluno: ${error.message}`, 'error');
@@ -211,7 +245,55 @@ function attachActionButtonsListeners(turma, disciplina, modals, renderTurmaDeta
     });
 
     document.getElementById('finalize-semester-btn')?.addEventListener('click', () => modals.finalizeSemesterModal.show());
+
+    const confirmFinalizeBtn = document.getElementById('confirm-finalize-btn');
+    if (confirmFinalizeBtn) {
+        const newConfirmBtn = confirmFinalizeBtn.cloneNode(true);
+        confirmFinalizeBtn.parentNode.replaceChild(newConfirmBtn, confirmFinalizeBtn);
+        newConfirmBtn.addEventListener('click', async () => {
+             try {
+                const snapshot = createSnapshot(turma);
+                await ApiService.finalizeTurma(turma.id);
+                modals.finalizeSemesterModal.hide();
+                showToast('Semestre finalizado com sucesso! A turma agora está bloqueada.', 'success');
+                addAuditLog(turma.id, `O semestre da turma ${turma.name} foi finalizado.`, snapshot);
+                
+                const updatedTurma = await ApiService.getTurmaDetail(turma.id);
+                renderTurmaDetailView(updatedTurma, updatedTurma.discipline, modals);
+            } catch (error) {
+                showToast(`Erro ao finalizar semestre: ${error.message}`, 'error');
+            }
+        });
+    }
+
     document.getElementById('reopen-turma-btn')?.addEventListener('click', () => modals.reopenTurmaModal.show());
+
+    const confirmReopenBtn = document.getElementById('confirm-reopen-btn');
+    if (confirmReopenBtn) {
+        const newConfirmBtn = confirmReopenBtn.cloneNode(true);
+        confirmReopenBtn.parentNode.replaceChild(newConfirmBtn, confirmReopenBtn);
+        newConfirmBtn.addEventListener('click', async () => {
+            const passwordInput = document.getElementById('current-password-reopen');
+            const password = passwordInput.value;
+            if (!password) {
+                showToast('Por favor, insira sua senha para reabrir a turma.', 'error');
+                return;
+            }
+            
+            try {
+                await ApiService.reopenTurma(turma.id, password);
+                modals.reopenTurmaModal.hide();
+                passwordInput.value = '';
+                showToast('Turma reaberta com sucesso!', 'success');
+                addAuditLog(turma.id, `A turma ${turma.name} foi reaberta para edição.`);
+                
+                const updatedTurma = await ApiService.getTurmaDetail(turma.id);
+                renderTurmaDetailView(updatedTurma, updatedTurma.discipline, modals);
+            } catch (error) {
+                showToast(`Erro ao reabrir turma: ${error.message}`, 'error');
+            }
+        });
+    }
 }
 
 // --- Lógica de Importação CSV Refatorada ---
@@ -351,30 +433,44 @@ function attachAuditPanelListeners() {
 }
 
 function attachStudentActionListeners(turma, disciplina, modals, renderTurmaDetailView) {
-    document.querySelectorAll('.remove-student-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const { studentId, studentName } = e.currentTarget.dataset;
-            document.getElementById('student-to-delete-name').textContent = studentName;
+    const tableBody = document.getElementById('grades-table-body');
+    const confirmBtn = document.getElementById('confirm-delete-student-btn');
+    let studentToRemove = null;
+
+    // Delegated event listener for remove buttons
+    tableBody.addEventListener('click', (e) => {
+        const removeBtn = e.target.closest('.remove-student-btn');
+        if (removeBtn) {
+            const { studentId, studentName } = removeBtn.dataset;
+            studentToRemove = { id: studentId, name: studentName ?? '' };
             
-            const confirmBtn = document.getElementById('confirm-delete-student-btn');
-            confirmBtn.onclick = async () => {
-                try {
-                    const snapshot = createSnapshot(turma);
-                    await ApiService.removeStudent(turma.id, studentId);
-                    modals.deleteStudentModal.hide();
-                    showToast(`Aluno ${studentName} removido com sucesso.`, 'success');
-                    
-                    addAuditLog(turma.id, `Aluno ${studentName} (matrícula ${studentId}) removido da turma.`, snapshot);
-                    
-                    const updatedTurma = await ApiService.getTurmaDetail(turma.id);
-                    renderTurmaDetailView(updatedTurma, updatedTurma.discipline, modals);
-                } catch (error) {
-                    showToast(`Erro ao remover aluno: ${error.message}`, 'error');
-                }
-            };
-            
+            document.getElementById('student-to-delete-name').textContent = studentToRemove.name;
             modals.deleteStudentModal.show();
-        });
+        }
+    });
+
+    // Single event listener for the confirmation button
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+    newConfirmBtn.addEventListener('click', async () => {
+        if (!studentToRemove) return;
+
+        try {
+            const snapshot = createSnapshot(turma);
+            await ApiService.removeStudent(turma.id, studentToRemove.id);
+            modals.deleteStudentModal.hide();
+            showToast(`Aluno ${studentToRemove.name} removido com sucesso.`, 'success');
+            
+            addAuditLog(turma.id, `Aluno ${studentToRemove.name} (matrícula ${studentToRemove.id}) removido da turma.`, snapshot);
+            
+            const updatedTurma = await ApiService.getTurmaDetail(turma.id);
+            renderTurmaDetailView(updatedTurma, updatedTurma.discipline, modals);
+        } catch (error) {
+            showToast(`Erro ao remover aluno: ${error.message}`, 'error');
+        } finally {
+            studentToRemove = null; // Reset after operation
+        }
     });
 }
 

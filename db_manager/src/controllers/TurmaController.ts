@@ -1,16 +1,15 @@
-
-
-
-
-
-
 import { Request, Response } from 'express';
 import TurmaService from '../services/TurmaService';
 import StudentService from '../services/StudentService';
 import AuthService from '../services/AuthService';
+import GradeService from '../services/GradeService';
 import oracledb from 'oracledb';
 
 class TurmaController {
+  /**
+   * Obtém a conexão de banco de dados anexada ao objeto de requisição.
+   */
+  
   private getDbConnection(req: Request): oracledb.Connection {
     if (!req.dbConnection) {
       throw new Error('Database connection not found in request. Ensure connectionMiddleware is applied.');
@@ -18,6 +17,10 @@ class TurmaController {
     return req.dbConnection;
   }
 
+  /**
+   * Lida com a requisição para buscar as turmas ativas do professor logado.
+   */
+  
   async getActiveTurmas(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
@@ -29,6 +32,10 @@ class TurmaController {
     }
   }
 
+  /**
+   * Lida com a requisição para criar uma nova turma.
+   */
+  
   async createTurma(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
@@ -39,6 +46,10 @@ class TurmaController {
     }
   }
 
+  /**
+   * Lida com a requisição para buscar as turmas de uma disciplina específica.
+   */
+  
   async getTurmasByDiscipline(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
@@ -50,6 +61,10 @@ class TurmaController {
     }
   }
 
+  /**
+   * Lida com a requisição para buscar os detalhes completos de uma turma.
+   */
+  
   async getTurmaDetail(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
@@ -61,6 +76,10 @@ class TurmaController {
     }
   }
 
+  /**
+   * Lida com a requisição para adicionar um único aluno a uma turma.
+   */
+  
   async addStudentToTurma(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
@@ -73,6 +92,10 @@ class TurmaController {
     }
   }
 
+  /**
+   * Lida com a requisição para adicionar múltiplos alunos a uma turma em lote.
+   */
+  
   async batchAddStudentsToTurma(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
@@ -88,18 +111,27 @@ class TurmaController {
     }
   }
 
+  /**
+   * Lida com a requisição para atualizar as notas de um aluno.
+   */
+  
   async updateStudentGrades(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
+      const professorId = req.user!.id;
       const { turmaId, studentId } = req.params;
       const { grades } = req.body;
-      await TurmaService.updateStudentGrades(connection, Number(turmaId), Number(studentId), grades);
+      await GradeService.updateStudentGrades(connection, Number(turmaId), Number(studentId), grades, professorId);
       return res.status(200).json({ message: 'Notas atualizadas com sucesso!' });
     } catch (error: any) {
       return res.status(500).json({ message: error.message });
     }
   }
 
+  /**
+   * Lida com a requisição para excluir uma turma.
+   */
+  
   async deleteTurma(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
@@ -111,6 +143,10 @@ class TurmaController {
     }
   }
 
+  /**
+   * Lida com a requisição para remover um aluno de uma turma.
+   */
+  
   async removeStudentFromTurma(req: Request, res: Response) {
     try {
         const connection = this.getDbConnection(req);
@@ -122,6 +158,10 @@ class TurmaController {
     }
   }
 
+  /**
+   * Lida com a requisição para finalizar o semestre de uma turma.
+   */
+  
   async finalizeTurma(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
@@ -133,6 +173,10 @@ class TurmaController {
     }
   }
 
+  /**
+   * Lida com a requisição para reabrir uma turma finalizada.
+   */
+  
   async reopenTurma(req: Request, res: Response) {
     try {
       const connection = this.getDbConnection(req);
@@ -152,6 +196,10 @@ class TurmaController {
     }
   }
 
+  /**
+   * Lida com a requisição para atualizar os dados de uma turma.
+   */
+  
   async updateTurma(req: Request, res: Response) {
     try {
         const connection = this.getDbConnection(req);

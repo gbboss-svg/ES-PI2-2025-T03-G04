@@ -1,25 +1,24 @@
-
-
-
-// FIX: Changed require to import for ES Module compatibility.
 import sgMail from '@sendgrid/mail';
 
 class EmailService {
   constructor() {
-    // Configura a API Key do SendGrid
     sgMail.setApiKey('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');
   }
   
-  // Gera um código de verificação de 6 dígitos
+  /**
+   * Gera um código de verificação numérico de 6 dígitos.
+   */
   generateVerificationCode(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  // Envia o e-mail de verificação usando SendGrid
+  /**
+   * Envia um e-mail de verificação de conta para um novo usuário.
+   */
   async sendVerificationEmail(to: string, code: string) {
     const msg = {
       to: to,
-      from: 'staff.notadez@gmail.com', // Seu e-mail verificado no SendGrid
+      from: 'staff.notadez@gmail.com',
       subject: 'Código de Verificação',
       html: `
         <h1>Seu código de verificação</h1>
@@ -43,11 +42,13 @@ class EmailService {
     }
   }
 
-  // Envia o e-mail de redefinição de senha
+  /**
+   * Envia um e-mail para o processo de redefinição de senha.
+   */
   async sendPasswordResetEmail(to: string, code: string) {
     const msg = {
       to: to,
-      from: 'staff.notadez@gmail.com', // Seu e-mail verificado no SendGrid
+      from: 'staff.notadez@gmail.com',
       subject: 'Recuperação de Senha',
       html: `
         <h1>Código de Recuperação de Senha</h1>

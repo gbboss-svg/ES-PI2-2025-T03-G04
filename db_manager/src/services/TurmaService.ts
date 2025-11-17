@@ -1,7 +1,9 @@
-
 import oracledb from 'oracledb';
 
 export default class TurmaService {
+  /**
+   * Busca todas as turmas de uma disciplina específica.
+   */
   static async getTurmasByDiscipline(connection: oracledb.Connection, disciplineId: number) {
     try {
       const result = await connection.execute(
@@ -19,28 +21,14 @@ export default class TurmaService {
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
 
-      if (!result.rows) {
-        return [];
-      }
+      if (!result.rows) return [];
 
       return (result.rows as any[]).map(row => ({
-        id: row.ID_TURMA,
-        name: row.NOMETURMA,
-        semestre: row.SEMESTRE,
-        periodo: row.PERIODO,
+        id: row.ID_TURMA, name: row.NOMETURMA, semestre: row.SEMESTRE, periodo: row.PERIODO,
         isFinalized: row.FINALIZADO === 1,
-        discipline: {
-          id: row.ID_DISCIPLINA,
-          name: row.NOMEDISCIPLINA,
-        },
-        course: {
-          id: row.ID_CURSO,
-          name: row.NOMECURSO,
-        },
-        institution: {
-          id: row.ID_INSTITUICAO,
-          name: row.NOMEINSTITUICAO,
-        }
+        discipline: { id: row.ID_DISCIPLINA, name: row.NOMEDISCIPLINA },
+        course: { id: row.ID_CURSO, name: row.NOMECURSO },
+        institution: { id: row.ID_INSTITUICAO, name: row.NOMEINSTITUICAO }
       }));
     } catch (error: any) {
       console.error('Erro ao listar turmas:', error);
@@ -48,6 +36,9 @@ export default class TurmaService {
     }
   }
 
+  /**
+   * Busca todas as turmas ativas (não finalizadas) de um professor.
+   */
   static async getActiveTurmasByProfessor(connection: oracledb.Connection, professorId: number) {
     try {
       const result = await connection.execute(
@@ -65,26 +56,13 @@ export default class TurmaService {
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
 
-      if (!result.rows) {
-        return [];
-      }
+      if (!result.rows) return [];
 
       return (result.rows as any[]).map(row => ({
-        id: row.ID_TURMA,
-        name: row.NOMETURMA,
-        isFinalized: row.FINALIZADO === 1,
-        discipline: {
-          id: row.ID_DISCIPLINA,
-          name: row.NOMEDISCIPLINA,
-        },
-        course: {
-          id: row.ID_CURSO,
-          name: row.NOMECURSO,
-        },
-        institution: {
-          id: row.ID_INSTITUICAO,
-          name: row.NOMEINSTITUICAO,
-        }
+        id: row.ID_TURMA, name: row.NOMETURMA, isFinalized: row.FINALIZADO === 1,
+        discipline: { id: row.ID_DISCIPLINA, name: row.NOMEDISCIPLINA },
+        course: { id: row.ID_CURSO, name: row.NOMECURSO },
+        institution: { id: row.ID_INSTITUICAO, name: row.NOMEINSTITUICAO }
       }));
     } catch (error: any) {
       console.error('Erro ao listar turmas ativas:', error);
@@ -92,24 +70,21 @@ export default class TurmaService {
     }
   }
 
+  /**
+   * Cria uma nova turma no banco de dados.
+   */
   static async createTurma(connection: oracledb.Connection, turma: { nome: string, idDisciplina: number, semestre: string, periodo: string }) {
     try {
       const result = await connection.execute(
         `INSERT INTO Turma (Nome, Id_Disciplina, Semestre, Periodo, Finalizado)
          VALUES (:nome, :idDisciplina, :semestre, :periodo, 0)
          RETURNING Id_Turma INTO :id`,
-        {
-          nome: turma.nome,
-          idDisciplina: turma.idDisciplina,
-          semestre: turma.semestre,
-          periodo: turma.periodo,
-          id: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT }
-        },
+        { ...turma, id: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT } },
         { autoCommit: true }
       );
 
       const outBinds = result.outBinds as { id: number[] };
-      if (outBinds && outBinds.id) {
+      if (outBinds?.id) {
         return { id: outBinds.id[0], ...turma };
       } else {
         throw new Error('Falha ao obter o ID da turma criada.');
@@ -120,198 +95,111 @@ export default class TurmaService {
     }
   }
 
+  /**
+   * Busca os detalhes completos de uma turma.
+   */
   static async getTurmaDetailById(connection: oracledb.Connection, turmaId: number) {
     try {
-      const result = await connection.execute(
+      const turmaInfoResult = await connection.execute(
         `SELECT 
             t.Id_Turma, t.Nome AS NomeTurma, t.Finalizado, t.Semestre, t.Periodo,
             d.Id_Disciplina, d.Nome AS NomeDisciplina, d.Formula_Calculo, d.Nota_Maxima,
             c.Id_Curso, c.Nome AS NomeCurso,
-            i.Id_Instituicao, i.Nome AS NomeInstituicao,
-            a.Matricula, a.Nome AS NomeAluno,
-            n.Pontuacao,
-            cn.Sigla AS ComponenteSigla
+            i.Id_Instituicao, i.Nome AS NomeInstituicao
          FROM Turma t
          JOIN Disciplina d ON t.Id_Disciplina = d.Id_Disciplina
          JOIN Curso c ON d.Id_Curso = c.Id_Curso
          JOIN Instituicao i ON c.Id_Instituicao = i.Id_Instituicao
-         LEFT JOIN Aluno_Turma atv ON t.Id_Turma = atv.Id_Turma
-         LEFT JOIN Aluno a ON atv.Matricula = a.Matricula
-         LEFT JOIN Notas n ON a.Matricula = n.Matricula AND t.Id_Turma = n.Id_Turma
-         LEFT JOIN Componente_Nota cn ON n.Id_Comp = cn.Id_Comp
          WHERE t.Id_Turma = :id`,
-        [turmaId],
-        { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        [turmaId], { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
-       
+
+      if (!turmaInfoResult.rows || turmaInfoResult.rows.length === 0) throw new Error('Turma não encontrada.');
+      const turmaInfo = (turmaInfoResult.rows as any[])[0];
+
       const componentsResult = await connection.execute(
-        `SELECT Id_Comp, Nome, Sigla, Descricao FROM Componente_Nota WHERE Id_Disciplina = (SELECT Id_Disciplina FROM Turma WHERE Id_Turma = :id)`,
+        `SELECT Id_Comp, Nome, Sigla, Descricao FROM Componente_Nota WHERE Id_Disciplina = :id`,
+        [turmaInfo.ID_DISCIPLINA], { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
+      const gradeComponents = (componentsResult.rows as any[]).map(r => ({
+        id: r.ID_COMP, name: r.NOME, acronym: r.SIGLA, description: r.DESCRICAO
+      }));
+
+      const studentsResult = await connection.execute(
+        `SELECT a.Matricula, a.Nome AS NomeAluno FROM Aluno a JOIN Aluno_Turma atv ON a.Matricula = atv.Matricula WHERE atv.Id_Turma = :id ORDER BY a.Nome`,
         [turmaId], { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
       
-      const gradeComponents = (componentsResult.rows as any[]).map(r => ({
-          id: r.ID_COMP, name: r.NOME, acronym: r.SIGLA, description: r.DESCRICAO
-      }));
+      const studentMap = new Map();
+      (studentsResult.rows as any[]).forEach(row => {
+        studentMap.set(row.MATRICULA, { id: row.MATRICULA, name: row.NOMEALUNO, grades: {} });
+      });
 
+      const gradesResult = await connection.execute(
+        `SELECT n.Matricula, n.Pontuacao, cn.Sigla AS ComponenteSigla FROM NOTAS n JOIN Componente_Nota cn ON n.Id_Comp = cn.Id_Comp WHERE n.Id_Turma = :id`,
+        [turmaId], { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      );
 
-      if (!result.rows || result.rows.length === 0) {
-        const turmaInfoResult = await connection.execute(
-            `SELECT 
-                t.Id_Turma, t.Nome AS NomeTurma, t.Finalizado, t.Semestre, t.Periodo,
-                d.Id_Disciplina, d.Nome AS NomeDisciplina, d.Formula_Calculo, d.Nota_Maxima,
-                c.Id_Curso, c.Nome AS NomeCurso,
-                i.Id_Instituicao, i.Nome AS NomeInstituicao
-            FROM Turma t
-            JOIN Disciplina d ON t.Id_Disciplina = d.Id_Disciplina
-            JOIN Curso c ON d.Id_Curso = c.Id_Curso
-            JOIN Instituicao i ON c.Id_Instituicao = i.Id_Instituicao
-            WHERE t.Id_Turma = :id`,
-            [turmaId], { outFormat: oracledb.OUT_FORMAT_OBJECT }
-        );
-        if(!turmaInfoResult.rows || turmaInfoResult.rows.length === 0) {
-            throw new Error('Turma não encontrada.');
-        }
-        const firstRow = (turmaInfoResult.rows as any[])[0];
-         return {
-            id: firstRow.ID_TURMA, name: firstRow.NOMETURMA, semestre: firstRow.SEMESTRE, periodo: firstRow.PERIODO, isFinalized: firstRow.FINALIZADO === 1,
-            discipline: { id: firstRow.ID_DISCIPLINA, name: firstRow.NOMEDISCIPLINA, finalGradeFormula: firstRow.FORMULA_CALCULO, maxGrade: firstRow.NOTA_MAXIMA, gradeComponents },
-            course: { id: firstRow.ID_CURSO, name: firstRow.NOMECURSO },
-            institution: { id: firstRow.ID_INSTITUICAO, name: firstRow.NOMEINSTITUICAO },
-            students: []
-        };
-      }
-
-      const rows = result.rows as any[];
-      const studentsMap = new Map();
-
-      rows.forEach(row => {
-        if (row.MATRICULA) {
-          let student = studentsMap.get(row.MATRICULA);
-          if (!student) {
-            student = {
-              id: row.MATRICULA,
-              name: row.NOMEALUNO,
-              grades: {}
-            };
-            studentsMap.set(row.MATRICULA, student);
-          }
-          if (row.COMPONENTESIGLA && row.PONTUACAO !== null) {
-            student.grades[row.COMPONENTESIGLA] = row.PONTUACAO;
-          }
+      (gradesResult.rows as any[]).forEach(row => {
+        const student = studentMap.get(row.MATRICULA);
+        if (student && row.COMPONENTESIGLA) {
+          student.grades[row.COMPONENTESIGLA] = row.PONTUACAO;
         }
       });
 
-      const firstRow = rows[0];
-      const turmaDetail = {
-        id: firstRow.ID_TURMA,
-        name: firstRow.NOMETURMA,
-        semestre: firstRow.SEMESTRE,
-        periodo: firstRow.PERIODO,
-        isFinalized: firstRow.FINALIZADO === 1,
-        discipline: {
-          id: firstRow.ID_DISCIPLINA,
-          name: firstRow.NOMEDISCIPLINA,
-          finalGradeFormula: firstRow.FORMULA_CALCULO,
-          maxGrade: firstRow.NOTA_MAXIMA,
-          gradeComponents
-        },
-        course: {
-          id: firstRow.ID_CURSO,
-          name: firstRow.NOMECURSO,
-        },
-        institution: {
-          id: firstRow.ID_INSTITUICAO,
-          name: firstRow.NOMEINSTITUICAO,
-        },
-        students: Array.from(studentsMap.values())
+      return {
+        id: turmaInfo.ID_TURMA, name: turmaInfo.NOMETURMA, semestre: turmaInfo.SEMESTRE, periodo: turmaInfo.PERIODO,
+        isFinalized: turmaInfo.FINALIZADO === 1,
+        discipline: { id: turmaInfo.ID_DISCIPLINA, name: turmaInfo.NOMEDISCIPLINA, finalGradeFormula: turmaInfo.FORMULA_CALCULO, maxGrade: turmaInfo.NOTA_MAXIMA, gradeComponents },
+        course: { id: turmaInfo.ID_CURSO, name: turmaInfo.NOMECURSO },
+        institution: { id: turmaInfo.ID_INSTITUICAO, name: turmaInfo.NOMEINSTITUICAO },
+        students: Array.from(studentMap.values())
       };
-
-      return turmaDetail;
     } catch (error: any) {
       console.error('Erro ao buscar detalhes da turma:', error);
       throw new Error('Erro ao buscar detalhes da turma.');
     }
   }
-  
-  static async updateStudentGrades(connection: oracledb.Connection, turmaId: number, studentId: number, grades: { [key: string]: number }) {
-    try {
-      const disciplineIdResult = await connection.execute(
-        `SELECT Id_Disciplina FROM Turma WHERE Id_Turma = :turmaId`,
-        { turmaId }, { outFormat: oracledb.OUT_FORMAT_OBJECT }
-      );
-      const disciplineId = (disciplineIdResult.rows as any[])[0]?.ID_DISCIPLINA;
-      if (!disciplineId) throw new Error("Disciplina da turma não encontrada.");
 
-      for (const sigla in grades) {
-        const score = grades[sigla];
-
-        const compResult = await connection.execute(
-          `SELECT Id_Comp FROM Componente_Nota WHERE Sigla = :sigla AND Id_Disciplina = :disciplineId`,
-          { sigla, disciplineId }, { outFormat: oracledb.OUT_FORMAT_OBJECT }
-        );
-        const componentId = (compResult.rows as any[])[0]?.ID_COMP;
-
-        if (componentId) {
-          await connection.execute(
-            `MERGE INTO Notas n
-             USING (SELECT :turmaId AS Id_Turma, :studentId AS Matricula, :componentId AS Id_Comp FROM dual) src
-             ON (n.Id_Turma = src.Id_Turma AND n.Matricula = src.Matricula AND n.Id_Comp = src.Id_Comp)
-             WHEN MATCHED THEN
-               UPDATE SET n.Pontuacao = :score
-             WHEN NOT MATCHED THEN
-               INSERT (Id_Turma, Matricula, Id_Comp, Pontuacao)
-               VALUES (:turmaId, :studentId, :componentId, :score)`,
-            { turmaId, studentId, componentId, score }
-          );
-        }
-      }
-      await connection.commit();
-    } catch (error: any) {
-      await connection.rollback();
-      console.error('Erro ao atualizar notas do aluno:', error);
-      throw new Error('Erro ao atualizar notas do aluno.');
-    }
-  }
-
+  /**
+   * Finaliza o semestre de uma turma.
+   */
   static async finalizeTurma(connection: oracledb.Connection, turmaId: number): Promise<void> {
     try {
-      await connection.execute(
-        `UPDATE Turma SET Finalizado = 1 WHERE Id_Turma = :id`,
-        { id: turmaId },
-        { autoCommit: true }
-      );
+      await connection.execute(`UPDATE Turma SET Finalizado = 1 WHERE Id_Turma = :id`, { id: turmaId }, { autoCommit: true });
     } catch (error: any) {
       console.error('Erro ao finalizar turma:', error);
       throw new Error('Erro ao finalizar a turma.');
     }
   }
 
+  /**
+   * Reabre uma turma finalizada.
+   */
   static async reopenTurma(connection: oracledb.Connection, turmaId: number): Promise<void> {
     try {
-      await connection.execute(
-        `UPDATE Turma SET Finalizado = 0 WHERE Id_Turma = :id`,
-        { id: turmaId },
-        { autoCommit: true }
-      );
+      await connection.execute(`UPDATE Turma SET Finalizado = 0 WHERE Id_Turma = :id`, { id: turmaId }, { autoCommit: true });
     } catch (error: any) {
       console.error('Erro ao reabrir turma:', error);
       throw new Error('Erro ao reabrir a turma.');
     }
   }
 
+  /**
+   * Exclui uma turma do banco de dados.
+   */
   static async deleteTurma(connection: oracledb.Connection, turmaId: number): Promise<void> {
     try {
-      await connection.execute(
-        `DELETE FROM Turma WHERE Id_Turma = :id`,
-        { id: turmaId },
-        { autoCommit: true }
-      );
+      await connection.execute(`DELETE FROM Turma WHERE Id_Turma = :id`, { id: turmaId }, { autoCommit: true });
     } catch (error: any) {
       console.error('Erro ao excluir turma:', error);
       throw new Error('Erro ao excluir a turma.');
     }
   }
   
+  /**
+   * Atualiza os dados de uma turma.
+   */
   static async updateTurma(connection: oracledb.Connection, turmaId: number, data: { nome: string, semestre: string, periodo: string }, professorId: number) {
     try {
         const { nome, semestre, periodo } = data;
@@ -334,18 +222,4 @@ export default class TurmaService {
         throw new Error('Erro ao atualizar turma.');
     }
   }
-
-
-  // FIX: The methods below are placeholders to satisfy compilation for an unused route file (services/turmas.ts)
-  // and are not part of the active application logic.
-  static async getAll(): Promise<any[]> { return []; }
-  static async getById(id: number): Promise<any> { return null; }
-  static async create(data: any): Promise<number> { return 0; }
-  static async update(id: number, data: any): Promise<void> { return; }
-  static async delete(id: number): Promise<void> { return; }
-  static async finalize(id: number): Promise<void> { return; }
-  static async getStudents(turmaId: number): Promise<any[]> { return []; }
-  static async addStudent(turmaId: number, studentId: number): Promise<void> { return; }
-  static async removeStudent(turmaId: number, studentId: number): Promise<void> { return; }
-  static async updateGrade(turmaId: number, studentId: number, gradeComponentId: number, score: number): Promise<void> { return; }
 }

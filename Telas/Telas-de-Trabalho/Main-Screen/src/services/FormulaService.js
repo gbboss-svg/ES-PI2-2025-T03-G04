@@ -1,9 +1,5 @@
 /**
  * Calcula a nota final de um aluno com base em uma fórmula e nos componentes de nota.
- * @param {object} grades - Objeto com as notas do aluno (ex: { E1: 8.5, E2: 9.0 }).
- * @param {string} formula - A fórmula matemática para o cálculo (ex: "(E1*0.3) + (E2*0.7)").
- * @param {Array} components - Array de objetos representando os componentes de nota.
- * @returns {number|NaN} - A nota final calculada ou NaN em caso de erro.
  */
 export function calculateFinalGrade(grades, formula, components) {
     if (!formula || components.length === 0) return 0;
@@ -14,9 +10,8 @@ export function calculateFinalGrade(grades, formula, components) {
         formulaToEvaluate = formulaToEvaluate.replace(regex, grade);
     }
     try {
-        // Usar new Function() é uma forma de avaliar a string da fórmula de forma segura.
         const result = new Function(`return ${formulaToEvaluate}`)();
-        return !isFinite(result) ? NaN : result; // Retorna NaN para Infinito/-Infinito
+        return !isFinite(result) ? NaN : result;
     } catch (e) {
         console.error("Erro ao calcular fórmula:", e);
         return NaN;
@@ -25,8 +20,6 @@ export function calculateFinalGrade(grades, formula, components) {
 
 /**
  * Arredonda a nota final para o meio ponto mais próximo (0.0, 0.5, 1.0).
- * @param {number} grade - A nota a ser ajustada.
- * @returns {number} - A nota ajustada.
  */
 export function adjustGrade(grade) {
     const decimal = grade - Math.floor(grade);
@@ -37,16 +30,12 @@ export function adjustGrade(grade) {
 
 /**
  * Valida a sintaxe de uma fórmula.
- * @param {string} formula - A fórmula a ser validada.
- * @param {Array} components - Os componentes de nota válidos.
- * @returns {object} - Um objeto com { valid: boolean, message: string }.
  */
 export function validateFormula(formula, components) {
     const validAcronyms = components.map(c => c.acronym);
     if (!formula.trim()) {
         return { valid: true, message: 'Digite a fórmula.' };
     }
-    // Encontra todas as "variáveis" (palavras) na fórmula
     const variablesInFormula = formula.match(/(?<!['"])\b[a-zA-Z_][a-zA-Z0-9_]*\b(?!['"])/g) || [];
     const uniqueVariables = [...new Set(variablesInFormula)];
 
@@ -57,7 +46,6 @@ export function validateFormula(formula, components) {
     }
 
     try {
-        // Testa a sintaxe substituindo as siglas por números
         let testFormula = formula;
         validAcronyms.forEach(acronym => {
             const regex = new RegExp(`\\b${acronym}\\b`, 'g');
@@ -73,9 +61,6 @@ export function validateFormula(formula, components) {
 
 /**
  * Testa a fórmula com notas máximas para garantir que não exceda o limite.
- * @param {string} formula - A fórmula a ser testada.
- * @param {object} disciplina - O objeto da disciplina contendo componentes e nota máxima.
- * @returns {object} - Um objeto com { valid: boolean, message: string, testResult?: number }.
  */
 export function testAndValidateFormula(formula, disciplina) {
     const validation = validateFormula(formula, disciplina.gradeComponents);
@@ -83,7 +68,18 @@ export function testAndValidateFormula(formula, disciplina) {
         return { valid: false, message: validation.message };
     }
 
-    // Cria um objeto de notas de exemplo com a nota máxima para cada componente
+    const zeroGrades = {};
+    disciplina.gradeComponents.forEach(comp => {
+        zeroGrades[comp.acronym] = 0;
+    });
+    const zeroResult = calculateFinalGrade(zeroGrades, formula, disciplina.gradeComponents);
+    if (isNaN(zeroResult) || Math.abs(zeroResult) > 0.001) {
+        return { 
+            valid: false, 
+            message: `Erro: Com todas as notas zeradas, o resultado da fórmula é ${zeroResult.toFixed(2)}, mas deveria ser 0.`
+        };
+    }
+
     const sampleGrades = {};
     disciplina.gradeComponents.forEach(comp => {
         sampleGrades[comp.acronym] = disciplina.maxGrade;
@@ -97,8 +93,6 @@ export function testAndValidateFormula(formula, disciplina) {
     if (result < 0) { 
          return { valid: false, message: `O resultado do teste (${result.toFixed(2)}) é negativo. A fórmula deve resultar em um valor positivo.` };
     }
-    // Validação exata: o resultado do teste com notas máximas deve ser igual à nota máxima da disciplina.
-    // Usamos uma pequena tolerância (0.01) para evitar problemas com a precisão de ponto flutuante.
     if (Math.abs(result - disciplina.maxGrade) > 0.01) { 
         return { 
             valid: false, 

@@ -1,9 +1,7 @@
-// Modal a ser gerenciado pelo app.js
 let logoutModal;
 
 /**
  * Inicializa a view de configurações com a instância do modal.
- * @param {object} modals - Objeto com as instâncias dos modais.
  */
 export function initSettingsView(modals) {
     logoutModal = modals.logoutModal;
@@ -11,7 +9,6 @@ export function initSettingsView(modals) {
 
 /**
  * Renderiza a view de Configurações.
- * @param {HTMLElement} container - O elemento container onde a view será renderizada.
  */
 export function renderSettingsView(container) {
     container.innerHTML = `
@@ -64,7 +61,6 @@ export function renderSettingsView(container) {
         </div>
     `;
     
-    // Adiciona os event listeners
     document.getElementById('dark-mode-btn').addEventListener('click', () => document.body.classList.add('dark-mode'));
     document.getElementById('light-mode-btn').addEventListener('click', () => document.body.classList.remove('dark-mode'));
     document.getElementById('logout-btn').addEventListener('click', () => logoutModal.show());

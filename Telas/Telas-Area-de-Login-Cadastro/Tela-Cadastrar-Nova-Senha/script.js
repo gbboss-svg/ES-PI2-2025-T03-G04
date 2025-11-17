@@ -1,3 +1,6 @@
+/**
+ * Lida com a lógica da tela de cadastro de nova senha.
+ */
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('reset-password-form');
     const newPasswordInput = document.getElementById('new-password');
@@ -45,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             alert('Senha atualizada com sucesso! Você será redirecionado para o login.');
             
-            // Limpa o localStorage e redireciona
             localStorage.removeItem('userEmailForReset');
             localStorage.removeItem('passwordResetVerified');
             window.location.href = '/login';

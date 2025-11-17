@@ -2,11 +2,6 @@ import { attachInstitutionsViewListeners } from './Institutions/eventHandlers.js
 
 /**
  * Renderiza a view de gerenciamento de Instituições.
- * @param {HTMLElement} container - O elemento container onde a view será renderizada.
- * @param {Array} institutions - A lista de instituições do estado da aplicação.
- * @param {object} params - Parâmetros adicionais, como o ID da instituição a ser expandida.
- * @param {object} modals - Objeto com as instâncias dos modais.
- * @param {object} callbacks - Objeto com as funções de callback.
  */
 export function renderInstitutionsView(container, institutions, params = {}, modals, callbacks) {
     container.innerHTML = `

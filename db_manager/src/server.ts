@@ -1,33 +1,26 @@
-
-
 import 'dotenv/config';
 import { app } from './app';
 import { initialize, close } from './database/db';
 import { setupDatabase } from './database/setup';
 import crypto from 'crypto';
 
-// Verifica se o JWT_SECRET está definido; se não, gera um temporário.
 if (!process.env.JWT_SECRET) {
-  console.warn(
-    '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n' +
-    '!!! ATENÇÃO: JWT_SECRET não definido no arquivo .env.          !!!\n' +
-    '!!! Gerando uma chave secreta temporária para esta sessão.     !!!\n' +
-    '!!! Para produção, defina uma chave segura no seu arquivo .env.!!!\n' +
-    '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-  );
+  console.warn('ATENÇÃO: JWT_SECRET não definido. Gerando chave temporária.');
   process.env.JWT_SECRET = crypto.randomBytes(64).toString('hex');
 }
 
-
 const port = process.env.PORT || 3333;
 
+/**
+ * Função principal que inicia o servidor.
+ */
 async function startServer() {
   try {
     console.log('Iniciando o pool de conexões do banco de dados...');
     
     const dbInitialization = initialize();
     const timeout = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('A inicialização do banco de dados demorou muito (timeout).')), 10000) // 10 segundos
+      setTimeout(() => reject(new Error('A inicialização do banco de dados demorou muito (timeout).')), 10000)
     );
 
     await Promise.race([dbInitialization, timeout]);
@@ -43,31 +36,22 @@ async function startServer() {
   } catch (err: any) {
     console.error('Falha ao iniciar o servidor:', err.message);
     if (err.message.includes('timeout')) {
-        console.error('\n--- DICA DE DIAGNÓSTICO ---');
-        console.error('Este erro de timeout geralmente ocorre quando o driver Node.js para Oracle (oracledb) não consegue encontrar as bibliotecas do Oracle Instant Client.');
-        console.error('Por favor, verifique se o Oracle Instant Client está instalado e se o caminho para suas bibliotecas foi adicionado à variável de ambiente PATH do sistema.');
-        console.error('---------------------------\n');
+        console.error('DICA: Este erro de timeout geralmente ocorre se o Oracle Instant Client não for encontrado. Verifique sua instalação e a variável de ambiente PATH.');
     }
-    // FIX: Cast process to any to access exit method when types are not correctly loaded.
-    (process as any).exit(1);
+    process.exit(1);
   }
 }
 
 startServer();
 
-// Garante que o pool de conexões seja fechado corretamente ao encerrar o processo
-// FIX: Cast process to any to access on method when types are not correctly loaded.
-(process as any).on('SIGTERM', async () => {
+process.on('SIGTERM', async () => {
   console.log('Recebido sinal SIGTERM. Fechando o pool de conexões...');
   await close();
-  // FIX: Cast process to any to access exit method when types are not correctly loaded.
-  (process as any).exit(0);
+  process.exit(0);
 });
 
-// FIX: Cast process to any to access on method when types are not correctly loaded.
-(process as any).on('SIGINT', async () => {
+process.on('SIGINT', async () => {
   console.log('Recebido sinal SIGINT (Ctrl+C). Fechando o pool de conexões...');
   await close();
-  // FIX: Cast process to any to access exit method when types are not correctly loaded.
-  (process as any).exit(0);
+  process.exit(0);
 });

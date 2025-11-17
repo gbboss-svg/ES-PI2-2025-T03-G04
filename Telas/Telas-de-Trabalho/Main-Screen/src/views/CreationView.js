@@ -1,12 +1,10 @@
 import * as ApiService from '../services/ApiService.js';
 import { showToast } from '../services/NotificationService.js';
 
-// Callback para ser chamado após a criação bem-sucedida
 let onTurmaCreatedCallback;
 
 /**
  * Inicializa a view de criação com um callback.
- * @param {function} onTurmaCreated - Função a ser chamada quando uma turma for criada.
  */
 export function initCreationView(onTurmaCreated) {
     onTurmaCreatedCallback = onTurmaCreated;
@@ -14,7 +12,6 @@ export function initCreationView(onTurmaCreated) {
 
 /**
  * Renderiza a view de criação de turmas.
- * @param {HTMLElement} container - O elemento container onde a view será renderizada.
  */
 export function renderCreationView(container) {
     container.innerHTML = `
@@ -47,7 +44,7 @@ export function renderCreationView(container) {
                             </div>
                             <div class="col-md-6">
                                 <label for="new-turma-semestre" class="form-label">Semestre</label>
-                                <input type="text" id="new-turma-semestre" class="form-control" placeholder="Ex: 4º Semestre">
+                                <input type="number" id="new-turma-semestre" class="form-control" min="1" placeholder="Ex: 4º Semestre">
                             </div>
                             <div class="col-md-6">
                                 <label for="new-turma-periodo" class="form-label">Período</label>

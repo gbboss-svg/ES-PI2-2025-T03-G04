@@ -6,9 +6,6 @@ let currentTurmaContext = {};
 
 /**
  * Renderiza a view de detalhes da turma.
- * @param {object} turma - O objeto da turma a ser renderizada.
- * @param {object} disciplina - O objeto da disciplina associada.
- * @param {object} modals - As instâncias de todos os modais da aplicação.
  */
 export function renderTurmaDetailView(turma, disciplina, modals) {
   if (!turma || !disciplina) {
@@ -23,13 +20,18 @@ export function renderTurmaDetailView(turma, disciplina, modals) {
     return;
   }
 
-  container.innerHTML = renderMainHTML(turma, disciplina);
+  const safeDisciplina = {
+    ...disciplina,
+    course: { ...(turma.course ?? {}), name: (turma.course?.name ?? 'Curso') }
+  };
 
-  if (!disciplina.gradeComponents) disciplina.gradeComponents = [];
+  container.innerHTML = renderMainHTML(turma, safeDisciplina);
+
+  if (!safeDisciplina.gradeComponents) safeDisciplina.gradeComponents = [];
   if (!turma.students) turma.students = [];
 
-  renderGradeComponentsList(disciplina);
-  renderGradesTable(turma, disciplina);
+  renderGradeComponentsList(safeDisciplina);
+  renderGradesTable(turma, safeDisciplina);
   renderAuditLog(currentTurmaContext, renderTurmaDetailView);
 
   const gradeEditSelector = document.getElementById("grade-edit-selector");

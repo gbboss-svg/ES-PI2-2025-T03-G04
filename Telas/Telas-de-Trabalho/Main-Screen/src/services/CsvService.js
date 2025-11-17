@@ -1,8 +1,5 @@
 /**
  * Converte os dados da turma para o formato CSV.
- * @param {object} turma - O objeto da turma.
- * @param {object} disciplina - O objeto da disciplina.
- * @returns {string} - Os dados em formato de string CSV.
  */
 export function exportTurmaToCsv(turma, disciplina) {
     const headers = ['matricula', 'nome', ...disciplina.gradeComponents.map(c => c.acronym)];
@@ -18,9 +15,6 @@ export function exportTurmaToCsv(turma, disciplina) {
 
 /**
  * Faz o download de uma string de dados como um arquivo.
- * @param {string} data - O conteúdo do arquivo.
- * @param {string} filename - O nome do arquivo.
- * @param {string} type - O tipo MIME do arquivo.
  */
 export function downloadFile(data, filename, type) {
     const blob = new Blob([data], { type });
@@ -33,8 +27,6 @@ export function downloadFile(data, filename, type) {
 
 /**
  * Analisa o conteúdo de um arquivo CSV e o converte em uma lista de alunos.
- * @param {string} csvContent - O conteúdo do arquivo CSV.
- * @returns {{headers: string[], students: object[]}} - Os cabeçalhos e a lista de alunos.
  */
 export function importStudentsFromCsv(csvContent) {
     const lines = csvContent.split('\n').filter(line => line.trim() !== '');

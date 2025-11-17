@@ -1,4 +1,3 @@
-
 import oracledb from "oracledb";
 
 const dbConfig = {
@@ -7,8 +6,9 @@ const dbConfig = {
   connectString: "localhost:1521/XEPDB1"
 };
 
-
-
+/**
+ * Inicializa o pool de conexões com o banco de dados Oracle.
+ */
 async function initialize() {
   try {
     await oracledb.createPool({
@@ -21,11 +21,13 @@ async function initialize() {
     console.log('Connection pool started');
   } catch (err) {
     console.error('Error creating connection pool:', err);
-    // FIX: Cast process to any to access exit method when types are not correctly loaded.
-    (process as any).exit(1);
+    process.exit(1);
   }
 }
 
+/**
+ * Fecha o pool de conexões de forma graciosa.
+ */
 async function close() {
   try {
     await oracledb.getPool().close(10);
@@ -35,6 +37,9 @@ async function close() {
   }
 }
 
+/**
+ * Obtém uma única conexão do pool.
+ */
 function getConnection() {
   return oracledb.getConnection();
 }

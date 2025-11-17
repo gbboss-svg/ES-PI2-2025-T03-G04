@@ -1,4 +1,4 @@
-// ES-PI2-2025-T03-G04-main/Telas/Telas-de-Trabalho/Main-Screen/src/services/ApiService.js
+
 const BASE_URL = 'http://localhost:3333/api'; // O backend roda na porta 3333
 
 /**
@@ -26,14 +26,14 @@ async function request(endpoint, options = {}) {
     try {
         const response = await fetch(`${BASE_URL}${endpoint}`, config);
         if (!response.ok) {
-            // For 204 No Content, we don't expect a JSON body
+            // Para 204 (Sem Conteúdo), não esperamos um corpo JSON
             if (response.status === 204) {
                 return; 
             }
             const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
             throw new Error(errorData.message || `Erro na requisição: ${response.statusText}`);
         }
-        // Handle cases where there might not be a JSON body (like 204 No Content)
+        // Lida com casos onde pode não haver um corpo JSON (como 204 Sem Conteúdo)
         if (response.status === 204) {
             return;
         }
@@ -85,6 +85,9 @@ export const addStudent = (turmaId, data) => request(`/turmas/${turmaId}/student
 export const batchAddStudents = (turmaId, students) => request(`/turmas/${turmaId}/students/batch`, { method: 'POST', body: JSON.stringify({ students }) });
 export const updateStudentGrades = (turmaId, studentId, grades) => request(`/turmas/${turmaId}/students/${studentId}/grades`, { method: 'PUT', body: JSON.stringify({ grades }) });
 export const removeStudent = (turmaId, studentId) => request(`/turmas/${turmaId}/students/${studentId}`, { method: 'DELETE' });
+
+// Funções para Notas
+export const updateGrades = (turmaId, studentId, grades) => request(`/turmas/${turmaId}/students/${studentId}/grades`, { method: 'PUT', body: JSON.stringify({ grades }) });
 
 // Funções para Auditoria
 export const addAuditLog = (data) => request('/audit', { method: 'POST', body: JSON.stringify(data) });

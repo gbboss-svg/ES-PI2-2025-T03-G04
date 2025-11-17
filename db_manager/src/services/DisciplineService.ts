@@ -1,7 +1,9 @@
-
 import oracledb from 'oracledb';
 
 export default class DisciplineService {
+  /**
+   * Busca todas as disciplinas de um curso específico, incluindo seus componentes de nota.
+   */
   static async getDisciplinesByCourse(connection: oracledb.Connection, courseId: number) {
     try {
       const result = await connection.execute(
@@ -12,9 +14,7 @@ export default class DisciplineService {
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
 
-      if (!result.rows) {
-        return [];
-      }
+      if (!result.rows) return [];
 
       const disciplines = (result.rows as any[]).map(row => ({
         id: row.ID_DISCIPLINA,
@@ -23,7 +23,7 @@ export default class DisciplineService {
         periodo: row.PERIODO,
         finalGradeFormula: row.FORMULA_CALCULO,
         maxGrade: row.NOTA_MAXIMA,
-        gradeComponents: []
+        gradeComponents: [] as any[]
       }));
 
       for (const disc of disciplines) {
@@ -32,10 +32,7 @@ export default class DisciplineService {
           [disc.id], { outFormat: oracledb.OUT_FORMAT_OBJECT }
         );
         disc.gradeComponents = (componentsResult.rows as any[]).map(r => ({
-          id: r.ID_COMP,
-          name: r.NOME,
-          acronym: r.SIGLA,
-          description: r.DESCRICAO
+          id: r.ID_COMP, name: r.NOME, acronym: r.SIGLA, description: r.DESCRICAO
         }));
       }
 
@@ -46,6 +43,9 @@ export default class DisciplineService {
     }
   }
 
+  /**
+   * Cria uma nova disciplina e a associa ao professor que a criou.
+   */
   static async createDiscipline(connection: oracledb.Connection, disciplineData: any, professorId: number) {
     const { nome, sigla, periodo, idCurso } = disciplineData;
     try {
@@ -74,6 +74,9 @@ export default class DisciplineService {
     }
   }
 
+  /**
+   * Busca todas as disciplinas associadas a um professor.
+   */
   static async getDisciplinesByProfessor(connection: oracledb.Connection, professorId: number) {
     try {
       const result = await connection.execute(
@@ -90,9 +93,7 @@ export default class DisciplineService {
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );
 
-      if (!result.rows) {
-        return [];
-      }
+      if (!result.rows) return [];
 
       const disciplines = (result.rows as any[]).map(row => ({
         id: row.ID_DISCIPLINA,
@@ -104,7 +105,7 @@ export default class DisciplineService {
         institutionName: row.INSTITUICAO,
         finalGradeFormula: row.FORMULA_CALCULO,
         maxGrade: row.NOTA_MAXIMA,
-        gradeComponents: []
+        gradeComponents: [] as any[]
       }));
 
       for (const disc of disciplines) {
@@ -113,10 +114,7 @@ export default class DisciplineService {
           [disc.id], { outFormat: oracledb.OUT_FORMAT_OBJECT }
         );
         disc.gradeComponents = (componentsResult.rows as any[]).map(r => ({
-          id: r.ID_COMP,
-          name: r.NOME,
-          acronym: r.SIGLA,
-          description: r.DESCRICAO
+          id: r.ID_COMP, name: r.NOME, acronym: r.SIGLA, description: r.DESCRICAO
         }));
       }
 
@@ -127,78 +125,74 @@ export default class DisciplineService {
     }
   }
 
+  /**
+   * Atualiza os dados de uma disciplina, incluindo seus componentes de nota.
+   */
   static async updateDiscipline(connection: oracledb.Connection, disciplineId: number, data: any, professorId: number) {
     try {
-        const { nome, sigla, periodo, idCurso, finalGradeFormula, maxGrade, gradeComponents } = data;
+      const { nome, sigla, periodo, idCurso, finalGradeFormula, maxGrade, gradeComponents } = data;
 
-        // Verificar se o professor tem permissão para editar esta disciplina
-        const checkResult = await connection.execute(
-            `SELECT COUNT(*) AS total
-            FROM Professor_Disciplina
-            WHERE Id_Disciplina = :disciplineId AND Id_Professor = :professorId`,
-            { disciplineId, professorId }
-        );
-        if ((checkResult.rows as any)[0][0] === 0) {
-            throw new Error("Permissão negada para editar esta disciplina.");
+      const checkResult = await connection.execute(
+        `SELECT COUNT(*) AS total FROM Professor_Disciplina WHERE Id_Disciplina = :disciplineId AND Id_Professor = :professorId`,
+        { disciplineId, professorId }
+      );
+      if ((checkResult.rows as any)[0][0] === 0) {
+        throw new Error("Permissão negada para editar esta disciplina.");
+      }
+
+      const fieldsToUpdate = [];
+      const bindParams: any = { id: disciplineId };
+      if (nome !== undefined) { fieldsToUpdate.push("Nome = :nome"); bindParams.nome = nome; }
+      if (sigla !== undefined) { fieldsToUpdate.push("Sigla = :sigla"); bindParams.sigla = sigla; }
+      if (periodo !== undefined) { fieldsToUpdate.push("Periodo = :periodo"); bindParams.periodo = periodo; }
+      if (idCurso !== undefined) { fieldsToUpdate.push("Id_Curso = :idCurso"); bindParams.idCurso = idCurso; }
+      if (finalGradeFormula !== undefined) { fieldsToUpdate.push("Formula_Calculo = :finalGradeFormula"); bindParams.finalGradeFormula = finalGradeFormula; }
+      if (maxGrade !== undefined) { fieldsToUpdate.push("Nota_Maxima = :maxGrade"); bindParams.maxGrade = maxGrade; }
+
+      if (fieldsToUpdate.length > 0) {
+        const sql = `UPDATE Disciplina SET ${fieldsToUpdate.join(', ')} WHERE Id_Disciplina = :id`;
+        await connection.execute(sql, bindParams);
+      }
+      
+      if (gradeComponents && Array.isArray(gradeComponents)) {
+        await connection.execute(`DELETE FROM Componente_Nota WHERE Id_Disciplina = :id`, { id: disciplineId });
+        for (const comp of gradeComponents) {
+          await connection.execute(
+            `INSERT INTO Componente_Nota (Id_Disciplina, Nome, Sigla, Descricao)
+             VALUES (:discId, :name, :acronym, :description)`,
+            { discId: disciplineId, name: comp.name, acronym: comp.acronym, description: comp.description || null }
+          );
         }
+      }
 
-        await connection.execute(
-            `UPDATE Disciplina SET 
-             Nome = :nome, 
-             Sigla = :sigla, 
-             Periodo = :periodo, 
-             Id_Curso = :idCurso,
-             Formula_Calculo = :formula, 
-             Nota_Maxima = :maxGrade 
-             WHERE Id_Disciplina = :id`,
-            { 
-                nome, sigla, periodo, idCurso,
-                formula: finalGradeFormula, 
-                maxGrade: maxGrade, 
-                id: disciplineId 
-            }
-        );
-
-        await connection.execute(`DELETE FROM Componente_Nota WHERE Id_Disciplina = :id`, [disciplineId]);
-
-        if (gradeComponents && gradeComponents.length > 0) {
-            for (const comp of gradeComponents) {
-                await connection.execute(
-                    `INSERT INTO Componente_Nota (Id_Disciplina, Nome, Sigla, Descricao) VALUES (:discId, :name, :acronym, :desc)`,
-                    { discId: disciplineId, name: comp.name, acronym: comp.acronym, desc: comp.description || null }
-                );
-            }
-        }
-
-        await connection.commit();
+      await connection.commit();
     } catch (error: any) {
-        await connection.rollback();
-        console.error('Erro ao atualizar disciplina:', error);
-        throw new Error('Erro ao atualizar disciplina.');
+      await connection.rollback();
+      console.error('Erro ao atualizar disciplina:', error);
+      throw error;
     }
   }
 
+  /**
+   * Exclui uma disciplina.
+   */
   static async deleteDiscipline(connection: oracledb.Connection, disciplineId: number, professorId: number) {
     try {
-        const checkResult = await connection.execute(
-            `SELECT COUNT(*) AS total
-             FROM Professor_Disciplina
-             WHERE Id_Disciplina = :disciplineId AND Id_Professor = :professorId`,
-            { disciplineId, professorId }
-        );
+      const checkResult = await connection.execute(
+        `SELECT COUNT(*) AS total FROM Professor_Disciplina WHERE Id_Disciplina = :disciplineId AND Id_Professor = :professorId`,
+        { disciplineId, professorId }
+      );
+      if ((checkResult.rows as any)[0][0] === 0) {
+        throw new Error("Permissão negada para excluir esta disciplina.");
+      }
 
-        if ((checkResult.rows as any)[0][0] === 0) {
-            throw new Error("Permissão negada para excluir esta disciplina.");
-        }
-        
-        await connection.execute(
-            `DELETE FROM Disciplina WHERE Id_Disciplina = :id`,
-            { id: disciplineId },
-            { autoCommit: true }
-        );
+      await connection.execute(`DELETE FROM Disciplina WHERE Id_Disciplina = :id`, { id: disciplineId });
+      
+      await connection.commit();
     } catch (error: any) {
-        console.error('Erro ao excluir disciplina:', error);
-        throw new Error('Erro ao excluir a disciplina.');
+      await connection.rollback();
+      console.error('Erro ao excluir disciplina:', error);
+      throw error;
     }
   }
 }

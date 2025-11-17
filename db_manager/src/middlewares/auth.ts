@@ -1,11 +1,9 @@
-
-
-
-
-
-
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+
+/**
+ * Middleware de autenticação para proteger rotas.
+ */
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;

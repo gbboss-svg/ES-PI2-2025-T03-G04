@@ -2,10 +2,6 @@ import * as ApiService from '../services/ApiService.js';
 
 /**
  * Renderiza o conteúdo da view do Painel Principal.
- * @param {HTMLElement} container - O elemento container onde a view será renderizada.
- * @param {object} user - O objeto do usuário.
- * @param {Array} institutions - A lista de instituições.
- * @param {function} switchViewCallback - Callback para alternar para outra view.
  */
 export function renderDashboardView(container, user, institutions, switchViewCallback) {
     if (!user || !institutions) {
@@ -58,7 +54,6 @@ export function renderDashboardView(container, user, institutions, switchViewCal
 
     container.innerHTML = contentHTML;
 
-    // Adiciona os event listeners após o conteúdo ser inserido no DOM
     container.querySelectorAll('.view-discipline-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
            const { instId, courseId } = btn.dataset;
@@ -67,10 +62,8 @@ export function renderDashboardView(container, user, institutions, switchViewCal
                    await ApiService.touchCourse(courseId);
                } catch (error) {
                    console.error('Failed to update course access timestamp:', error);
-                   // Continue execution even if this fails
                }
            }
-           // Chama o callback para mudar a view e expandir o accordion correto
            switchViewCallback('institutions', { expandInstId: instId });
         });
     });

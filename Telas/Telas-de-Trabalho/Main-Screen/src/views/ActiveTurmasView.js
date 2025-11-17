@@ -1,11 +1,9 @@
 import * as ApiService from '../services/ApiService.js';
 
-// Callbacks para serem gerenciados pelo app.js
 let switchViewCallback, renderTurmaDetailViewCallback;
 
 /**
  * Inicializa a view com os callbacks necessários.
- * @param {object} callbacks - Objeto com as funções de callback.
  */
 export function initActiveTurmasView(callbacks) {
     switchViewCallback = callbacks.switchView;
@@ -14,14 +12,11 @@ export function initActiveTurmasView(callbacks) {
 
 /**
  * Renderiza a view de Turmas Ativas.
- * @param {HTMLElement} container - O elemento container onde a view será renderizada.
- * @param {Array} turmas - A lista de turmas ativas para renderizar.
  */
 export function renderActiveTurmasView(container, turmas) {
     let contentHTML;
 
     if (!turmas) {
-        // Estado de carregamento ou inicial
         contentHTML = `
             <div class="d-flex justify-content-center mt-4">
                 <div class="spinner-border" role="status">
@@ -81,11 +76,9 @@ export function renderActiveTurmasView(container, turmas) {
             const turmaData = JSON.parse(btn.dataset.turmaId);
             try {
                 const turmaDetalhada = await ApiService.getTurmaDetail(turmaData.id);
-                // O callback agora só precisa da turma detalhada. O app.js encontrará a disciplina completa.
                 renderTurmaDetailViewCallback(turmaDetalhada);
             } catch (error) {
                 console.error('Erro ao buscar detalhes da turma:', error);
-                // Tratar erro...
             }
         });
     });

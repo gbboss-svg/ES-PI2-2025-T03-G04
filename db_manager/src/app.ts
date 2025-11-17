@@ -1,21 +1,25 @@
-
-
-
-
-
-
 import express, { Request, Response, NextFunction } from 'express';
 import 'express-async-errors';
 import cors from 'cors';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.routes';
 import professorRoutes from './routes/professor.routes';
 import courseRoutes from './routes/course.routes';
 import disciplineRoutes from './routes/discipline.routes';
 import turmaRoutes from './routes/turma.routes';
-import auditRoutes from './routes/audit.routes'; // Importa a nova rota
+import auditRoutes from './routes/audit.routes';
+import gradeRoutes from './routes/grade.routes';
 import { connectionMiddleware } from './middlewares/database';
+import oracledb from 'oracledb';
+
+declare global {
+  namespace Express {
+    export interface Request {
+      dbConnection?: oracledb.Connection;
+      user?: { id: number; iat: number; exp: number };
+    }
+  }
+}
 
 const app = express();
 
@@ -23,15 +27,13 @@ app.use(cors());
 app.use(express.json());
 app.use(connectionMiddleware);
 
-// --- Configuração de Rotas da API ---
 app.use('/api/auth', authRoutes);
 app.use('/api/professor', professorRoutes);
-app.use('/api/cursos', courseRoutes);
+app.use('/api', courseRoutes);
 app.use('/api', disciplineRoutes);
 app.use('/api', turmaRoutes);
-app.use('/api', auditRoutes); // Adiciona a nova rota de auditoria
-
-// --- Configuração de Rotas Estáticas ---
+app.use('/api', auditRoutes);
+app.use('/api', gradeRoutes);
 
 const basePath = path.resolve(__dirname, '..', '..', 'Telas');
 
@@ -47,8 +49,6 @@ const trabalhoPath = path.join(basePath, 'Telas-de-Trabalho');
 app.use('/dashboard-instituicao', express.static(path.join(trabalhoPath, 'Dashboard-instituição')));
 app.use('/main', express.static(path.join(trabalhoPath, 'Main-Screen')));
 
-// --- Redirecionamentos e Rotas Padrão ---
-
 app.get('/', (req: Request, res: Response) => {
   res.redirect('/login');
 });
@@ -59,7 +59,6 @@ app.get('/novo-cadastro', (req: Request, res: Response) => res.sendFile(path.joi
 app.get('/cadastrar-nova-senha', (req: Request, res: Response) => res.sendFile(path.join(loginCadastroPath, 'Tela-Cadastrar-Nova-Senha', 'tela.html')));
 app.get('/verificar-codigo', (req: Request, res: Response) => res.sendFile(path.join(loginCadastroPath, 'Tela-Verificar-Código', 'tela.html')));
 app.get('/verificacao-codigo-registro', (req: Request, res: Response) => res.sendFile(path.join(loginCadastroPath, 'Tela-Verificação-Código-Para-Registro', 'tela.html')));
-
 app.get('/dashboard-instituicao', (req: Request, res: Response) => res.sendFile(path.join(trabalhoPath, 'Dashboard-instituição', 'tela-dashboard-instituicao.html')));
 app.get('/main', (req: Request, res: Response) => res.sendFile(path.join(trabalhoPath, 'Main-Screen', 'index.html')));
 
