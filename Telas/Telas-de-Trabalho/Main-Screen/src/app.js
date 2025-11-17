@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'deleteInstitutionModal', 'deleteCourseModal', 'deleteDisciplineModal', 'deleteTurmaModal',
         'editTurmaModal', 'editDisciplineModal', 'addStudentModal', 'deleteStudentModal',
         'finalizeSemesterModal', 'reopenTurmaModal', 'csvConflictModal', 'editInstitutionModal', 'editCourseModal',
-        'editStudentModal'
+        'editStudentModal', 'csvGradeConflictModal'
     ];
 
     modalIds.forEach(id => {

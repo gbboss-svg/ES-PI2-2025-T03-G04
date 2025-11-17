@@ -1,11 +1,12 @@
-import express from 'express';
+
+
+import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import AuditService from '../services/AuditService';
 import oracledb from 'oracledb';
 
 class AuditController {
     
-    // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
-    private getDbConnection(req: express.Request): oracledb.Connection {
+    private getDbConnection(req: ExpressRequest): oracledb.Connection {
         if (!req.dbConnection) {
             throw new Error('Database connection not found in request.');
         }
@@ -13,8 +14,7 @@ class AuditController {
     }
 
     
-    // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
-    async create(req: express.Request, res: express.Response) {
+    async create(req: ExpressRequest, res: ExpressResponse) {
         try {
             const connection = this.getDbConnection(req);
             const { turmaId, message, snapshot } = req.body;
@@ -26,8 +26,7 @@ class AuditController {
     }
 
     
-    // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
-    async getByTurma(req: express.Request, res: express.Response) {
+    async getByTurma(req: ExpressRequest, res: ExpressResponse) {
         try {
             const connection = this.getDbConnection(req);
             const { turmaId } = req.params;

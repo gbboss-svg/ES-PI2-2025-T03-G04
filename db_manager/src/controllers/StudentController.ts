@@ -1,37 +1,47 @@
-import express from 'express';
+
+
+import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import StudentService from '../services/StudentService';
 import AuthService from '../services/AuthService';
 import oracledb from 'oracledb';
 
 class StudentController {
-    // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
-    private getDbConnection(req: express.Request): oracledb.Connection {
+    private getDbConnection(req: ExpressRequest): oracledb.Connection {
         if (!req.dbConnection) {
             throw new Error('Database connection not found in request.');
         }
         return req.dbConnection;
     }
 
-    // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
-    async update(req: express.Request, res: express.Response) {
+    async update(req: ExpressRequest, res: ExpressResponse) {
         try {
             const connection = this.getDbConnection(req);
             const professorId = req.user!.id;
-            const studentId = parseInt(req.params.id, 10);
-            const { name, turmaId } = req.body;
+            const oldStudentId = parseInt(req.params.id, 10);
+            const { name, matricula, turmaId, password } = req.body;
 
-            if (!name || !turmaId) {
-                return res.status(400).json({ message: 'Nome e ID da turma são obrigatórios.' });
+            if (!name || !turmaId || !matricula || !password) {
+                return res.status(400).json({ message: 'Nome, matrícula, ID da turma e senha são obrigatórios.' });
+            }
+            const newStudentId = parseInt(matricula, 10);
+            if(isNaN(newStudentId)) {
+                return res.status(400).json({ message: 'A matrícula deve ser um número.' });
+            }
+
+            // 1. Validar a senha do professor
+            const isPasswordValid = await AuthService.verifyPassword(connection, professorId, password);
+            if (!isPasswordValid) {
+                return res.status(401).json({ message: 'Senha incorreta.' });
             }
             
-            // Verifica se o professor tem permissão para editar o aluno nesta turma.
+            // 2. Verifica se o professor tem permissão para editar o aluno nesta turma.
             const permissionResult = await connection.execute(
                 `SELECT COUNT(*) AS count
                  FROM Turma t
                  JOIN Professor_Disciplina pd ON t.Id_Disciplina = pd.Id_Disciplina
                  JOIN Aluno_Turma at ON t.Id_Turma = at.Id_Turma
-                 WHERE at.Matricula = :studentId AND t.Id_Turma = :turmaId AND pd.Id_Professor = :professorId`,
-                { studentId, turmaId, professorId },
+                 WHERE at.Matricula = :oldStudentId AND t.Id_Turma = :turmaId AND pd.Id_Professor = :professorId`,
+                { oldStudentId, turmaId, professorId },
                 { outFormat: oracledb.OUT_FORMAT_OBJECT }
             );
 
@@ -40,8 +50,8 @@ class StudentController {
                 return res.status(403).json({ message: 'Permissão negada para editar este aluno nesta turma.' });
             }
             
-            // Atualiza o nome do aluno.
-            await StudentService.updateStudent(connection, studentId, name);
+            // 3. Atualiza os dados do aluno.
+            await StudentService.updateStudent(connection, oldStudentId, newStudentId, name);
 
             return res.status(200).json({ message: 'Aluno atualizado com sucesso!' });
 

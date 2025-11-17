@@ -48,15 +48,64 @@ export function downloadFile(data, filename, type) {
 }
 
 /**
+ * Analisa uma única linha de um CSV, respeitando campos entre aspas.
+ * @param {string} line - A linha do CSV a ser analisada.
+ * @returns {string[]} Um array com os valores da linha.
+ */
+function parseCsvLine(line) {
+    const values = [];
+    let currentField = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+
+        if (inQuotes) {
+            // Se estamos dentro de aspas
+            if (char === '"') {
+                // Verifica se é uma aspa de escape (duas aspas seguidas)
+                if (i + 1 < line.length && line[i + 1] === '"') {
+                    currentField += '"';
+                    i++; // Pula a próxima aspa
+                } else {
+                    // Fim do campo entre aspas
+                    inQuotes = false;
+                }
+            } else {
+                currentField += char;
+            }
+        } else {
+            // Se estamos fora de aspas
+            if (char === ',') {
+                values.push(currentField);
+                currentField = '';
+            } else if (char === '"' && currentField.trim() === '') {
+                // Início de um campo entre aspas (ignora espaços antes)
+                inQuotes = true;
+            } else {
+                currentField += char;
+            }
+        }
+    }
+    values.push(currentField); // Adiciona o último campo
+    return values;
+}
+
+/**
  * Analisa o conteúdo de um arquivo CSV e o converte em uma lista de alunos.
+ * Esta versão é robusta e lida com vírgulas dentro de campos, separadores decimais e validações.
  */
 export function importStudentsFromCsv(csvContent) {
-    const lines = csvContent.split('\n').filter(line => line.trim() !== '');
+    // Normaliza quebras de linha e remove linhas vazias
+    const lines = csvContent.replace(/\r\n/g, '\n').split('\n').filter(line => line.trim() !== '');
     if (lines.length < 2) {
         throw new Error("O arquivo CSV está vazio ou contém apenas o cabeçalho.");
     }
 
-    const headers = lines[0].trim().toLowerCase().split(',');
+    // Analisa o cabeçalho de forma segura, removendo BOM (Byte Order Mark) se presente
+    const headerLine = lines[0].charCodeAt(0) === 0xFEFF ? lines[0].substring(1) : lines[0];
+    const headers = parseCsvLine(headerLine.trim()).map(h => h.trim().toLowerCase());
+    
     const requiredHeaders = ['matricula', 'nome'];
     const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
 
@@ -64,22 +113,56 @@ export function importStudentsFromCsv(csvContent) {
         throw new Error(`O arquivo CSV não contém as seguintes colunas obrigatórias: ${missingHeaders.join(', ')}.`);
     }
 
-    const students = lines.slice(1).map(line => {
-        const values = line.trim().split(',');
+    const matriculaIndex = headers.indexOf('matricula');
+    const nomeIndex = headers.indexOf('nome');
+    const students = [];
+
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        const values = parseCsvLine(line);
+
+        // Validação: número de colunas
+        if (values.length !== headers.length) {
+            console.warn(`Aviso: Linha ${i + 1} ignorada por ter um número de colunas diferente do cabeçalho.`);
+            continue;
+        }
+
+        const matricula = values[matriculaIndex]?.trim();
+        // Validação: matrícula deve ser um número
+        if (!matricula || isNaN(parseInt(matricula, 10))) {
+            console.warn(`Aviso: Linha ${i + 1} ignorada por matrícula inválida ou ausente.`);
+            continue;
+        }
+
         const student = {
-            id: values[headers.indexOf('matricula')],
-            name: values[headers.indexOf('nome')],
+            id: parseInt(matricula, 10),
+            name: values[nomeIndex]?.trim() || '',
             grades: {}
         };
 
         headers.forEach((header, index) => {
-            if (!requiredHeaders.includes(header)) {
-                student.grades[header] = parseFloat(values[index]) || 0;
+            // Pula as colunas já processadas
+            if (header === 'matricula' || header === 'nome') return;
+
+            const value = values[index]?.trim();
+            if (value) {
+                // Tratamento de separador decimal (vírgula)
+                const sanitizedValue = value.replace(',', '.');
+                const grade = parseFloat(sanitizedValue);
+                // Adiciona a nota apenas se for um número válido
+                student.grades[header] = isNaN(grade) ? 0 : grade;
+            } else {
+                student.grades[header] = 0; // Valor padrão para notas vazias
             }
         });
+        students.push(student);
+    }
 
-        return student;
-    });
+    if (students.length === 0) {
+        throw new Error("Nenhum aluno válido encontrado no arquivo. Verifique a formatação e os dados.");
+    }
 
     return { headers, students };
 }

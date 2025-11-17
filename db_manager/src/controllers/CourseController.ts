@@ -1,10 +1,11 @@
-import express from 'express';
+
+
+import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import CourseService from '../services/CourseService';
 
 export default class CourseController {
   
-  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
-  static async deleteCourse(req: express.Request, res: express.Response) {
+  static async deleteCourse(req: ExpressRequest, res: ExpressResponse) {
     try {
       const professorId = req.user!.id;
       await CourseService.deleteCourse(req.dbConnection!, Number(req.params.id), professorId);

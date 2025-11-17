@@ -4,7 +4,6 @@ import { initialize, close } from './database/db';
 import { setupDatabase } from './database/setup';
 import crypto from 'crypto';
 
-// FIX: Add declaration for the Node.js global `process` to resolve type errors.
 declare const process: any;
 
 if (!process.env.JWT_SECRET) {

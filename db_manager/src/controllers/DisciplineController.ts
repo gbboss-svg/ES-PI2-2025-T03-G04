@@ -1,12 +1,13 @@
-import express from 'express';
+
+
+import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import DisciplineService from '../services/DisciplineService';
 import AuthService from '../services/AuthService';
 import oracledb from 'oracledb';
 
 class DisciplineController {
   
-  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
-  private getDbConnection(req: express.Request): oracledb.Connection {
+  private getDbConnection(req: ExpressRequest): oracledb.Connection {
     if (!req.dbConnection) {
       throw new Error('Database connection not found in request. Ensure connectionMiddleware is applied.');
     }
@@ -14,8 +15,7 @@ class DisciplineController {
   }
 
   
-  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
-  async createDiscipline(req: express.Request, res: express.Response) {
+  async createDiscipline(req: ExpressRequest, res: ExpressResponse) {
     try {
       const connection = this.getDbConnection(req);
       const professorId = req.user!.id;
@@ -29,8 +29,7 @@ class DisciplineController {
   }
 
   
-  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
-  async getDisciplinesByProfessor(req: express.Request, res: express.Response) {
+  async getDisciplinesByProfessor(req: ExpressRequest, res: ExpressResponse) {
     try {
       const connection = this.getDbConnection(req);
       const professorId = req.user!.id;
@@ -42,8 +41,7 @@ class DisciplineController {
   }
 
   
-  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
-  async getDisciplinesByCourse(req: express.Request, res: express.Response) {
+  async getDisciplinesByCourse(req: ExpressRequest, res: ExpressResponse) {
     try {
         const connection = this.getDbConnection(req);
         const { courseId } = req.params;
@@ -55,8 +53,7 @@ class DisciplineController {
   }
 
   
-  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
-  async updateDiscipline(req: express.Request, res: express.Response) {
+  async updateDiscipline(req: ExpressRequest, res: ExpressResponse) {
     try {
       const connection = this.getDbConnection(req);
       const professorId = req.user!.id;
@@ -85,8 +82,7 @@ class DisciplineController {
   }
 
   
-  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
-  async deleteDiscipline(req: express.Request, res: express.Response) {
+  async deleteDiscipline(req: ExpressRequest, res: ExpressResponse) {
     try {
       const connection = this.getDbConnection(req);
       const professorId = req.user!.id;

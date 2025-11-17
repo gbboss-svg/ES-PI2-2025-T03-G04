@@ -1,29 +1,30 @@
-import { Router } from 'express';
+
+import { Router, Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import TurmaController from '../controllers/TurmaController';
 import { authMiddleware } from '../middlewares/auth';
 
 const router = Router();
 
-router.get('/turmas/ativas', authMiddleware, (req, res) => TurmaController.getActiveTurmas(req, res));
+router.get('/turmas/ativas', authMiddleware, (req: ExpressRequest, res: ExpressResponse) => TurmaController.getActiveTurmas(req, res));
 
-router.get('/disciplina/:id/turmas', authMiddleware, (req, res) => TurmaController.getTurmasByDiscipline(req, res));
+router.get('/disciplina/:id/turmas', authMiddleware, (req: ExpressRequest, res: ExpressResponse) => TurmaController.getTurmasByDiscipline(req, res));
 
-router.post('/turmas', authMiddleware, (req, res) => TurmaController.createTurma(req, res));
+router.post('/turmas', authMiddleware, (req: ExpressRequest, res: ExpressResponse) => TurmaController.createTurma(req, res));
 
-router.get('/turmas/:id', authMiddleware, (req, res) => TurmaController.getTurmaDetail(req, res));
+router.get('/turmas/:id', authMiddleware, (req: ExpressRequest, res: ExpressResponse) => TurmaController.getTurmaDetail(req, res));
 
-router.put('/turmas/:id', authMiddleware, (req, res) => TurmaController.updateTurma(req, res));
+router.put('/turmas/:id', authMiddleware, (req: ExpressRequest, res: ExpressResponse) => TurmaController.updateTurma(req, res));
 
-router.delete('/turmas/:id', authMiddleware, (req, res) => TurmaController.deleteTurma(req, res));
+router.delete('/turmas/:id', authMiddleware, (req: ExpressRequest, res: ExpressResponse) => TurmaController.deleteTurma(req, res));
 
-router.post('/turmas/:id/students', authMiddleware, (req, res) => TurmaController.addStudentToTurma(req, res));
+router.post('/turmas/:id/students', authMiddleware, (req: ExpressRequest, res: ExpressResponse) => TurmaController.addStudentToTurma(req, res));
 
-router.post('/turmas/:id/students/batch', authMiddleware, (req, res) => TurmaController.batchAddStudentsToTurma(req, res));
+router.post('/turmas/:id/students/batch', authMiddleware, (req: ExpressRequest, res: ExpressResponse) => TurmaController.batchAddStudentsToTurma(req, res));
 
-router.delete('/turmas/:turmaId/students/:studentId', authMiddleware, (req, res) => TurmaController.removeStudentFromTurma(req, res));
+router.delete('/turmas/:turmaId/students/:studentId', authMiddleware, (req: ExpressRequest, res: ExpressResponse) => TurmaController.removeStudentFromTurma(req, res));
 
-router.post('/turmas/:id/finalize', authMiddleware, (req, res) => TurmaController.finalizeTurma(req, res));
+router.post('/turmas/:id/finalize', authMiddleware, (req: ExpressRequest, res: ExpressResponse) => TurmaController.finalizeTurma(req, res));
 
-router.post('/turmas/:id/reopen', authMiddleware, (req, res) => TurmaController.reopenTurma(req, res));
+router.post('/turmas/:id/reopen', authMiddleware, (req: ExpressRequest, res: ExpressResponse) => TurmaController.reopenTurma(req, res));
 
 export default router;

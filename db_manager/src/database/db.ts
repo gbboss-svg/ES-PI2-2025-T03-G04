@@ -1,6 +1,5 @@
 import oracledb from "oracledb";
 
-// FIX: Add declaration for the Node.js global `process` to resolve type errors.
 declare const process: any;
 
 const dbConfig = {

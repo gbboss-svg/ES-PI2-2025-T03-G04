@@ -24,19 +24,31 @@ export default class ProfessorService {
    */
   static async getInstituicoes(connection: oracledb.Connection, professorId: number) {
     try {
+      // A consulta foi reescrita para ser mais robusta, garantindo que todas as
+      // instituições relacionadas (propriedade direta, associação por curso ou disciplina)
+      // sejam corretamente buscadas.
       const result = await connection.execute(
         `SELECT
-            i.Id_Instituicao, i.Nome, MAX(pc.ULTIMO_ACESSO) as LastAccess
-        FROM Instituicao i
-        LEFT JOIN Curso c ON i.Id_Instituicao = c.Id_Instituicao
-        LEFT JOIN Professor_Curso pc ON c.Id_Curso = pc.Id_Curso AND pc.Id_Professor = :id
-        WHERE i.Id_Professor = :id OR i.Id_Instituicao IN (
+            i.Id_Instituicao,
+            i.Nome,
+            MAX(pc.ULTIMO_ACESSO) as LastAccess
+        FROM
+            Instituicao i
+        LEFT JOIN
+            Curso c ON i.Id_Instituicao = c.Id_Instituicao
+        LEFT JOIN
+            Professor_Curso pc ON c.Id_Curso = pc.Id_Curso AND pc.Id_Professor = :id
+        WHERE i.Id_Instituicao IN (
+            SELECT Id_Instituicao FROM INSTITUICAO WHERE Id_Professor = :id
+            UNION
             SELECT c_sub.Id_Instituicao FROM Curso c_sub JOIN Professor_Curso pc_sub ON c_sub.Id_Curso = pc_sub.Id_Curso WHERE pc_sub.Id_Professor = :id
             UNION
             SELECT c2.Id_Instituicao FROM Disciplina d JOIN Professor_Disciplina pd ON d.Id_Disciplina = pd.Id_Disciplina JOIN Curso c2 ON d.Id_Curso = c2.Id_Curso WHERE pd.Id_Professor = :id
         )
-        GROUP BY i.Id_Instituicao, i.Nome
-        ORDER BY LastAccess DESC NULLS LAST`,
+        GROUP BY
+            i.Id_Instituicao, i.Nome
+        ORDER BY
+            LastAccess DESC NULLS LAST`,
         { id: professorId },
         { outFormat: oracledb.OUT_FORMAT_OBJECT }
       );

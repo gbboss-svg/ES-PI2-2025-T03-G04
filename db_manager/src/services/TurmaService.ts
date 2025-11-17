@@ -174,79 +174,20 @@ export default class TurmaService {
   }
 
   /**
-   * Reabre uma turma finalizada, restaurando o estado a partir do último snapshot de finalização.
+   * Reabre uma turma finalizada.
    */
   static async reopenTurma(connection: oracledb.Connection, turmaId: number): Promise<void> {
     try {
-        const auditResult = await connection.execute(
-            `SELECT Snapshot_Dados
-             FROM AUDITORIA
-             WHERE Id_Turma = :turmaId AND Mensagem LIKE '%foi finalizado%'
-             ORDER BY Timestamp DESC
-             FETCH FIRST 1 ROWS ONLY`,
-            { turmaId },
-            { 
-                outFormat: oracledb.OUT_FORMAT_OBJECT,
-                fetchInfo: { "SNAPSHOT_DADOS": { type: oracledb.STRING } } 
-            }
-        );
-
-        const auditRow = (auditResult.rows as any[])?.[0];
-        
-        if (auditRow && auditRow.SNAPSHOT_DADOS) {
-            const snapshot = JSON.parse(auditRow.SNAPSHOT_DADOS);
-            
-            await connection.execute(`DELETE FROM NOTAS WHERE Id_Turma = :turmaId`, { turmaId }, { autoCommit: false });
-
-            if (snapshot.discipline?.gradeComponents && snapshot.students) {
-                // FIX: Busca o ID da disciplina ATUAL da turma para maior robustez.
-                const turmaResult = await connection.execute(
-                    `SELECT Id_Disciplina FROM TURMA WHERE Id_Turma = :turmaId`,
-                    { turmaId },
-                    { outFormat: oracledb.OUT_FORMAT_OBJECT }
-                );
-                const currentDisciplineId = (turmaResult.rows as any[])?.[0]?.ID_DISCIPLINA;
-
-                if (!currentDisciplineId) {
-                    throw new Error(`Disciplina para a turma ${turmaId} não encontrada. Não é possível restaurar as notas.`);
-                }
-
-                const componentsResult = await connection.execute(
-                    `SELECT Id_Comp, Sigla FROM Componente_Nota WHERE Id_Disciplina = :discId`,
-                    { discId: currentDisciplineId }, // Usa o ID da disciplina atual
-                    { outFormat: oracledb.OUT_FORMAT_OBJECT }
-                );
-                const componentMap = new Map((componentsResult.rows as any[]).map(r => [r.SIGLA, r.ID_COMP]));
-
-                for (const student of snapshot.students) {
-                    for (const acronym in student.grades) {
-                        const gradeValue = student.grades[acronym];
-                        const componentId = componentMap.get(acronym);
-
-                        if (componentId && gradeValue !== null && gradeValue !== undefined) {
-                            await connection.execute(
-                                `INSERT INTO NOTAS (Id_Turma, Matricula, Id_Comp, Pontuacao) 
-                                 VALUES (:turmaId, :matricula, :idComp, :pontuacao)`,
-                                { turmaId, matricula: student.id, idComp: componentId, pontuacao: gradeValue },
-                                { autoCommit: false }
-                            );
-                        }
-                    }
-                }
-            }
-        }
-        
+        // A lógica de restauração de snapshot foi removida pois era destrutiva e desnecessária.
+        // A ação de finalizar apenas bloqueia a edição (flag 'Finalizado' = 1), sem apagar as notas.
+        // Portanto, para reabrir, basta redefinir a flag para 0, tornando a turma editável novamente.
         await connection.execute(
             `UPDATE Turma SET Finalizado = 0 WHERE Id_Turma = :id`, 
             { id: turmaId },
-            { autoCommit: false }
+            { autoCommit: true }
         );
-        
-        await connection.commit();
-
     } catch (error: any) {
-        await connection.rollback();
-        console.error('Erro ao reabrir e restaurar turma:', error);
+        console.error('Erro ao reabrir turma:', error);
         throw new Error('Erro ao reabrir a turma.');
     }
   }

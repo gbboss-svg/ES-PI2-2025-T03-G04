@@ -1,12 +1,13 @@
-import express from 'express';
+
+
+import { Request as ExpressRequest, Response as ExpressResponse, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
 /**
  * Middleware de autenticação para proteger rotas.
  */
 
-// FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
-export function authMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
+export function authMiddleware(req: ExpressRequest, res: ExpressResponse, next: NextFunction) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {

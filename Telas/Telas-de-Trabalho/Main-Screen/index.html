@@ -370,11 +370,16 @@
                     <form id="edit-student-form">
                         <div class="mb-3">
                             <label for="edit-student-id" class="form-label">Matrícula</label>
-                            <input type="text" class="form-control" id="edit-student-id" readonly>
+                            <input type="number" class="form-control" id="edit-student-id" required>
                         </div>
                         <div class="mb-3">
                             <label for="edit-student-name" class="form-label">Nome Completo</label>
                             <input type="text" class="form-control" id="edit-student-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-student-password" class="form-label">Confirme sua senha</label>
+                            <input type="password" class="form-control" id="edit-student-password" required>
+                            <div class="form-text">Por segurança, sua senha é necessária para alterar os dados do aluno.</div>
                         </div>
                     </form>
                 </div>
@@ -584,6 +589,25 @@
         </div>
     </div>
     
+    <!-- NOVO: Modal para Conflito de Notas em CSV -->
+    <div class="modal fade" id="csvGradeConflictModal" tabindex="-1" aria-labelledby="csvGradeConflictModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="csvGradeConflictModalLabel">Importação de Notas Detectada</h5>
+                </div>
+                <div class="modal-body">
+                    <p>O arquivo CSV que você está importando contém notas para um ou mais alunos. Como você deseja prosseguir?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-info" id="csv-import-students-only-btn">Importar Apenas Alunos</button>
+                    <button type="button" class="btn btn-primary" id="csv-import-with-grades-btn">Importar Alunos e Notas</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification Container -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <!-- Toasts will be appended here -->

@@ -1,4 +1,6 @@
-import express from 'express';
+
+
+import { Request as ExpressRequest, Response as ExpressResponse, NextFunction } from 'express';
 import { getConnection } from '../database/db';
 import oracledb from 'oracledb';
 
@@ -6,8 +8,7 @@ import oracledb from 'oracledb';
  * Middleware de conexão com o banco de dados.
  */
 
-// FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
-export const connectionMiddleware = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+export const connectionMiddleware = async (req: ExpressRequest, res: ExpressResponse, next: NextFunction) => {
   let connection;
   try {
     connection = await getConnection();

@@ -273,35 +273,6 @@ function attachActionButtonsListeners(turma, disciplina, modals, renderTurmaDeta
             }
         });
     }
-
-    document.getElementById('reopen-turma-btn')?.addEventListener('click', () => modals.reopenTurmaModal.show());
-
-    const confirmReopenBtn = document.getElementById('confirm-reopen-btn');
-    if (confirmReopenBtn) {
-        const newConfirmBtn = confirmReopenBtn.cloneNode(true);
-        confirmReopenBtn.parentNode.replaceChild(newConfirmBtn, confirmReopenBtn);
-        newConfirmBtn.addEventListener('click', async () => {
-            const passwordInput = document.getElementById('current-password-reopen');
-            const password = passwordInput.value;
-            if (!password) {
-                showToast('Por favor, insira sua senha para reabrir a turma.', 'error');
-                return;
-            }
-            
-            try {
-                await ApiService.reopenTurma(turma.id, password);
-                modals.reopenTurmaModal.hide();
-                passwordInput.value = '';
-                showToast('Turma reaberta com sucesso!', 'success');
-                addAuditLog(turma.id, `A turma ${turma.name} foi reaberta para edição.`);
-                
-                const updatedTurma = await ApiService.getTurmaDetail(turma.id);
-                renderTurmaDetailView(updatedTurma, updatedTurma.discipline, modals);
-            } catch (error) {
-                showToast(`Erro ao reabrir turma: ${error.message}`, 'error');
-            }
-        });
-    }
 }
 
 // --- Lógica de Importação CSV Refatorada ---
@@ -329,6 +300,37 @@ function promptForConflictResolution(conflict, modal) {
         ignoreBtn.onclick = () => cleanupAndResolve('ignore');
         cancelBtn.onclick = () => cleanupAndResolve('cancel');
         
+        modal.show();
+    });
+}
+
+function promptForGradeImportOption(modal) {
+    return new Promise((resolve) => {
+        const withGradesBtn = document.getElementById('csv-import-with-grades-btn');
+        const studentsOnlyBtn = document.getElementById('csv-import-students-only-btn');
+        const modalElement = modal._element;
+        
+        let hasResolved = false;
+
+        const resolveOnce = (action) => {
+            if (hasResolved) return;
+            hasResolved = true;
+            
+            // Cleanup listeners by cloning and replacing the buttons
+            withGradesBtn.replaceWith(withGradesBtn.cloneNode(true));
+            studentsOnlyBtn.replaceWith(studentsOnlyBtn.cloneNode(true));
+            modalElement.removeEventListener('hidden.bs.modal', onHide);
+            
+            modal.hide();
+            resolve(action);
+        };
+
+        withGradesBtn.onclick = () => resolveOnce('with-grades');
+        studentsOnlyBtn.onclick = () => resolveOnce('students-only');
+        
+        const onHide = () => resolveOnce('cancel');
+        modalElement.addEventListener('hidden.bs.modal', onHide, { once: true });
+
         modal.show();
     });
 }
@@ -380,7 +382,7 @@ function attachCsvListeners(turma, disciplina, renderTurmaDetailView, modals) {
             const reader = new FileReader();
             reader.onload = async event => {
                 try {
-                    const { students: importedStudents } = importStudentsFromCsv(event.target.result);
+                    const { headers, students: importedStudents } = importStudentsFromCsv(event.target.result);
                     const snapshot = createSnapshot(turma);
 
                     const newStudents = [];
@@ -409,7 +411,37 @@ function attachCsvListeners(turma, disciplina, renderTurmaDetailView, modals) {
                     }
 
                     if (studentsToSave.length > 0) {
-                        await ApiService.batchAddStudents(turma.id, studentsToSave);
+                        const hasGradesInFile = studentsToSave.some(student => Object.values(student.grades).some(grade => grade !== null && grade !== ''));
+                        let gradeImportChoice = 'with-grades';
+
+                        if (hasGradesInFile) {
+                            gradeImportChoice = await promptForGradeImportOption(modals.csvGradeConflictModal);
+                        }
+
+                        if (gradeImportChoice === 'cancel') {
+                            showToast('Importação cancelada.', 'info');
+                            return;
+                        }
+                        
+                        const payload = { students: studentsToSave, newComponents: [] };
+
+                        if (gradeImportChoice === 'with-grades') {
+                            const existingAcronyms = new Set((disciplina.gradeComponents || []).map(c => c.acronym.toLowerCase()));
+                            const gradeHeaders = headers.filter(h => h !== 'matricula' && h !== 'nome');
+                            
+                            payload.newComponents = gradeHeaders
+                              .filter(h => !existingAcronyms.has(h))
+                              .map(h => {
+                                  const name = h.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                  return { name, acronym: h };
+                              });
+
+                        } else { // 'students-only'
+                            payload.students.forEach(student => { student.grades = {}; });
+                            showToast('Importando apenas os dados dos alunos, notas serão ignoradas.', 'info');
+                        }
+                        
+                        await ApiService.batchAddStudents(turma.id, payload);
                         
                         const ignoredCount = conflictingStudents.length - substitutedCount;
                         const summaryMessage = `${newStudents.length} novo(s) adicionado(s), ${substitutedCount} substituído(s), ${ignoredCount} ignorado(s).`;
@@ -459,6 +491,7 @@ function attachStudentActionListeners(turma, disciplina, modals, renderTurmaDeta
             const { studentId, studentName } = editBtn.dataset;
             document.getElementById('edit-student-id').value = studentId;
             document.getElementById('edit-student-name').value = studentName;
+            document.getElementById('edit-student-password').value = '';
             document.getElementById('confirm-edit-student-btn').dataset.studentId = studentId;
             modals.editStudentModal.show();
         }
@@ -481,20 +514,25 @@ function attachStudentActionListeners(turma, disciplina, modals, renderTurmaDeta
 
     const confirmEditBtn = document.getElementById('confirm-edit-student-btn');
     confirmEditBtn.onclick = async (e) => {
-        const studentId = e.currentTarget.dataset.studentId;
+        const oldStudentId = e.currentTarget.dataset.studentId;
+        const newMatricula = document.getElementById('edit-student-id').value;
         const newName = document.getElementById('edit-student-name').value;
-        if (!newName) {
-            showToast('O nome do aluno é obrigatório.', 'error');
+        const password = document.getElementById('edit-student-password').value;
+
+        if (!newName || !newMatricula || !password) {
+            showToast('Matrícula, nome e senha são obrigatórios.', 'error');
             return;
         }
         try {
-            await ApiService.updateStudent(studentId, { 
+            await ApiService.updateStudent(oldStudentId, { 
                 name: newName, 
-                turmaId: turma.id // Passa o turmaId para verificação de permissão
+                matricula: newMatricula,
+                turmaId: turma.id,
+                password: password,
             });
             modals.editStudentModal.hide();
             showToast('Dados do aluno atualizados.', 'success');
-            addAuditLog(turma.id, `Nome do aluno ${studentId} alterado para ${newName}.`);
+            addAuditLog(turma.id, `Dados do aluno ${oldStudentId} alterados para Matrícula: ${newMatricula}, Nome: ${newName}.`);
             const updatedTurma = await ApiService.getTurmaDetail(turma.id);
             renderTurmaDetailView(updatedTurma, updatedTurma.discipline, modals);
         } catch (error) {
@@ -563,7 +601,42 @@ function attachComponentActionListeners(turma, disciplina, modals, renderTurmaDe
 export function attachAllListeners(turma, disciplina, modals, renderTurmaDetailView, currentTurmaContext) {
     const isFinalized = turma.isFinalized;
 
-    if (!isFinalized) {
+    if (isFinalized) {
+        // Lógica específica para quando a turma está finalizada
+        document.getElementById('reopen-turma-btn')?.addEventListener('click', () => {
+            const passwordInput = document.getElementById('current-password-reopen');
+            if (passwordInput) passwordInput.value = ''; // Limpa o campo de senha ao abrir
+            modals.reopenTurmaModal.show();
+        });
+
+        const confirmReopenBtn = document.getElementById('confirm-reopen-btn');
+        if (confirmReopenBtn) {
+            const newConfirmBtn = confirmReopenBtn.cloneNode(true); // Previne múltiplos listeners
+            confirmReopenBtn.parentNode.replaceChild(newConfirmBtn, confirmReopenBtn);
+            newConfirmBtn.addEventListener('click', async () => {
+                const passwordInput = document.getElementById('current-password-reopen');
+                const password = passwordInput.value;
+                if (!password) {
+                    showToast('Por favor, insira sua senha para reabrir a turma.', 'error');
+                    return;
+                }
+                
+                try {
+                    await ApiService.reopenTurma(turma.id, password);
+                    modals.reopenTurmaModal.hide();
+                    passwordInput.value = '';
+                    showToast('Turma reaberta com sucesso!', 'success');
+                    addAuditLog(turma.id, `A turma ${turma.name} foi reaberta para edição.`);
+                    
+                    const updatedTurma = await ApiService.getTurmaDetail(turma.id);
+                    renderTurmaDetailView(updatedTurma, updatedTurma.discipline, modals);
+                } catch (error) {
+                    showToast(`Erro ao reabrir turma: ${error.message}`, 'error');
+                }
+            });
+        }
+    } else {
+        // Lógica para quando a turma está ativa (não finalizada)
         attachGradeEditingListeners(turma, disciplina, renderTurmaDetailView, currentTurmaContext);
         attachFormulaEditorListeners(turma, disciplina, renderTurmaDetailView, currentTurmaContext, modals);
         attachActionButtonsListeners(turma, disciplina, modals, renderTurmaDetailView, currentTurmaContext);
@@ -571,6 +644,7 @@ export function attachAllListeners(turma, disciplina, modals, renderTurmaDetailV
         attachComponentActionListeners(turma, disciplina, modals, renderTurmaDetailView);
     }
     
+    // Listeners que devem ser anexados independentemente do estado da turma
     attachCsvListeners(turma, disciplina, renderTurmaDetailView, modals);
     attachAuditPanelListeners();
 }
