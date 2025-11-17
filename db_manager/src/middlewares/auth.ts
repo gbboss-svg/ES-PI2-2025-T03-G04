@@ -1,4 +1,6 @@
-
+/**
+ * Desenvolvido:Abdallah Ali Borges el Khatib
+ */
 
 import { Request as ExpressRequest, Response as ExpressResponse, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';

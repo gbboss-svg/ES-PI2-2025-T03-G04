@@ -1,3 +1,8 @@
+  /**
+   *Desevolvido por:Gabriel Benevides Bosso - R.A:24013653
+   *Desevolvido por:Alex Gabriel Soares Sousa R.A:24802449
+   */
+
 import 'dotenv/config';
 import { app } from './app';
 import { initialize, close } from './database/db';

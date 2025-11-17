@@ -1,3 +1,8 @@
+  /**
+   *Desevolvido por:Alex Gabriel Soares Sousa R.A:24802449
+   *Desevolvido por:Victória Beatriz Nobre Andrade - R.A:25016398
+   *Desevolvido por:Gabriel Benevides Bosso - R.A:24013653
+   */
 /**
  * Calcula a nota final de um aluno com base em uma fórmula e nos componentes de nota.
  */

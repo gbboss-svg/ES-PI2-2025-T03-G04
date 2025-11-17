@@ -1,3 +1,7 @@
+  /**
+   *Desevolvido por:Alex Gabriel Soares Sousa R.A:24802449
+   */
+
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';

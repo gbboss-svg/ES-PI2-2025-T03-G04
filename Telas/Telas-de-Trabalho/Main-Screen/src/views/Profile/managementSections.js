@@ -1,4 +1,6 @@
-
+  /**
+   *Desevolvido por:Alex Gabriel Soares Sousa R.A:24802449
+   */
 import * as ApiService from '../../services/ApiService.js';
 
 export function renderCourseManagement(instId, institutions, container, modals) {

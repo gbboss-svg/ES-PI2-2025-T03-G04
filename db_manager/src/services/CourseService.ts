@@ -1,3 +1,7 @@
+  /**
+   *Desevolvido por:Gabriel Benevides Bosso - R.A:24013653
+   */
+
 import oracledb from 'oracledb';
 
 export default class CourseService {

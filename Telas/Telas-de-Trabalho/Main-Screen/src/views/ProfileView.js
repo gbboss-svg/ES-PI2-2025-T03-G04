@@ -1,3 +1,8 @@
+  /**
+   *Desevolvido por:Alex Gabriel Soares Sousa R.A:24802449
+   *Desevolvido por:Gabriel Benevides Bosso - R.A:24013653
+   */
+
 import { renderCourseManagement, renderDisciplineManagement } from './Profile/managementSections.js';
 import * as ApiService from '../services/ApiService.js';
 import { showToast } from '../services/NotificationService.js';

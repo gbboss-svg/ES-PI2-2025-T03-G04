@@ -1,3 +1,9 @@
+  /**
+   *Desevolvido por:Alex Gabriel Soares Sousa R.A:24802449
+   *Desevolvido por:Gabriel Benevides Bosso - R.A:24013653
+   *Desevolvido por:Victória Beatriz Nobre Andrade - R.A:25016398
+   */
+
 import { getConnection } from './db';
 import oracledb from 'oracledb';
 

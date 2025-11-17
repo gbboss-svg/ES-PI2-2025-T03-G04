@@ -1,3 +1,7 @@
+  /**
+   *Desevolvido por:Alex Gabriel Soares Sousa R.A:24802449
+   */
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- Seletores de Elementos ---

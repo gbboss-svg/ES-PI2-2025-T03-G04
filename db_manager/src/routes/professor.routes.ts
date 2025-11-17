@@ -1,4 +1,6 @@
-
+  /**
+   *Desevolvido por:Gabriel Benevides Bosso - R.A:24013653
+   */
 import { Router, Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import ProfessorController from '../controllers/ProfessorController';
 import { authMiddleware } from '../middlewares/auth'; // Middleware para proteger rotas

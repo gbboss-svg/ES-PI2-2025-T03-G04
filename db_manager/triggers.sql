@@ -1,3 +1,8 @@
+  /**
+   *Desevolvido por:Gabriel Benevides Bosso - R.A:24013653
+   *Desevolvido por:Victória Beatriz Nobre Andrade - R.A:25016398
+   */
+
 CREATE OR REPLACE TRIGGER trg_auditoria_notas
 AFTER UPDATE OF Pontuacao ON Notas
 FOR EACH ROW

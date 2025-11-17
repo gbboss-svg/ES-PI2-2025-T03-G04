@@ -1,3 +1,7 @@
+  /**
+   *Desevolvido por:Bernardo Alberto Amaro - R.A:25014832
+   */
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("form-login")
   const identifierInput = document.getElementById("usuario")

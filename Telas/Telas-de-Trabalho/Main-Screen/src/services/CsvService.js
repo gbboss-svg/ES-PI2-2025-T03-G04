@@ -1,3 +1,6 @@
+  /**
+   *Desevolvido por:Alex Gabriel Soares Sousa R.A:24802449
+   */
 /**
  * Formata um campo individual para ser seguro em um CSV, lidando com vírgulas e aspas.
  * @param {string | number | null | undefined} field - O valor do campo a ser formatado.

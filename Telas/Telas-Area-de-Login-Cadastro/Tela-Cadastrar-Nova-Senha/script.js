@@ -1,3 +1,6 @@
+  /**
+   *Desevolvido por:Bernardo Alberto Amaro - R.A:25014832
+   */
 /**
  * Lida com a lógica da tela de cadastro de nova senha.
  */

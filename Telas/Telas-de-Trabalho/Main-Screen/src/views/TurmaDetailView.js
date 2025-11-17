@@ -1,3 +1,9 @@
+  /**
+   *Desevolvido por:Victória Beatriz Nobre Andrade - R.A:25016398
+   *Desevolvido por:Gabriel Benevides Bosso - R.A:24013653
+   */
+
+
 import { renderAuditLog } from "../services/AuditService.js";
 import { renderMainHTML, renderGradeComponentsList, renderGradesTable } from "./TurmaDetail/ui.js";
 import { attachAllListeners } from "./TurmaDetail/eventHandlers.js";

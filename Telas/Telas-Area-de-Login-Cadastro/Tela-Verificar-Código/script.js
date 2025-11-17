@@ -1,3 +1,6 @@
+  /**
+   *Desevolvido por:Bernardo Alberto Amaro - R.A:25014832
+   */
 document.addEventListener('DOMContentLoaded', () => {
     const signupForm = document.getElementById('signup-form');
     const codeInput = document.getElementById('code');

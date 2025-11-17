@@ -1,4 +1,6 @@
-
+  /**
+   *Desevolvido por:Alex Gabriel Soares Sousa R.A:24802449
+   */
 
 const BASE_URL = 'http://localhost:3333/api'; // O backend roda na porta 3333
 

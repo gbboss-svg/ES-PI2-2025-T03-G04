@@ -1,3 +1,6 @@
+  /**
+   *Desevolvido por:Bernardo Alberto Amaro - R.A:25014832
+   */
 const phoneInput = document.getElementById('phone');
 const signupForm = document.getElementById('signup-form');
 const passwordInput = document.getElementById('password');

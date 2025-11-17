@@ -1,4 +1,7 @@
-
+  /**
+   *Desevolvido por:Gabriel Benevides Bosso - R.A:24013653
+   *Desevolvido por:Victória Beatriz Nobre Andrade - R.A:25016398
+   */
 
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import StudentService from '../services/StudentService';

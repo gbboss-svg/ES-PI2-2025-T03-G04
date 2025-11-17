@@ -1,3 +1,6 @@
+  /**
+   *Desevolvido por:Gabriel Benevides Bosso - R.A:24013653
+   */
 
 import { Router, Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import DisciplineController from '../controllers/DisciplineController';
