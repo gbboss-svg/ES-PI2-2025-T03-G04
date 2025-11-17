@@ -1,5 +1,5 @@
   /**
-   *Desevolvido por:Bernardo Alberto Amaro - R.A:25014832
+   *Desenvolvido por:Bernardo Alberto Amaro - R.A:25014832
    */
 
 /**
@@ -95,8 +95,57 @@ document.addEventListener('DOMContentLoaded', () => {
         return 'Indefinido';
     }
 
-    identifierInput.addEventListener('input', (e) => {
-    });
+    identifierInput.addEventListener("input", () => {
+    let v = identifierInput.value;
+    let n = v.replace(/\D/g, "");
+
+    // telefone com DDI
+    if (v.startsWith("+") || n.length > 11) {
+        let ddi = "";
+        let resto = "";
+
+        if (v.startsWith("+")) {
+            ddi = n.substring(0, 3);
+            if (ddi.length > 2 && ddi[0] === ddi[1]) {
+                ddi = n.substring(0, 2);
+            }
+            resto = n.substring(ddi.length);
+        } else {
+            let tam = n.length - 10; // separa o DDI
+            ddi = n.substring(0, tam);
+            resto = n.substring(tam);
+        }
+
+        let ddd = resto.substring(0, 2) || "";
+        let p1 = resto.substring(2, 7) || "";
+        let p2 = resto.substring(7, 11) || "";
+
+        // monta conforme o usuário digita
+        if (resto.length <= 2) {
+            identifierInput.value = `+${ddi} (${ddd}`;
+        } else if (resto.length <= 7) {
+            identifierInput.value = `+${ddi} (${ddd}) ${p1}`;
+        } else {
+            identifierInput.value = `+${ddi} (${ddd}) ${p1}-${p2}`;
+        }
+
+        return;
+    }
+
+    // CPF - padrão
+    if (n.length <= 11) {
+        if (n.length <= 3) {
+            identifierInput.value = n;
+        } else if (n.length <= 6) {
+            identifierInput.value = `${n.slice(0,3)}.${n.slice(3)}`;
+        } else if (n.length <= 9) {
+            identifierInput.value = `${n.slice(0,3)}.${n.slice(3,6)}.${n.slice(6)}`;
+        } else {
+            identifierInput.value = `${n.slice(0,3)}.${n.slice(3,6)}.${n.slice(6,9)}-${n.slice(9,11)}`;
+        }
+    }
+});
+
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
