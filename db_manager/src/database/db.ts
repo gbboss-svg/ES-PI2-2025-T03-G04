@@ -1,10 +1,11 @@
 import oracledb from "oracledb";
 
 const dbConfig = {
-  user: "GABRIEL",
-  password: "Gb122100189",
-  connectString: "localhost:1521/XEPDB1"
+  user: "BD040825126",
+  password: "Osmyk3",
+  connectString: "BD-ACD:1521/xe"
 };
+
 
 /**
  * Inicializa o pool de conexões com o banco de dados Oracle.
