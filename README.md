@@ -57,7 +57,7 @@ tsconfig.json
 ### **Alunos e suas responsabilidades:**
 
 - **Alex Sousa:**  
-  - *(Descrever contribuição dele aqui — por exemplo: integração frontend/backend, telas específicas...)*
+  - Desenvolvimento nas Telas e Main-Screen, Backend e Integração do sistema, e Manipulação do Email
 
 - **Bernardo Amaro:**  
   - Login / Autenticação / Fluxos de acesso
