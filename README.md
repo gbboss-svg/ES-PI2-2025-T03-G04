@@ -72,7 +72,7 @@ tsconfig.json
   - Integração Node + Oracle
 
 - **Abdallah Borges:**  
-  - *(Descrever contribuição dele aqui — API, frontend, qualquer parte)*  
+  - token de segurança*  
 
 ### **Professor Orientador**
 - **Luã Marcelo Muriana**
@@ -95,8 +95,9 @@ tsconfig.json
 
 Abra o terminal na pasta **db_manager**:
 
-´´´bash 
+
 npm install
+npm run dev
 
 3️⃣ Configurar Banco de Dados Oracle
 
