@@ -2,11 +2,20 @@
    *Desevolvido por:Alex Gabriel Soares Sousa R.A:24802449
    */
 
-import sgMail from '@sendgrid/mail';
+import nodemailer from 'nodemailer';
+import Mail from 'nodemailer/lib/mailer';
 
 class EmailService {
+  private transporter: Mail;
+
   constructor() {
-    sgMail.setApiKey('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');
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'staff.notadez@gmail.com',
+        pass: 'wjnj cubw fhis pfmy'
+      }
+    });
   }
   
   /**
@@ -20,9 +29,9 @@ class EmailService {
    * Envia um e-mail de verificação de conta para um novo usuário.
    */
   async sendVerificationEmail(to: string, code: string) {
-    const msg = {
+    const mailOptions = {
+      from: '"Equipe NotaDez" <staff.notadez@gmail.com>',
       to: to,
-      from: 'staff.notadez@gmail.com',
       subject: 'Código de Verificação',
       html: `
         <h1>Seu código de verificação</h1>
@@ -35,13 +44,10 @@ class EmailService {
     };
 
     try {
-      await sgMail.send(msg);
+      await this.transporter.sendMail(mailOptions);
       console.log(`E-mail de verificação enviado para ${to}`);
     } catch (error: any) {
       console.error(`Erro ao enviar e-mail de verificação para ${to}:`, error);
-      if (error.response) {
-        console.error(error.response.body)
-      }
       throw new Error('Não foi possível enviar o e-mail de verificação.');
     }
   }
@@ -50,9 +56,9 @@ class EmailService {
    * Envia um e-mail para o processo de redefinição de senha.
    */
   async sendPasswordResetEmail(to: string, code: string) {
-    const msg = {
+    const mailOptions = {
+      from: '"Equipe NotaDez" <staff.notadez@gmail.com>',
       to: to,
-      from: 'staff.notadez@gmail.com',
       subject: 'Recuperação de Senha',
       html: `
         <h1>Código de Recuperação de Senha</h1>
@@ -65,13 +71,10 @@ class EmailService {
     };
 
     try {
-      await sgMail.send(msg);
+      await this.transporter.sendMail(mailOptions);
       console.log(`E-mail de recuperação de senha enviado para ${to}`);
     } catch (error: any) {
       console.error(`Erro ao enviar e-mail de recuperação para ${to}:`, error);
-      if (error.response) {
-        console.error(error.response.body)
-      }
       throw new Error('Não foi possível enviar o e-mail de recuperação de senha.');
     }
   }

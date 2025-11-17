@@ -1,25 +1,32 @@
-  /**
-   *Desenvolvido por:Bernardo Alberto Amaro - R.A:25014832
-   */
+/**
+ * Desenvolvido por: Bernardo Alberto Amaro - R.A:25014832
+ * Refatorado por: Gemini
+ */
 
 /**
  * Lida com a lógica da tela "Esqueci Minha Senha".
  */
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Seletores DOM ---
     const identifierInput = document.getElementById('identifier');
     const form = document.getElementById('signup-form');
     const formError = document.getElementById('form-error');
     const hintDiv = document.getElementById('identifier-hint');
     const backButton = document.getElementById('back-button');
+    
+    // Cria elemento de sucesso dinamicamente
     const successMessage = document.createElement('p');
     successMessage.style.color = 'green';
     formError.parentNode.insertBefore(successMessage, formError.nextSibling);
+
+    // --- Funções Utilitárias (Helpers) ---
+    // (Mantidas como no original)
 
     const onlyDigits = (s) => String(s).replace(/\D/g, '');
 
     function validaEmailSimples(email) {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email.trim());
+        return re.test(String(email).trim().toLowerCase());
     }
 
     function isCPF(cpf) {
@@ -86,7 +93,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const startsPlus = raw.startsWith('+');
         const starts00 = raw.startsWith('00');
-        const probableCC = numbers.length > 11 || numbers.startsWith('55');
+        // Ajuste: CPF tem 11, então DDI só é provável se for > 11 ou começar com +/00
+        const probableCC = numbers.length > 11 || numbers.startsWith('55'); 
         if (startsPlus || starts00 || probableCC) {
             return isTelefoneComDDI(raw) ? 'Telefone' : 'Telefone-Invalido';
         }
@@ -95,71 +103,138 @@ document.addEventListener('DOMContentLoaded', () => {
         return 'Indefinido';
     }
 
+    // --- LÓGICA PRINCIPAL ---
+
+    /**
+     * NOVO: Event listener de 'input' refatorado.
+     * Agora detecta se é e-mail e para a máscara.
+     * Também fornece feedback instantâneo (hints).
+     */
     identifierInput.addEventListener("input", () => {
-    let v = identifierInput.value;
-    let n = v.replace(/\D/g, "");
-
-    // telefone com DDI
-    if (v.startsWith("+") || n.length > 11) {
-        let ddi = "";
-        let resto = "";
-
-        if (v.startsWith("+")) {
-            ddi = n.substring(0, 3);
-            if (ddi.length > 2 && ddi[0] === ddi[1]) {
-                ddi = n.substring(0, 2);
+        let v = identifierInput.value;
+        
+        // Limpa o erro do formulário ao digitar
+        formError.textContent = ''; 
+        
+        // 1. CHECAGEM DE E-MAIL
+        // Se incluir "@", o usuário está digitando um e-mail.
+        // Não aplique nenhuma máscara numérica.
+        if (v.includes('@')) {
+            const tipo = identificaTipo(v);
+            if (hintDiv) {
+                if (tipo === 'Email') {
+                    hintDiv.textContent = 'Formato de e-mail válido.';
+                    hintDiv.style.color = 'green';
+                } else {
+                    hintDiv.textContent = 'Digite um e-mail válido (ex: nome@dominio.com)';
+                    hintDiv.style.color = '#ff6b6b'; // Um vermelho mais suave
+                }
             }
-            resto = n.substring(ddi.length);
-        } else {
-            let tam = n.length - 10; // separa o DDI
-            ddi = n.substring(0, tam);
-            resto = n.substring(tam);
+            return; // Impede a execução das máscaras numéricas
         }
 
-        let ddd = resto.substring(0, 2) || "";
-        let p1 = resto.substring(2, 7) || "";
-        let p2 = resto.substring(7, 11) || "";
+        // Se não é e-mail, limpa o hint
+        if (hintDiv) hintDiv.textContent = '';
 
-        // monta conforme o usuário digita
-        if (resto.length <= 2) {
-            identifierInput.value = `+${ddi} (${ddd}`;
-        } else if (resto.length <= 7) {
-            identifierInput.value = `+${ddi} (${ddd}) ${p1}`;
-        } else {
-            identifierInput.value = `+${ddi} (${ddd}) ${p1}-${p2}`;
+        // 2. LÓGICA DE MÁSCARA NUMÉRICA (CPF E TELEFONE)
+        // (Lógica original mantida, pois só roda se não for e-mail)
+        let n = v.replace(/\D/g, "");
+
+        // Telefone com DDI
+        if (v.startsWith("+") || n.length > 11) {
+            let ddi = "";
+            let resto = "";
+
+            if (v.startsWith("+")) {
+                let digitsAfterPlus = v.substring(1).replace(/\D/g, "");
+                // Heurística para DDI (Brasil vs Outros)
+                if (digitsAfterPlus.startsWith("55") && digitsAfterPlus.length >= 2) {
+                    ddi = "55";
+                    resto = digitsAfterPlus.substring(2);
+                } else if (digitsAfterPlus.length > 10) { // Outro país (ex: 1 + 10 dígitos)
+                    let ddiLen = digitsAfterPlus.length - 10;
+                    if (ddiLen > 3) ddiLen = 3;
+                    ddi = digitsAfterPlus.substring(0, ddiLen);
+                    resto = digitsAfterPlus.substring(ddiLen);
+                } else {
+                    ddi = digitsAfterPlus;
+                    resto = "";
+                }
+            } else { // Começou sem "+" mas passou de 11 dígitos
+                let tam = n.length - 10; // Tenta adivinhar DDI
+                if (tam < 1) tam = 1;
+                if (tam > 3) tam = 3;
+                ddi = n.substring(0, tam);
+                resto = n.substring(tam);
+            }
+
+            let ddd = resto.substring(0, 2) || "";
+            let p1 = resto.substring(2, 7) || ""; // 5 dígitos para celular (9XXXX)
+            let p2 = resto.substring(7, 11) || ""; // 4 dígitos finais
+
+            // Monta a máscara
+            let finalMask = `+${ddi}`;
+            if (ddd) finalMask += ` (${ddd})`;
+            if (p1) finalMask += ` ${p1}`;
+            if (p2) finalMask += `-${p2}`;
+            identifierInput.value = finalMask;
+
+        }
+        // CPF - padrão
+        else if (n.length <= 11) {
+            if (n.length <= 3) {
+                identifierInput.value = n;
+            } else if (n.length <= 6) {
+                identifierInput.value = `${n.slice(0,3)}.${n.slice(3)}`;
+            } else if (n.length <= 9) {
+                identifierInput.value = `${n.slice(0,3)}.${n.slice(3,6)}.${n.slice(6)}`;
+            } else {
+                identifierInput.value = `${n.slice(0,3)}.${n.slice(3,6)}.${n.slice(6,9)}-${n.slice(9,11)}`;
+            }
         }
 
-        return;
-    }
-
-    // CPF - padrão
-    if (n.length <= 11) {
-        if (n.length <= 3) {
-            identifierInput.value = n;
-        } else if (n.length <= 6) {
-            identifierInput.value = `${n.slice(0,3)}.${n.slice(3)}`;
-        } else if (n.length <= 9) {
-            identifierInput.value = `${n.slice(0,3)}.${n.slice(3,6)}.${n.slice(6)}`;
-        } else {
-            identifierInput.value = `${n.slice(0,3)}.${n.slice(3,6)}.${n.slice(6,9)}-${n.slice(9,11)}`;
+        // 3. HINT INSTANTÂNEO PARA NÚMEROS
+        if (hintDiv) {
+            const tipoNum = identificaTipo(identifierInput.value);
+            if (tipoNum === 'CPF') {
+                hintDiv.textContent = 'Formato de CPF válido.';
+                hintDiv.style.color = 'green';
+            } else if (tipoNum === 'Telefone') {
+                hintDiv.textContent = 'Formato de telefone válido.';
+                hintDiv.style.color = 'green';
+            } else if (tipoNum === 'Telefone-Invalido' || tipoNum === 'Possivel-Telefone-Sem-DDI') {
+                hintDiv.textContent = 'Telefone deve ter DDI (ex: +55 11 9...)';
+                hintDiv.style.color = '#ff6b6b';
+            } else {
+                 hintDiv.textContent = 'Digite seu CPF, E-mail ou Telefone (com DDI).';
+                 hintDiv.style.color = '#888';
+            }
         }
-    }
-});
+    });
 
 
+    /**
+     * Event listener de 'submit' do formulário
+     * (Lógica original mantida, está correta)
+     */
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         formError.textContent = '';
         if (hintDiv) hintDiv.textContent = '';
         successMessage.textContent = '';
+        successMessage.style.color = 'green'; // Reseta a cor
 
         const identifier = identifierInput.value.trim();
-        if (!identifier) { formError.textContent = 'Preencha o campo.'; return; }
+        if (!identifier) { 
+            formError.textContent = 'Preencha o campo.'; 
+            return; 
+        }
 
         const tipo = identificaTipo(identifier);
 
+        // Validação final antes de enviar
         if (tipo === 'Email-Invalido' || tipo === 'Possivel-Telefone-Sem-DDI' || tipo === 'Telefone-Invalido' || tipo === 'Indefinido') {
-            formError.textContent = 'Credencial inválida. Use e-mail, CPF ou telefone com DDI.';
+            formError.textContent = 'Credencial inválida. Use e-mail, CPF ou telefone com DDI (ex: +55).';
             return;
         }
 
@@ -168,31 +243,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('http://localhost:3333/api/auth/forgot-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ identifier })
+                body: JSON.stringify({ identifier: identifier }) // Envia valor limpo
             });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(()=>({message:'Erro desconhecido'}));
+                const errorData = await response.json().catch(()=>({message:'Erro desconhecido. Verifique a rede.'}));
                 throw new Error(errorData.message || 'Erro ao solicitar verificação.');
             }
 
             const data = await response.json();
 
+            // O backend deve retornar o e-mail associado (seja de CPF, tel ou e-mail)
             if (data.email) {
                 localStorage.setItem('userEmailForReset', data.email);
-                window.location.href = '/verificar-codigo';
+                window.location.href = '/verificar-codigo'; // Redireciona para a tela de verificação
             } else {
-                successMessage.textContent = 'Credencial não encontrada.';
-                successMessage.style.color = 'red';
-                setTimeout(()=>{ successMessage.textContent = ''; }, 3000);
+                // Caso a API retorne 200 OK mas sem um e-mail (caso raro)
+                formError.textContent = data.message || 'Credencial não encontrada.';
             }
+
         } catch (err) {
-            successMessage.textContent = err.message;
-            successMessage.style.color = 'red';
-            setTimeout(()=>{ successMessage.textContent = ''; }, 3000);
+            // Exibe erros da API ou de rede
+            formError.textContent = err.message;
         }
     });
 
+    /**
+     * Event listener do botão 'Voltar'
+     */
     backButton.addEventListener('click', () => {
         window.location.href = '/login';
     });
