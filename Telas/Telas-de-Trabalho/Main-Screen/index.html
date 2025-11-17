@@ -358,6 +358,33 @@
             </div>
         </div>
     </div>
+    
+    <div class="modal fade" id="editStudentModal" tabindex="-1" aria-labelledby="editStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editStudentModalLabel">Editar Aluno</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-student-form">
+                        <div class="mb-3">
+                            <label for="edit-student-id" class="form-label">Matrícula</label>
+                            <input type="text" class="form-control" id="edit-student-id" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-student-name" class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" id="edit-student-name" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirm-edit-student-btn">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="modal fade" id="deleteStudentModal" tabindex="-1" aria-labelledby="deleteStudentModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -556,7 +583,7 @@
             </div>
         </div>
     </div>
-
+    
     <!-- Toast Notification Container -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <!-- Toasts will be appended here -->

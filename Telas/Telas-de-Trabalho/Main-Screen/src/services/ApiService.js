@@ -1,4 +1,5 @@
 
+
 const BASE_URL = 'http://localhost:3333/api'; // O backend roda na porta 3333
 
 /**
@@ -83,6 +84,7 @@ export const reopenTurma = (id, password) => request(`/turmas/${id}/reopen`, { m
 // Funções para Alunos
 export const addStudent = (turmaId, data) => request(`/turmas/${turmaId}/students`, { method: 'POST', body: JSON.stringify(data) });
 export const batchAddStudents = (turmaId, students) => request(`/turmas/${turmaId}/students/batch`, { method: 'POST', body: JSON.stringify({ students }) });
+export const updateStudent = (studentId, data) => request(`/students/${studentId}`, { method: 'PUT', body: JSON.stringify(data) });
 export const updateStudentGrades = (turmaId, studentId, grades) => request(`/turmas/${turmaId}/students/${studentId}/grades`, { method: 'PUT', body: JSON.stringify({ grades }) });
 export const removeStudent = (turmaId, studentId) => request(`/turmas/${turmaId}/students/${studentId}`, { method: 'DELETE' });
 

@@ -4,6 +4,16 @@ import { attachInstitutionsViewListeners } from './Institutions/eventHandlers.js
  * Renderiza a view de gerenciamento de Instituições.
  */
 export function renderInstitutionsView(container, institutions, params = {}, modals, callbacks) {
+    if (!institutions) {
+        container.innerHTML = `
+            <div class="d-flex justify-content-center mt-5">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+            </div>`;
+        return;
+    }
+
     container.innerHTML = `
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
@@ -15,7 +25,7 @@ export function renderInstitutionsView(container, institutions, params = {}, mod
             </button>
         </div>
         <div class="accordion" id="institutions-accordion-container">
-            ${institutions.map((inst, i) => `
+            ${institutions.length > 0 ? institutions.map((inst, i) => `
                 <div class="accordion-item">
                     <h2 class="accordion-header d-flex" id="heading-inst-${inst.id}">
                         <button class="accordion-button collapsed flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-inst-${inst.id}" aria-expanded="false" aria-controls="collapse-inst-${inst.id}">
@@ -73,7 +83,7 @@ export function renderInstitutionsView(container, institutions, params = {}, mod
                         </div>
                     </div>
                 </div>
-            `).join('')}
+            `).join('') : '<div class="alert alert-info">Nenhuma instituição cadastrada.</div>'}
         </div>
     `;
     
@@ -87,5 +97,5 @@ export function renderInstitutionsView(container, institutions, params = {}, mod
         }
     }
     
-    attachInstitutionsViewListeners(container, modals, callbacks);
+    attachInstitutionsViewListeners(container, modals, callbacks, institutions);
 }

@@ -6,7 +6,6 @@ import { exportTurmaToCsv, downloadFile, importStudentsFromCsv } from "../../ser
 import { showToast } from "../../services/NotificationService.js";
 import * as ApiService from '../../services/ApiService.js';
 
-
 function attachGradeEditingListeners(turma, disciplina, renderTurmaDetailView, currentTurmaContext) {
     const gradeEditSelector = document.getElementById('grade-edit-selector');
     if (gradeEditSelector) {
@@ -34,7 +33,7 @@ function attachGradeEditingListeners(turma, disciplina, renderTurmaDetailView, c
     });
 }
 
-function attachFormulaEditorListeners(turma, disciplina, renderTurmaDetailView, currentTurmaContext) {
+function attachFormulaEditorListeners(turma, disciplina, renderTurmaDetailView, currentTurmaContext, modals) {
     document.getElementById('toggle-formula-btn')?.addEventListener('click', () => 
         document.getElementById('formula-editor').classList.toggle('d-none')
     );
@@ -44,15 +43,12 @@ function attachFormulaEditorListeners(turma, disciplina, renderTurmaDetailView, 
             const acronyms = disciplina.gradeComponents.map(c => c.acronym);
             const formula = `(${acronyms.join(' + ')}) / ${acronyms.length}`;
             
-            // Atualiza o estado da disciplina e o campo de input
             disciplina.finalGradeFormula = formula;
             const formulaInput = document.getElementById('formula-input');
             formulaInput.value = formula;
             
-            // Força a re-renderização para recalcular e exibir as médias
-            renderTurmaDetailView(turma, disciplina);
+            renderTurmaDetailView(turma, disciplina, modals);
             
-            // Garante que o editor de fórmula esteja visível
             document.getElementById('formula-editor').classList.remove('d-none');
             showToast('Fórmula de média simples aplicada. As notas finais foram recalculadas.', 'success');
         } else {
@@ -83,7 +79,6 @@ function attachFormulaEditorListeners(turma, disciplina, renderTurmaDetailView, 
     });
 
     document.getElementById('save-formula-btn')?.addEventListener('click', async () => {
-        const snapshot = createSnapshot(turma);
         const tempMaxGrade = parseFloat(maxGradeInput.value) || 10;
         const tempFormula = formulaInput.value;
         
@@ -92,61 +87,33 @@ function attachFormulaEditorListeners(turma, disciplina, renderTurmaDetailView, 
         const result = testAndValidateFormula(tempFormula, tempDisciplina);
         formulaInput.classList.remove('shake-error');
 
-        if (result.valid) {
-            try {
-                await ApiService.updateDiscipline(disciplina.id, {
-                    finalGradeFormula: tempFormula,
-                    maxGrade: tempMaxGrade,
-                    gradeComponents: disciplina.gradeComponents,
-                });
-                
-                disciplina.finalGradeFormula = tempFormula;
-                disciplina.maxGrade = tempMaxGrade;
-
-                addAuditLog(turma.id, `Configurações de avaliação salvas. Fórmula: ${disciplina.finalGradeFormula}, Nota Máx.: ${disciplina.maxGrade}`, snapshot);
-                renderTurmaDetailView(turma, disciplina);
-                showToast('Configurações salvas com sucesso!', 'success');
-            } catch (error) {
-                showToast(`Erro ao salvar configurações: ${error.message}`, 'error');
-            }
-        } else {
+        if (!result.valid && tempFormula) {
             void formulaInput.offsetWidth;
             formulaInput.classList.add('shake-error');
             showToast('Fórmula inválida. Verifique os erros.', 'error');
+            return;
+        }
+
+        const snapshot = createSnapshot(turma);
+        try {
+            await ApiService.updateDiscipline(disciplina.id, {
+                finalGradeFormula: tempFormula,
+                maxGrade: tempMaxGrade
+            });
+            
+            disciplina.finalGradeFormula = tempFormula;
+            disciplina.maxGrade = tempMaxGrade;
+
+            addAuditLog(turma.id, `Configurações de avaliação salvas. Fórmula: ${disciplina.finalGradeFormula}, Nota Máx.: ${disciplina.maxGrade}`, snapshot);
+            renderTurmaDetailView(turma, disciplina, modals);
+            showToast('Configurações salvas com sucesso!', 'success');
+        } catch (error) {
+            showToast(`Erro ao salvar configurações: ${error.message}`, 'error');
         }
     });
 }
 
 function attachActionButtonsListeners(turma, disciplina, modals, renderTurmaDetailView, currentTurmaContext) {
-    document.getElementById('add-component-btn')?.addEventListener('click', async () => {
-        const nameInput = document.getElementById('new-comp-name');
-        const acronymInput = document.getElementById('new-comp-acronym');
-        if (nameInput.value && acronymInput.value) {
-            const newComponent = {
-                id: `new_${Date.now()}`,
-                name: nameInput.value,
-                acronym: acronymInput.value,
-                description: ''
-            };
-            
-            const updatedComponents = [...disciplina.gradeComponents, newComponent];
-
-            try {
-                await ApiService.updateDiscipline(disciplina.id, {
-                    gradeComponents: updatedComponents,
-                });
-
-                disciplina.gradeComponents.push(newComponent);
-                renderTurmaDetailView(turma, disciplina);
-                showToast(`Atividade "${nameInput.value}" adicionada com sucesso.`, 'success');
-                nameInput.value = '';
-                acronymInput.value = '';
-            } catch (error) {
-                showToast(`Erro ao adicionar atividade: ${error.message}`, 'error');
-            }
-        }
-    });
-
     document.getElementById('save-grades-btn')?.addEventListener('click', async () => {
         const snapshot = createSnapshot(turma);
         let hasChanges = false;
@@ -194,7 +161,7 @@ function attachActionButtonsListeners(turma, disciplina, modals, renderTurmaDeta
                     Object.assign(student.grades, updatedGrades);
                 });
                 addAuditLog(turma.id, `Notas salvas para a turma ${turma.name}.`, snapshot);
-                renderTurmaDetailView(turma, disciplina);
+                renderTurmaDetailView(turma, disciplina, modals);
                 showToast('Notas salvas com sucesso!', 'success');
             } catch (error) {
                 showToast(`Erro ao salvar notas: ${error.message}`, 'error');
@@ -206,45 +173,86 @@ function attachActionButtonsListeners(turma, disciplina, modals, renderTurmaDeta
 
     document.getElementById('add-student-btn')?.addEventListener('click', () => {
         if (modals.addStudentModal) {
+            document.getElementById('new-student-id').value = '';
+            document.getElementById('new-student-name').value = '';
             modals.addStudentModal.show();
         } else {
             console.error("addStudentModal is undefined. Cannot show modal.");
             showToast('Erro: Modal de adicionar aluno não encontrado.', 'error');
         }
     });
+    
+    const confirmAddStudentBtn = document.getElementById('confirm-add-student-btn');
+    if (confirmAddStudentBtn) {
+        const newBtn = confirmAddStudentBtn.cloneNode(true);
+        confirmAddStudentBtn.parentNode.replaceChild(newBtn, confirmAddStudentBtn);
 
-    document.getElementById('confirm-add-student-btn')?.addEventListener('click', async () => {
-        const studentId = document.getElementById('new-student-id').value;
-        const studentName = document.getElementById('new-student-name').value;
-        if (!studentId || !studentName) {
-            showToast('Matrícula e Nome são obrigatórios.', 'error');
-            return;
-        }
-        try {
-            await ApiService.addStudent(turma.id, { id: studentId, name: studentName });
-            if (modals.addStudentModal) {
-                modals.addStudentModal.hide();
+        newBtn.addEventListener('click', async () => {
+            const studentId = document.getElementById('new-student-id').value;
+            const studentName = document.getElementById('new-student-name').value;
+            if (!studentId || !studentName) {
+                showToast('Matrícula e Nome são obrigatórios.', 'error');
+                return;
             }
-            showToast('Aluno adicionado com sucesso! Atualizando...', 'success');
-            
-            const updatedTurma = await ApiService.getTurmaDetail(turma.id);
-            const updatedDiscipline = updatedTurma.discipline;
-            renderTurmaDetailView(updatedTurma, { ...disciplina, ...updatedDiscipline }, modals);
+            try {
+                await ApiService.addStudent(turma.id, { id: studentId, name: studentName });
+                if (modals.addStudentModal) {
+                    modals.addStudentModal.hide();
+                }
+                showToast('Aluno adicionado com sucesso! Atualizando...', 'success');
+                
+                const updatedTurma = await ApiService.getTurmaDetail(turma.id);
+                const updatedDiscipline = updatedTurma.discipline;
+                renderTurmaDetailView(updatedTurma, { ...disciplina, ...updatedDiscipline }, modals);
 
-        } catch (error) {
-            showToast(`Erro ao adicionar aluno: ${error.message}`, 'error');
-        }
-    });
+            } catch (error) {
+                showToast(`Erro ao adicionar aluno: ${error.message}`, 'error');
+            }
+        });
+    }
 
 
     document.getElementById('calculate-avg-btn')?.addEventListener('click', () => {
-        renderTurmaDetailView(turma, disciplina);
+        renderTurmaDetailView(turma, disciplina, modals);
         addAuditLog(turma.id, 'Médias recalculadas para todos os alunos.');
         renderAuditLog(currentTurmaContext, renderTurmaDetailView);
         showToast('Médias recalculadas com sucesso!', 'success');
     });
 
-    document.getElementById('finalize-semester-btn')?.addEventListener('click', () => modals.finalizeSemesterModal.show());
+    document.getElementById('finalize-semester-btn')?.addEventListener('click', () => {
+        let hasUnsavedChanges = false;
+        document.querySelectorAll('#grades-table-body .grade-input[data-acronym]').forEach(input => {
+            const studentId = input.closest('tr').dataset.studentId;
+            const acronym = input.dataset.acronym;
+            const student = turma.students.find(s => s.id == studentId);
+            
+            const currentValue = input.value.trim() === '' ? null : parseFloat(input.value);
+            const originalValue = student.grades[acronym] ?? null;
+
+            if (currentValue !== originalValue) {
+                if (!(currentValue === null && originalValue === null)) {
+                   if (currentValue === null || originalValue === null || Math.abs(currentValue - originalValue) > 0.001) {
+                       hasUnsavedChanges = true;
+                   }
+                }
+            }
+        });
+    
+        const modalBody = modals.finalizeSemesterModal._element.querySelector('.modal-body');
+        const existingWarning = modalBody.querySelector('.unsaved-warning');
+        if (existingWarning) {
+            existingWarning.remove();
+        }
+    
+        if (hasUnsavedChanges) {
+            const warningEl = document.createElement('p');
+            warningEl.className = 'alert alert-danger unsaved-warning';
+            warningEl.innerHTML = '<strong>Atenção extra!</strong> Você possui notas não salvas. Finalizar agora irá <strong>descartar</strong> essas alterações.';
+            modalBody.prepend(warningEl);
+        }
+        
+        modals.finalizeSemesterModal.show();
+    });
 
     const confirmFinalizeBtn = document.getElementById('confirm-finalize-btn');
     if (confirmFinalizeBtn) {
@@ -434,54 +442,133 @@ function attachAuditPanelListeners() {
 
 function attachStudentActionListeners(turma, disciplina, modals, renderTurmaDetailView) {
     const tableBody = document.getElementById('grades-table-body');
-    const confirmBtn = document.getElementById('confirm-delete-student-btn');
-    let studentToRemove = null;
-
-    // Delegated event listener for remove buttons
+    
     tableBody.addEventListener('click', (e) => {
         const removeBtn = e.target.closest('.remove-student-btn');
         if (removeBtn) {
             const { studentId, studentName } = removeBtn.dataset;
-            studentToRemove = { id: studentId, name: studentName ?? '' };
-            
-            document.getElementById('student-to-delete-name').textContent = studentToRemove.name;
+            document.getElementById('student-to-delete-name').textContent = studentName;
+            const confirmBtn = document.getElementById('confirm-delete-student-btn');
+            confirmBtn.dataset.studentId = studentId;
+            confirmBtn.dataset.studentName = studentName;
             modals.deleteStudentModal.show();
+        }
+
+        const editBtn = e.target.closest('.edit-student-btn');
+        if (editBtn) {
+            const { studentId, studentName } = editBtn.dataset;
+            document.getElementById('edit-student-id').value = studentId;
+            document.getElementById('edit-student-name').value = studentName;
+            document.getElementById('confirm-edit-student-btn').dataset.studentId = studentId;
+            modals.editStudentModal.show();
         }
     });
 
-    // Single event listener for the confirmation button
-    const newConfirmBtn = confirmBtn.cloneNode(true);
-    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-
-    newConfirmBtn.addEventListener('click', async () => {
-        if (!studentToRemove) return;
-
+    const confirmDeleteBtn = document.getElementById('confirm-delete-student-btn');
+    confirmDeleteBtn.onclick = async (e) => {
+        const { studentId, studentName } = e.currentTarget.dataset;
         try {
-            const snapshot = createSnapshot(turma);
-            await ApiService.removeStudent(turma.id, studentToRemove.id);
+            await ApiService.removeStudent(turma.id, studentId);
             modals.deleteStudentModal.hide();
-            showToast(`Aluno ${studentToRemove.name} removido com sucesso.`, 'success');
-            
-            addAuditLog(turma.id, `Aluno ${studentToRemove.name} (matrícula ${studentToRemove.id}) removido da turma.`, snapshot);
-            
+            showToast(`Aluno ${studentName} removido com sucesso.`, 'success');
+            addAuditLog(turma.id, `Aluno ${studentName} (matrícula ${studentId}) removido.`);
             const updatedTurma = await ApiService.getTurmaDetail(turma.id);
             renderTurmaDetailView(updatedTurma, updatedTurma.discipline, modals);
         } catch (error) {
             showToast(`Erro ao remover aluno: ${error.message}`, 'error');
-        } finally {
-            studentToRemove = null; // Reset after operation
+        }
+    };
+
+    const confirmEditBtn = document.getElementById('confirm-edit-student-btn');
+    confirmEditBtn.onclick = async (e) => {
+        const studentId = e.currentTarget.dataset.studentId;
+        const newName = document.getElementById('edit-student-name').value;
+        if (!newName) {
+            showToast('O nome do aluno é obrigatório.', 'error');
+            return;
+        }
+        try {
+            await ApiService.updateStudent(studentId, { 
+                name: newName, 
+                turmaId: turma.id // Passa o turmaId para verificação de permissão
+            });
+            modals.editStudentModal.hide();
+            showToast('Dados do aluno atualizados.', 'success');
+            addAuditLog(turma.id, `Nome do aluno ${studentId} alterado para ${newName}.`);
+            const updatedTurma = await ApiService.getTurmaDetail(turma.id);
+            renderTurmaDetailView(updatedTurma, updatedTurma.discipline, modals);
+        } catch (error) {
+            showToast(`Erro ao atualizar aluno: ${error.message}`, 'error');
+        }
+    };
+}
+
+function attachComponentActionListeners(turma, disciplina, modals, renderTurmaDetailView) {
+    document.getElementById('grade-components-list').addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('.delete-component-btn');
+        if (!deleteBtn) return;
+
+        const acronym = deleteBtn.dataset.compAcronym;
+        const component = disciplina.gradeComponents.find(c => c.acronym === acronym);
+        if (!component) return;
+
+        if (confirm(`Tem certeza que deseja remover a atividade "${component.name}"? Todas as notas associadas a ela serão perdidas.`)) {
+            const updatedComponents = disciplina.gradeComponents.filter(c => c.acronym !== acronym);
+            ApiService.updateDiscipline(disciplina.id, {
+                gradeComponents: updatedComponents
+            }).then(() => {
+                showToast(`Atividade "${component.name}" removida.`, 'success');
+                disciplina.gradeComponents = updatedComponents; // Atualiza o estado local
+                renderTurmaDetailView(turma, disciplina, modals);
+            }).catch(error => {
+                showToast(`Erro ao remover atividade: ${error.message}`, 'error');
+            });
+        }
+    });
+
+    document.getElementById('add-component-btn')?.addEventListener('click', async () => {
+        const nameInput = document.getElementById('new-comp-name');
+        const acronymInput = document.getElementById('new-comp-acronym');
+        const newName = nameInput.value.trim();
+        const newAcronym = acronymInput.value.trim();
+
+        if (!newName || !newAcronym) {
+            showToast('Nome e Sigla da atividade são obrigatórios.', 'error');
+            return;
+        }
+        if (disciplina.gradeComponents.some(c => c.acronym.toLowerCase() === newAcronym.toLowerCase())) {
+            showToast('A sigla da atividade já existe.', 'error');
+            return;
+        }
+
+        const newComponent = { name: newName, acronym: newAcronym, description: '' };
+        const updatedComponents = [...disciplina.gradeComponents, newComponent];
+
+        try {
+            await ApiService.updateDiscipline(disciplina.id, {
+                gradeComponents: updatedComponents
+            });
+            showToast('Atividade adicionada com sucesso!', 'success');
+            nameInput.value = '';
+            acronymInput.value = '';
+            disciplina.gradeComponents = updatedComponents;
+            renderTurmaDetailView(turma, disciplina, modals);
+        } catch (error) {
+            showToast(`Erro ao adicionar atividade: ${error.message}`, 'error');
         }
     });
 }
+
 
 export function attachAllListeners(turma, disciplina, modals, renderTurmaDetailView, currentTurmaContext) {
     const isFinalized = turma.isFinalized;
 
     if (!isFinalized) {
         attachGradeEditingListeners(turma, disciplina, renderTurmaDetailView, currentTurmaContext);
-        attachFormulaEditorListeners(turma, disciplina, renderTurmaDetailView, currentTurmaContext);
+        attachFormulaEditorListeners(turma, disciplina, renderTurmaDetailView, currentTurmaContext, modals);
         attachActionButtonsListeners(turma, disciplina, modals, renderTurmaDetailView, currentTurmaContext);
         attachStudentActionListeners(turma, disciplina, modals, renderTurmaDetailView);
+        attachComponentActionListeners(turma, disciplina, modals, renderTurmaDetailView);
     }
     
     attachCsvListeners(turma, disciplina, renderTurmaDetailView, modals);

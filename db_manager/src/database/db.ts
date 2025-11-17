@@ -1,11 +1,13 @@
 import oracledb from "oracledb";
 
+// FIX: Add declaration for the Node.js global `process` to resolve type errors.
+declare const process: any;
+
 const dbConfig = {
   user: "BD040825126",
   password: "Osmyk3",
   connectString: "BD-ACD:1521/xe"
 };
-
 
 /**
  * Inicializa o pool de conexões com o banco de dados Oracle.

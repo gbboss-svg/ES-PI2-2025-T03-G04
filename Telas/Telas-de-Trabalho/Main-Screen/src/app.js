@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         institutions: [],
         courses: [],
         disciplines: [],
-        activeTurmas: [],
+        activeTurmas: null, // Alterado para null para indicar estado inicial de "não carregado"
         currentView: 'profile',
     };
 
@@ -38,7 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'logoutModal', 'addInstitutionModal', 'addCourseModal', 'addDisciplineModal',
         'deleteInstitutionModal', 'deleteCourseModal', 'deleteDisciplineModal', 'deleteTurmaModal',
         'editTurmaModal', 'editDisciplineModal', 'addStudentModal', 'deleteStudentModal',
-        'finalizeSemesterModal', 'reopenTurmaModal', 'csvConflictModal'
+        'finalizeSemesterModal', 'reopenTurmaModal', 'csvConflictModal', 'editInstitutionModal', 'editCourseModal',
+        'editStudentModal'
     ];
 
     modalIds.forEach(id => {
@@ -62,10 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ApiService.getInstitutions(),
             ApiService.getCourses(),
             ApiService.getProfessorDisciplines(),
-            ApiService.getActiveTurmas()
+            // A busca de turmas ativas será feita pela própria view
         ]);
 
-        const [userResult, institutionsResult, coursesResult, disciplinesResult, activeTurmasResult] = results;
+        const [userResult, institutionsResult, coursesResult, disciplinesResult] = results;
 
         if (userResult.status === 'rejected') {
             showToast(`Erro ao carregar seu perfil: ${userResult.reason.message}. Você será desconectado.`, 'error');
@@ -89,11 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast(`Não foi possível carregar as disciplinas: ${disciplinesResult.reason.message}`, 'error');
         }
         
-        state.activeTurmas = activeTurmasResult.status === 'fulfilled' ? activeTurmasResult.value : [];
-        if (activeTurmasResult.status === 'rejected') {
-            showToast(`Não foi possível carregar as turmas ativas: ${activeTurmasResult.reason.message}`, 'error');
-        }
-
         state.courses = courses;
         state.disciplines = disciplines;
 
@@ -165,6 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderSettingsView(views.settings);
                 break;
             case 'turmaDetail':
+                // Handled by customRenderTurmaDetailView
                 break;
         }
     }
@@ -236,7 +233,174 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast(`Erro ao excluir turma: ${error.message}`, 'error');
             }
         });
+
+        document.getElementById('confirm-edit-turma-btn')?.addEventListener('click', async (e) => {
+            const id = e.currentTarget.dataset.turmaId;
+            const nome = document.getElementById('edit-turma-name').value;
+            const semestre = document.getElementById('edit-turma-semestre').value;
+            const periodo = document.getElementById('edit-turma-periodo').value;
+            const password = document.getElementById('current-password-edit-turma').value;
+            
+            if (!nome || !password) {
+                showToast("Nome da turma e senha são obrigatórios.", "error");
+                return;
+            }
+    
+            try {
+                await ApiService.updateTurma(id, { nome, semestre, periodo, password });
+                showToast('Turma atualizada com sucesso! A página será recarregada.', 'success');
+                modals.editTurmaModal.hide();
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                showToast(`Erro ao atualizar turma: ${error.message}`, 'error');
+            }
+        });
         
+        document.getElementById('confirm-edit-institution-btn').addEventListener('click', async (e) => {
+            const id = e.currentTarget.dataset.instId;
+            const name = document.getElementById('edit-institution-name').value;
+            const password = document.getElementById('current-password-edit-inst').value;
+        
+            if (!name || !password) {
+                showToast('Preencha o nome e a senha.', 'error');
+                return;
+            }
+        
+            try {
+                await ApiService.updateInstitution(id, { nome: name, password });
+                showToast('Instituição atualizada com sucesso! Atualizando...', 'success');
+                modals.editInstitutionModal.hide();
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                showToast(`Erro ao atualizar: ${error.message}`, 'error');
+            }
+        });
+        
+        document.getElementById('confirm-edit-course-btn').addEventListener('click', async (e) => {
+            const id = e.currentTarget.dataset.courseId;
+            const name = document.getElementById('edit-course-name').value;
+            const sigla = document.getElementById('edit-course-sigla').value;
+            const semestres = document.getElementById('edit-course-semestres').value;
+            const password = document.getElementById('current-password-edit-course').value;
+        
+            if (!name || !sigla || !semestres || !password) {
+                showToast('Preencha todos os campos e a senha.', 'error');
+                return;
+            }
+        
+            try {
+                await ApiService.updateCourse(id, { nome: name, sigla, semestres: parseInt(semestres), password });
+                showToast('Curso atualizado com sucesso! Atualizando...', 'success');
+                modals.editCourseModal.hide();
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                showToast(`Erro ao atualizar: ${error.message}`, 'error');
+            }
+        });
+        
+        document.getElementById('confirm-edit-discipline-btn').addEventListener('click', async (e) => {
+            const id = e.currentTarget.dataset.disciplineId;
+            const name = document.getElementById('edit-discipline-name').value;
+            const sigla = document.getElementById('edit-discipline-sigla').value;
+            const periodo = document.getElementById('edit-discipline-period').value;
+            const courseId = document.getElementById('edit-discipline-course-select-move').value;
+            const password = document.getElementById('current-password-edit-disc').value;
+        
+            if (!name || !sigla || !periodo || !courseId || !password) {
+                showToast('Preencha todos os campos e a senha.', 'error');
+                return;
+            }
+        
+            try {
+                await ApiService.updateDiscipline(id, { 
+                    nome: name, 
+                    sigla, 
+                    periodo, 
+                    idCurso: parseInt(courseId), 
+                    password 
+                });
+                showToast('Disciplina atualizada com sucesso! Atualizando...', 'success');
+                modals.editDisciplineModal.hide();
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                showToast(`Erro ao atualizar: ${error.message}`, 'error');
+            }
+        });
+
+        document.getElementById('confirm-add-institution-btn').addEventListener('click', async () => {
+            const name = document.getElementById('new-institution-name').value;
+            const password = document.getElementById('current-password-inst').value;
+            if (!name || !password) {
+                showToast('Preencha o nome da instituição e sua senha.', 'error');
+                return;
+            }
+            try {
+                await ApiService.verifyPassword(password);
+                await ApiService.addInstitution({ nome: name });
+                showToast(`Instituição "${name}" criada com sucesso! Atualizando...`, 'success');
+                modals.addInstitutionModal.hide();
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                showToast(`Erro: ${error.message}`, 'error');
+            }
+        });
+
+        document.getElementById('confirm-add-course-btn').addEventListener('click', async (e) => {
+            const instId = e.currentTarget.dataset.instId;
+            const name = document.getElementById('new-course-name').value;
+            const sigla = document.getElementById('new-course-sigla-main').value;
+            const semestres = document.getElementById('new-course-semestres-main').value;
+            const password = document.getElementById('current-password-course').value;
+        
+            if (!name || !sigla || !semestres || !password) {
+                showToast('Preencha todos os campos e a senha.', 'error');
+                return;
+            }
+        
+            try {
+                await ApiService.verifyPassword(password);
+                await ApiService.addCourse({ 
+                    nome: name, 
+                    sigla: sigla,
+                    semestres: parseInt(semestres),
+                    idInstituicao: parseInt(instId)
+                });
+                showToast(`Curso "${name}" criado com sucesso! Atualizando...`, 'success');
+                modals.addCourseModal.hide();
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                showToast(`Erro: ${error.message}`, 'error');
+            }
+        });
+
+        document.getElementById('confirm-add-discipline-btn').addEventListener('click', async (e) => {
+            const courseId = e.currentTarget.dataset.courseId;
+            const name = document.getElementById('new-discipline-name').value;
+            const sigla = document.getElementById('new-discipline-sigla').value;
+            const periodo = document.getElementById('new-discipline-periodo').value;
+            const password = document.getElementById('current-password-disc').value;
+        
+            if (!name || !sigla || !periodo || !password) {
+                showToast('Preencha todos os campos e a senha.', 'error');
+                return;
+            }
+        
+            try {
+                await ApiService.verifyPassword(password);
+                await ApiService.addDiscipline({
+                    nome: name,
+                    sigla: sigla,
+                    periodo: periodo,
+                    idCurso: parseInt(courseId)
+                });
+                showToast(`Disciplina "${name}" criada com sucesso! Atualizando...`, 'success');
+                modals.addDisciplineModal.hide();
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (error) {
+                showToast(`Erro: ${error.message}`, 'error');
+            }
+        });
+
         sidebarToggler.addEventListener('click', () => {
             document.body.classList.toggle('sidebar-collapsed');
             const icon = sidebarToggler.querySelector('i');

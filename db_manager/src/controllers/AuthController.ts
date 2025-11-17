@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import express from 'express';
 import AuthService from '../services/AuthService';
 import ProfessorService from '../services/ProfessorService';
 import oracledb from 'oracledb';
@@ -6,7 +6,8 @@ import { Buffer } from 'buffer';
 
 class AuthController {
   
-  private getDbConnection(req: Request): oracledb.Connection {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  private getDbConnection(req: express.Request): oracledb.Connection {
     if (!req.dbConnection) {
       throw new Error('Database connection not found in request. Ensure connectionMiddleware is applied.');
     }
@@ -14,7 +15,8 @@ class AuthController {
   }
 
   
-  async register(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async register(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const { nome, email, cpf, celular, senha } = req.body;
@@ -27,7 +29,8 @@ class AuthController {
   }
 
   
-  async login(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async login(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const { identifier, senha } = req.body;
@@ -60,7 +63,8 @@ class AuthController {
   }
 
   
-  async forgotPassword(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async forgotPassword(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const { identifier } = req.body;
@@ -72,7 +76,8 @@ class AuthController {
   }
 
   
-  async resetPassword(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async resetPassword(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const { email, novaSenha } = req.body;
@@ -84,7 +89,8 @@ class AuthController {
   }
 
   
-  async verifyEmail(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async verifyEmail(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const { email, code } = req.body;
@@ -96,7 +102,8 @@ class AuthController {
   }
 
   
-  async resendVerificationEmail(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async resendVerificationEmail(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const { email } = req.body;
@@ -108,7 +115,8 @@ class AuthController {
   }
 
   
-  async cancelRegistration(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async cancelRegistration(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const { email } = req.body;

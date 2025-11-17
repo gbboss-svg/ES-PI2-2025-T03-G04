@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import express from 'express';
 import ProfessorService from '../services/ProfessorService';
 import AuthService from '../services/AuthService';
 import InstitutionService from '../services/InstitutionService';
@@ -10,7 +10,8 @@ class ProfessorController {
    * Obtém a conexão de banco de dados anexada ao objeto de requisição.
    */
   
-  private getDbConnection(req: Request): oracledb.Connection {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  private getDbConnection(req: express.Request): oracledb.Connection {
     if (!req.dbConnection) {
       throw new Error('Database connection not found in request. Ensure connectionMiddleware is applied.');
     }
@@ -21,7 +22,8 @@ class ProfessorController {
    * Lida com a requisição para buscar as instituições associadas ao professor logado.
    */
   
-  async getInstituicoes(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async getInstituicoes(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const professorId = req.user!.id;
@@ -36,7 +38,8 @@ class ProfessorController {
    * Lida com a requisição para buscar os cursos associados ao professor logado.
    */
   
-  async getCursos(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async getCursos(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const professorId = req.user!.id;
@@ -51,7 +54,8 @@ class ProfessorController {
    * Lida com a requisição para criar uma nova instituição para o professor logado.
    */
   
-  async createInstitution(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async createInstitution(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const { nome } = req.body;
@@ -72,7 +76,8 @@ class ProfessorController {
    * Lida com a requisição para criar um novo curso para o professor logado.
    */
   
-  async createCourse(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async createCourse(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const { nome, sigla, semestres, idInstituicao } = req.body;
@@ -89,7 +94,8 @@ class ProfessorController {
    * Lida com a requisição para associar o professor logado a um curso existente.
    */
   
-  async associateProfessorToCourse(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async associateProfessorToCourse(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const professorId = req.user!.id;
@@ -105,7 +111,8 @@ class ProfessorController {
    * Lida com a requisição para buscar as informações de perfil do professor logado.
    */
   
-  async getProfessorInfo(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async getProfessorInfo(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const professorId = req.user!.id;
@@ -123,7 +130,8 @@ class ProfessorController {
    * Lida com a requisição para verificar a senha atual do professor.
    */
   
-  async verifyPassword(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async verifyPassword(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const professorId = req.user!.id;
@@ -142,7 +150,8 @@ class ProfessorController {
    * Lida com a requisição para atualizar o timestamp de último acesso a um curso.
    */
   
-  async updateCourseAccess(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async updateCourseAccess(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const professorId = req.user!.id;
@@ -158,7 +167,8 @@ class ProfessorController {
    * Lida com a requisição para atualizar os dados de uma instituição.
    */
   
-  async updateInstitution(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async updateInstitution(req: express.Request, res: express.Response) {
     try {
         const connection = this.getDbConnection(req);
         const professorId = req.user!.id;
@@ -184,7 +194,8 @@ class ProfessorController {
    * Lida com a requisição para excluir uma instituição.
    */
   
-  async deleteInstitution(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async deleteInstitution(req: express.Request, res: express.Response) {
       try {
           const connection = this.getDbConnection(req);
           const professorId = req.user!.id;
@@ -201,7 +212,8 @@ class ProfessorController {
    * Lida com a requisição para atualizar os dados de um curso.
    */
   
-  async updateCourse(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async updateCourse(req: express.Request, res: express.Response) {
     try {
         const connection = this.getDbConnection(req);
         const professorId = req.user!.id;
@@ -227,12 +239,12 @@ class ProfessorController {
    * Lida com a requisição para excluir um curso.
    */
   
-  async deleteCourse(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async deleteCourse(req: express.Request, res: express.Response) {
       try {
           const connection = this.getDbConnection(req);
           const professorId = req.user!.id;
           const courseId = parseInt(req.params.id, 10);
-          
           await CourseService.deleteCourse(connection, courseId, professorId);
           return res.status(200).json({ message: 'Curso excluído com sucesso!' });
       } catch (error: any) {

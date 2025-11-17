@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import express from 'express';
 import TurmaService from '../services/TurmaService';
 import StudentService from '../services/StudentService';
 import AuthService from '../services/AuthService';
@@ -10,7 +10,8 @@ class TurmaController {
    * Obtém a conexão de banco de dados anexada ao objeto de requisição.
    */
   
-  private getDbConnection(req: Request): oracledb.Connection {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  private getDbConnection(req: express.Request): oracledb.Connection {
     if (!req.dbConnection) {
       throw new Error('Database connection not found in request. Ensure connectionMiddleware is applied.');
     }
@@ -21,7 +22,8 @@ class TurmaController {
    * Lida com a requisição para buscar as turmas ativas do professor logado.
    */
   
-  async getActiveTurmas(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async getActiveTurmas(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const professorId = req.user!.id;
@@ -36,7 +38,8 @@ class TurmaController {
    * Lida com a requisição para criar uma nova turma.
    */
   
-  async createTurma(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async createTurma(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const turma = await TurmaService.createTurma(connection, req.body);
@@ -50,7 +53,8 @@ class TurmaController {
    * Lida com a requisição para buscar as turmas de uma disciplina específica.
    */
   
-  async getTurmasByDiscipline(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async getTurmasByDiscipline(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const { id } = req.params;
@@ -65,7 +69,8 @@ class TurmaController {
    * Lida com a requisição para buscar os detalhes completos de uma turma.
    */
   
-  async getTurmaDetail(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async getTurmaDetail(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const { id } = req.params;
@@ -80,7 +85,8 @@ class TurmaController {
    * Lida com a requisição para adicionar um único aluno a uma turma.
    */
   
-  async addStudentToTurma(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async addStudentToTurma(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const { id } = req.params;
@@ -96,7 +102,8 @@ class TurmaController {
    * Lida com a requisição para adicionar múltiplos alunos a uma turma em lote.
    */
   
-  async batchAddStudentsToTurma(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async batchAddStudentsToTurma(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const { id } = req.params;
@@ -115,7 +122,8 @@ class TurmaController {
    * Lida com a requisição para atualizar as notas de um aluno.
    */
   
-  async updateStudentGrades(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async updateStudentGrades(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const professorId = req.user!.id;
@@ -132,7 +140,8 @@ class TurmaController {
    * Lida com a requisição para excluir uma turma.
    */
   
-  async deleteTurma(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async deleteTurma(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const { id } = req.params;
@@ -147,7 +156,8 @@ class TurmaController {
    * Lida com a requisição para remover um aluno de uma turma.
    */
   
-  async removeStudentFromTurma(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async removeStudentFromTurma(req: express.Request, res: express.Response) {
     try {
         const connection = this.getDbConnection(req);
         const { turmaId, studentId } = req.params;
@@ -162,7 +172,8 @@ class TurmaController {
    * Lida com a requisição para finalizar o semestre de uma turma.
    */
   
-  async finalizeTurma(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async finalizeTurma(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const { id } = req.params;
@@ -177,7 +188,8 @@ class TurmaController {
    * Lida com a requisição para reabrir uma turma finalizada.
    */
   
-  async reopenTurma(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async reopenTurma(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const professorId = req.user!.id;
@@ -200,7 +212,8 @@ class TurmaController {
    * Lida com a requisição para atualizar os dados de uma turma.
    */
   
-  async updateTurma(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async updateTurma(req: express.Request, res: express.Response) {
     try {
         const connection = this.getDbConnection(req);
         const professorId = req.user!.id;

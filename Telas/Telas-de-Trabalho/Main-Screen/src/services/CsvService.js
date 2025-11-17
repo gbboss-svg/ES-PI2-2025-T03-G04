@@ -1,15 +1,37 @@
 /**
- * Converte os dados da turma para o formato CSV.
+ * Formata um campo individual para ser seguro em um CSV, lidando com vírgulas e aspas.
+ * @param {string | number | null | undefined} field - O valor do campo a ser formatado.
+ * @returns {string} O campo formatado para CSV.
+ */
+function formatCsvField(field) {
+    const value = field === null || field === undefined ? '' : String(field);
+    // Se o campo contém vírgula, aspas ou quebra de linha, ele precisa ser encapsulado em aspas.
+    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+        // As aspas dentro do campo devem ser escapadas (duplicadas).
+        const escapedValue = value.replace(/"/g, '""');
+        return `"${escapedValue}"`;
+    }
+    return value;
+}
+
+
+/**
+ * Converte os dados da turma para o formato CSV de forma robusta.
  */
 export function exportTurmaToCsv(turma, disciplina) {
-    const headers = ['matricula', 'nome', ...disciplina.gradeComponents.map(c => c.acronym)];
+    // Formata os cabeçalhos para serem seguros no CSV
+    const headers = ['matricula', 'nome', ...disciplina.gradeComponents.map(c => c.acronym)].map(formatCsvField);
+
+    // Formata cada linha de dados do aluno
     const rows = turma.students.map(student => {
-        const row = [student.id, student.name];
+        const rowData = [student.id, student.name];
         disciplina.gradeComponents.forEach(comp => {
-            row.push(student.grades[comp.acronym] || '');
+            rowData.push(student.grades[comp.acronym] || '');
         });
-        return row.join(',');
+        // Aplica a formatação a cada célula da linha antes de juntar
+        return rowData.map(formatCsvField).join(',');
     });
+
     return [headers.join(','), ...rows].join('\n');
 }
 

@@ -37,10 +37,21 @@ function attachTurmaActionListeners(container, callbacks, modals) {
     container.querySelectorAll('.edit-turma-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const { turmaId } = btn.dataset;
-            // Lógica para preencher o modal de edição e mostrá-lo
-            // Ex: fillEditTurmaModal(turmaId);
-            modals.editTurmaModal.show();
+            try {
+                const turmaData = JSON.parse(btn.dataset.turma);
+                document.getElementById('edit-turma-name').value = turmaData.name || '';
+                document.getElementById('edit-turma-semestre').value = turmaData.semestre || '';
+                document.getElementById('edit-turma-periodo').value = turmaData.periodo || '';
+                document.getElementById('current-password-edit-turma').value = '';
+
+                const confirmBtn = document.getElementById('confirm-edit-turma-btn');
+                confirmBtn.dataset.turmaId = turmaData.id;
+
+                modals.editTurmaModal.show();
+            } catch (error) {
+                console.error("Failed to parse turma data for editing", error);
+                showToast("Não foi possível abrir a edição para esta turma.", "error");
+            }
         });
     });
 }
@@ -71,7 +82,7 @@ async function handleAccordionShow(event, callbacks, modals) {
                         <button class="btn btn-sm btn-outline-danger delete-turma-btn" data-turma-id="${turma.id}" data-turma-name="${turma.name}" title="Excluir Turma">
                             <i class="bi bi-trash"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary edit-turma-btn" data-turma-id="${turma.id}" title="Editar Turma">
+                        <button class="btn btn-sm btn-outline-secondary edit-turma-btn" data-turma='${JSON.stringify(turma)}' title="Editar Turma">
                             <i class="bi bi-pencil"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-primary view-turma-btn" data-turma-id='${JSON.stringify(turma)}'>
@@ -92,7 +103,7 @@ async function handleAccordionShow(event, callbacks, modals) {
     }
 }
 
-export function attachInstitutionsViewListeners(container, modals, callbacks) {
+export function attachInstitutionsViewListeners(container, modals, callbacks, institutions) {
     container.querySelector('#add-new-from-management-btn').addEventListener('click', () => {
         callbacks.switchView('creation');
     });
@@ -113,12 +124,36 @@ export function attachInstitutionsViewListeners(container, modals, callbacks) {
     });
     
     container.querySelectorAll('.edit-discipline-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', async (e) => {
             e.stopPropagation();
             const { discId } = btn.dataset;
-            // Lógica para preencher o modal de edição de disciplina e exibi-lo
-            // Ex: fillEditDisciplineModal(discId);
-            modals.editDisciplineModal.show();
+            
+            let discipline;
+            let allCourses = [];
+            institutions.forEach(inst => {
+                (inst.courses || []).forEach(course => {
+                    allCourses.push({id: course.id, name: course.name});
+                    const foundDisc = (course.disciplines || []).find(d => d.id == discId);
+                    if (foundDisc) {
+                        discipline = foundDisc;
+                    }
+                });
+            });
+
+            if (discipline) {
+                document.getElementById('edit-discipline-name').value = discipline.name;
+                document.getElementById('edit-discipline-sigla').value = discipline.sigla;
+                document.getElementById('edit-discipline-period').value = discipline.periodo;
+                
+                const courseSelect = document.getElementById('edit-discipline-course-select-move');
+                courseSelect.innerHTML = allCourses.map(c => `<option value="${c.id}" ${c.id === discipline.courseId ? 'selected' : ''}>${c.name}</option>`).join('');
+                
+                document.getElementById('confirm-edit-discipline-btn').dataset.disciplineId = discipline.id;
+                document.getElementById('current-password-edit-disc').value = '';
+                modals.editDisciplineModal.show();
+            } else {
+                showToast("Não foi possível encontrar os dados da disciplina para edição.", "error");
+            }
         });
     });
 

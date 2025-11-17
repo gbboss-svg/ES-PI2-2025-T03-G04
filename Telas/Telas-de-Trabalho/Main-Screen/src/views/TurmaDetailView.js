@@ -30,7 +30,7 @@ export function renderTurmaDetailView(turma, disciplina, modals) {
   if (!safeDisciplina.gradeComponents) safeDisciplina.gradeComponents = [];
   if (!turma.students) turma.students = [];
 
-  renderGradeComponentsList(safeDisciplina);
+  renderGradeComponentsList(safeDisciplina, turma);
   renderGradesTable(turma, safeDisciplina);
   renderAuditLog(currentTurmaContext, renderTurmaDetailView);
 

@@ -121,7 +121,7 @@ export function renderMainHTML(turma, disciplina) {
     `;
 }
 
-export function renderGradeComponentsList(disciplina) {
+export function renderGradeComponentsList(disciplina, turma) {
     const list = document.getElementById("grade-components-list");
     if (!list) return;
 
@@ -130,6 +130,9 @@ export function renderGradeComponentsList(disciplina) {
         : disciplina.gradeComponents.map(comp => `
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <span><strong>${comp.acronym}:</strong> ${comp.name}</span>
+                <button class="btn btn-sm btn-outline-danger delete-component-btn" data-comp-acronym="${comp.acronym}" title="Remover Atividade" ${turma.isFinalized ? 'disabled' : ''}>
+                    <i class="bi bi-x-lg"></i>
+                </button>
             </li>`).join("");
 }
 
@@ -162,9 +165,14 @@ export function renderGradesTable(turma, disciplina) {
             const finalAdjustedCell = hasGradeComponents && disciplina.hasAdjustedColumn ? `<td><input type="number" class="grade-input" value="${isNaN(finalGrade) ? "" : adjustGrade(finalGrade).toFixed(1)}" min="0" max="${maxGrade}" step="0.5" ${isFinalized ? "disabled" : ""}></td>` : '';
             const actionsCell = `
                 <td>
-                    <button class="btn btn-sm btn-outline-danger remove-student-btn" data-student-id="${student.id}" data-student-name="${student.name || ''}" title="Remover Aluno" ${isFinalized ? 'disabled' : ''}>
-                        <i class="bi bi-trash"></i>
-                    </button>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-secondary edit-student-btn" data-student-id="${student.id}" data-student-name="${student.name || ''}" title="Editar Aluno" ${isFinalized ? 'disabled' : ''}>
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger remove-student-btn" data-student-id="${student.id}" data-student-name="${student.name || ''}" title="Remover Aluno" ${isFinalized ? 'disabled' : ''}>
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
                 </td>
             `;
             return `<tr data-student-id="${student.id}">

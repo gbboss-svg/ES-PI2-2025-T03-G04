@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import express from 'express';
 import GradeService from '../services/GradeService';
 import oracledb from 'oracledb';
 
@@ -7,7 +7,8 @@ class GradeController {
    * Obtém a conexão de banco de dados anexada ao objeto de requisição pelo middleware.
    */
   
-  private getDbConnection(req: Request): oracledb.Connection {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  private getDbConnection(req: express.Request): oracledb.Connection {
     if (!req.dbConnection) {
       throw new Error('Database connection not found in request. Ensure connectionMiddleware is applied.');
     }
@@ -18,7 +19,8 @@ class GradeController {
    * Lida com a requisição para atualizar (ou inserir) as notas de um aluno específico em uma turma.
    */
   
-  async updateStudentGrades(req: Request, res: Response) {
+  // FIX: Padronizado para usar o namespace do express para tipos (ex: express.Request) para resolver erros de tipo.
+  async updateStudentGrades(req: express.Request, res: express.Response) {
     try {
       const connection = this.getDbConnection(req);
       const professorId = req.user!.id;
