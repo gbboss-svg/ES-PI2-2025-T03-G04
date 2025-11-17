@@ -127,7 +127,7 @@ npm run dev
 
 O servidor sobe em:
 
-http://localhost:3000
+http://localhost:3333
 
 5️⃣ Rodar o Frontend
 
